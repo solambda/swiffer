@@ -24,7 +24,7 @@ TODO: describe a minimalexample in a one class
 
 ## Documentation
 
-- [User manual ](https://github.com/solambda/swiffer/wiki)
+- [User manual ](https://github.com/solambda/swiffer/wiki/User-guide)
 - Examples
 - Javadoc
 
