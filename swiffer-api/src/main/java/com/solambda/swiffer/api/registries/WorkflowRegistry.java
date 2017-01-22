@@ -6,8 +6,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.amazonaws.services.simpleworkflow.AmazonSimpleWorkflow;
-import com.amazonaws.services.simpleworkflow.model.*;
-import com.solambda.swiffer.api.model.Options;
+import com.amazonaws.services.simpleworkflow.model.DeprecateWorkflowTypeRequest;
+import com.amazonaws.services.simpleworkflow.model.DescribeWorkflowTypeRequest;
+import com.amazonaws.services.simpleworkflow.model.RegisterWorkflowTypeRequest;
+import com.amazonaws.services.simpleworkflow.model.TaskList;
+import com.amazonaws.services.simpleworkflow.model.TypeAlreadyExistsException;
+import com.amazonaws.services.simpleworkflow.model.TypeDeprecatedException;
+import com.amazonaws.services.simpleworkflow.model.UnknownResourceException;
+import com.amazonaws.services.simpleworkflow.model.WorkflowType;
+import com.amazonaws.services.simpleworkflow.model.WorkflowTypeDetail;
+import com.amazonaws.services.simpleworkflow.model.WorkflowTypeInfo;
+import com.solambda.swiffer.api.WorkflowOptions;
 import com.solambda.swiffer.api.model.WorkflowTypeId;
 
 public class WorkflowRegistry {
@@ -23,14 +32,14 @@ public class WorkflowRegistry {
 
 	public boolean exists(final WorkflowTypeId identifier) {
 		try {
-			WorkflowType workflowType = toWorkflowType(identifier);
+			final WorkflowType workflowType = toWorkflowType(identifier);
 
-			WorkflowTypeDetail detail = client.describeWorkflowType(
+			final WorkflowTypeDetail detail = this.client.describeWorkflowType(
 					new DescribeWorkflowTypeRequest().withDomain(identifier.domainId().getName()).withWorkflowType(
 							workflowType));
-			WorkflowTypeInfo typeInfo = detail.getTypeInfo();
+			final WorkflowTypeInfo typeInfo = detail.getTypeInfo();
 			return typeInfo != null && typeInfo.getWorkflowType().equals(workflowType);
-		} catch (UnknownResourceException e) {
+		} catch (final UnknownResourceException e) {
 			return false;
 		}
 	}
@@ -41,12 +50,13 @@ public class WorkflowRegistry {
 				.withVersion(identifier.version());
 	}
 
-	public void registerWorkflow(final WorkflowTypeId identifier, final String description, final Options defaultConfiguration) {
+	public void registerWorkflow(final WorkflowTypeId identifier, final String description,
+			final WorkflowOptions defaultConfiguration) {
 		try {
 			LOGGER.debug("registering workflow {}", identifier);
-			String defaultMaxExecutionDuration = defaultConfiguration.getMaxExecutionDuration();
-			String defaultMaxTaskDuration = defaultConfiguration.getMaxDecisionTaskDuration();
-			client.registerWorkflowType(new RegisterWorkflowTypeRequest()
+			final String defaultMaxExecutionDuration = defaultConfiguration.getMaxExecutionDuration();
+			final String defaultMaxTaskDuration = defaultConfiguration.getMaxDecisionTaskDuration();
+			this.client.registerWorkflowType(new RegisterWorkflowTypeRequest()
 					// identification of the WF
 					.withName(identifier.name())
 					.withVersion(identifier.version())
@@ -57,8 +67,9 @@ public class WorkflowRegistry {
 					// defaults behaviors
 					.withDefaultChildPolicy(defaultConfiguration.getChildTerminationPolicy())
 					.withDefaultTaskList(
-							defaultConfiguration.getTaskListIdentifier() == null ? null : new TaskList().withName(defaultConfiguration.getTaskListIdentifier()
-									.getName()))
+							defaultConfiguration.getTaskListIdentifier() == null ? null
+									: new TaskList().withName(defaultConfiguration.getTaskListIdentifier()
+											.getName()))
 					.withDefaultTaskPriority(defaultConfiguration.getTaskPriority())
 
 					.withDefaultExecutionStartToCloseTimeout(defaultMaxExecutionDuration)
@@ -66,21 +77,22 @@ public class WorkflowRegistry {
 			// /////
 			// register definition
 			// registerDefinition(workflow, definition);
-		} catch (TypeAlreadyExistsException e) {
+		} catch (final TypeAlreadyExistsException e) {
 			throw new IllegalStateException("cannot register the workflow " + identifier, e);
-		} catch (UnknownResourceException e) {
+		} catch (final UnknownResourceException e) {
 			throw new IllegalStateException("cannot check for workflow existence", e);
 		}
 	}
 
 	public void registerWorkflow(final WorkflowTypeId identifier) {
-		registerWorkflow(identifier, null, Options.maxWorkflowDuration(Duration.ofSeconds(30)));
+		registerWorkflow(identifier, null, new WorkflowOptions().maxWorkflowDuration(Duration.ofSeconds(30)));
 	}
 
 	public void unregisterWorkflow(final WorkflowTypeId identifier) {
 		try {
-			client.deprecateWorkflowType(new DeprecateWorkflowTypeRequest().withDomain(identifier.domainId().getName())
-					.withWorkflowType(toWorkflowType(identifier)));
+			this.client.deprecateWorkflowType(
+					new DeprecateWorkflowTypeRequest().withDomain(identifier.domainId().getName())
+							.withWorkflowType(toWorkflowType(identifier)));
 		} catch (TypeDeprecatedException | UnknownResourceException e) {
 			throw new IllegalStateException("cannot unregister workflow " + identifier, e);
 		}

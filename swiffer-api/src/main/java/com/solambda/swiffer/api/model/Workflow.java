@@ -1,6 +1,7 @@
 package com.solambda.swiffer.api.model;
 
 import com.amazonaws.services.simpleworkflow.model.ChildPolicy;
+import com.solambda.swiffer.api.WorkflowOptions;
 
 /**
  * Represents a particular execution of a workflow or a future execution of a
@@ -23,9 +24,9 @@ public interface Workflow {
 
 	public String start(String input);
 
-	public String start(Options options);
+	public String start(WorkflowOptions options);
 
-	public String start(String input, Options options);
+	public String start(String input, WorkflowOptions options);
 
 	// P2 : tags handling and visibility
 	// public String start(Tags tags);

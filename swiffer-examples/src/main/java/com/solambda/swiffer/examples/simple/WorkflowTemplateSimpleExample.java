@@ -4,11 +4,13 @@ import com.solambda.swiffer.api.Decisions;
 import com.solambda.swiffer.api.Input;
 import com.solambda.swiffer.api.OnActivityCompleted;
 import com.solambda.swiffer.api.OnActivityFailed;
+import com.solambda.swiffer.api.OnSignalReceived;
+import com.solambda.swiffer.api.OnTimerFired;
 import com.solambda.swiffer.api.OnWorkflowStarted;
 import com.solambda.swiffer.examples.simple.ActivityDefinitions.ParseInteger;
-import com.solambda.swiffer.examples.simple.WorkflowDefinitions.SimpleExampleWorkflow;
+import com.solambda.swiffer.examples.simple.WorkflowDefinitions.SimpleExampleWorkflowDefinition;
 
-@SimpleExampleWorkflow
+@SimpleExampleWorkflowDefinition
 public class WorkflowTemplateSimpleExample {
 
 	@OnWorkflowStarted
@@ -22,6 +24,19 @@ public class WorkflowTemplateSimpleExample {
 		decideTo.completeWorfklow(workflowResult);
 	}
 
-	@OnActivityFailed
+	@OnActivityFailed(activity = ParseInteger.class)
+	public void couldNotParseInteger(final String reason, final String details) {
+
+	}
+
+	@OnTimerFired(timerId = "")
+	public void timerFired() {
+
+	}
+
+	@OnSignalReceived(signalName = "")
+	public void signalReceived() {
+
+	}
 
 }

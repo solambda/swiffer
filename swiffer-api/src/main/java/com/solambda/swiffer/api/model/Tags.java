@@ -4,12 +4,15 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import com.google.common.base.Preconditions;
+
 public class Tags {
 
 	private List<String> tags;
 
 	public Tags(final List<String> tags) {
 		super();
+		Preconditions.checkArgument(tags == null || tags.size() <= 5);
 		this.tags = tags;
 	}
 
