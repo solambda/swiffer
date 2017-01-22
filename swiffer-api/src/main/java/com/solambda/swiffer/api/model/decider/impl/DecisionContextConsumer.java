@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.amazonaws.services.simpleworkflow.AmazonSimpleWorkflow;
+import com.solambda.swiffer.api.internal.DecisionsImpl;
 import com.solambda.swiffer.api.model.decider.*;
 
 public class DecisionContextConsumer {

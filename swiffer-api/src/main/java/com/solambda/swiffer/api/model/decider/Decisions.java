@@ -4,13 +4,9 @@ import java.time.Duration;
 import java.util.Collection;
 
 import com.amazonaws.services.simpleworkflow.model.Decision;
+import com.solambda.swiffer.api.ActivityOptions;
 import com.solambda.swiffer.api.model.TaskType;
-import com.solambda.swiffer.api.model.tasks.TaskOptions;
 
-/**
- * Provide method for creating decisions.
- * <p>
- */
 public interface Decisions {
 
 	public static final String FORCE_TIMER_ID = "___FORCE_DECISION_MAKING_TIMER___";
@@ -44,9 +40,9 @@ public interface Decisions {
 	// public <I> void scheduleTask(TaskType taskType, I input);
 	// public <I> void scheduleTask(TaskType taskType, I input, Mapper<I>
 	// mapper);
-	public void scheduleTask(TaskType taskType, TaskOptions options);
+	public void scheduleTask(TaskType taskType, ActivityOptions options);
 
-	public void scheduleTask(TaskType taskType, String input, TaskOptions options);
+	public void scheduleTask(TaskType taskType, String input, ActivityOptions options);
 
 	// public <I> void scheduleTask(TaskType taskType, I input, TaskOptions
 	// options);

@@ -4,9 +4,16 @@ import java.time.Duration;
 import java.util.Objects;
 
 import com.amazonaws.services.simpleworkflow.AmazonSimpleWorkflow;
-import com.amazonaws.services.simpleworkflow.model.*;
+import com.amazonaws.services.simpleworkflow.model.ActivityType;
+import com.amazonaws.services.simpleworkflow.model.ActivityTypeDetail;
+import com.amazonaws.services.simpleworkflow.model.DeprecateActivityTypeRequest;
+import com.amazonaws.services.simpleworkflow.model.DescribeActivityTypeRequest;
+import com.amazonaws.services.simpleworkflow.model.RegisterActivityTypeRequest;
+import com.amazonaws.services.simpleworkflow.model.TypeAlreadyExistsException;
+import com.amazonaws.services.simpleworkflow.model.TypeDeprecatedException;
+import com.amazonaws.services.simpleworkflow.model.UnknownResourceException;
+import com.solambda.swiffer.api.ActivityOptions;
 import com.solambda.swiffer.api.model.TaskType;
-import com.solambda.swiffer.api.model.tasks.TaskOptions;
 
 public class TaskRegistry {
 
@@ -20,9 +27,9 @@ public class TaskRegistry {
 	 * <li>tasklist name is "default"
 	 * </ul>
 	 */
-	public static final TaskOptions DEFAULT_OPTIONS = new TaskOptions()
+	public static final ActivityOptions DEFAULT_OPTIONS = new ActivityOptions()
 			.taskList("default")
-			.taskPriority("0")
+			.taskPriority(null)
 			.maxExecutionDuration(INFINITE_DURATION)
 			.maxHeartbeatDuration(INFINITE_DURATION)
 			.maxTotalDuration(INFINITE_DURATION)
@@ -39,8 +46,9 @@ public class TaskRegistry {
 		create(domainName, taskType, taskDescription, DEFAULT_OPTIONS);
 	}
 
-	public void create(final String domain, final TaskType taskType, final String description, final TaskOptions options) {
-		TaskOptions opts = options == null ? DEFAULT_OPTIONS : options;
+	public void create(final String domain, final TaskType taskType, final String description,
+			final ActivityOptions options) {
+		final ActivityOptions opts = options == null ? DEFAULT_OPTIONS : options;
 		try {
 			swf.registerActivityType(new RegisterActivityTypeRequest()
 					.withDomain(domain)
@@ -48,18 +56,24 @@ public class TaskRegistry {
 					.withVersion(taskType.version())
 					.withDescription(description)
 					.withDefaultTaskList(opts.taskList())
-					.withDefaultTaskPriority(opts.taskPriority())
+					.withDefaultTaskPriority(stringify(opts.taskPriority()))
 					.withDefaultTaskScheduleToStartTimeout(opts.scheduleToStartTimeout())
 					.withDefaultTaskStartToCloseTimeout(opts.startToCloseTimeout())
 					.withDefaultTaskScheduleToCloseTimeout(opts.scheduleToCloseTimeout())
 					.withDefaultTaskHeartbeatTimeout(opts.heartbeatTimeout()));
 			// return new Activity(activityName, activityVersion);
-		} catch (TypeAlreadyExistsException e) {
+		} catch (final TypeAlreadyExistsException e) {
 			// return new Activity(activityName, activityVersion);
-			throw new IllegalStateException(String.format("cannot register the activity %s v=%s in domain %s", taskType.name(), taskType.version(), domain), e);
-		} catch (UnknownResourceException e) {
-			throw new IllegalStateException(String.format("cannot register the activity %s v=%s in domain %s", taskType.name(), taskType.version(), domain), e);
+			throw new IllegalStateException(String.format("cannot register the activity %s v=%s in domain %s",
+					taskType.name(), taskType.version(), domain), e);
+		} catch (final UnknownResourceException e) {
+			throw new IllegalStateException(String.format("cannot register the activity %s v=%s in domain %s",
+					taskType.name(), taskType.version(), domain), e);
 		}
+	}
+
+	private String stringify(final Integer taskPriority) {
+		return taskPriority == null ? null : taskPriority.toString();
 	}
 
 	/**
@@ -69,18 +83,18 @@ public class TaskRegistry {
 			swf.deprecateActivityType(new DeprecateActivityTypeRequest()
 					.withDomain(domain)
 					.withActivityType(new ActivityType().withName(taskType.name()).withVersion(taskType.version())));
-		} catch (TypeDeprecatedException e) {
-		} catch (UnknownResourceException e) {
+		} catch (final TypeDeprecatedException e) {
+		} catch (final UnknownResourceException e) {
 		}
 	}
 
 	public boolean exists(final String domain, final TaskType taskType) {
 		try {
-			ActivityTypeDetail details = swf.describeActivityType(new DescribeActivityTypeRequest()
+			final ActivityTypeDetail details = swf.describeActivityType(new DescribeActivityTypeRequest()
 					.withDomain(domain)
 					.withActivityType(new ActivityType().withName(taskType.name()).withVersion(taskType.version())));
 			return Objects.equals(details.getTypeInfo().getStatus(), "REGISTERED");
-		} catch (UnknownResourceException e) {
+		} catch (final UnknownResourceException e) {
 			return false;
 		}
 	}

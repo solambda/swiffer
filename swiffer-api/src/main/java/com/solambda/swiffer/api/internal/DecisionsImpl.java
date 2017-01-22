@@ -1,12 +1,25 @@
-package com.solambda.swiffer.api.model.decider.impl;
+package com.solambda.swiffer.api.internal;
 
 import java.time.Duration;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
 
-import com.amazonaws.services.simpleworkflow.model.*;
+import com.amazonaws.services.simpleworkflow.model.ActivityType;
+import com.amazonaws.services.simpleworkflow.model.CancelTimerDecisionAttributes;
+import com.amazonaws.services.simpleworkflow.model.CancelWorkflowExecutionDecisionAttributes;
+import com.amazonaws.services.simpleworkflow.model.CompleteWorkflowExecutionDecisionAttributes;
+import com.amazonaws.services.simpleworkflow.model.Decision;
+import com.amazonaws.services.simpleworkflow.model.DecisionType;
+import com.amazonaws.services.simpleworkflow.model.FailWorkflowExecutionDecisionAttributes;
+import com.amazonaws.services.simpleworkflow.model.RecordMarkerDecisionAttributes;
+import com.amazonaws.services.simpleworkflow.model.ScheduleActivityTaskDecisionAttributes;
+import com.amazonaws.services.simpleworkflow.model.StartTimerDecisionAttributes;
+import com.solambda.swiffer.api.ActivityOptions;
 import com.solambda.swiffer.api.model.TaskType;
 import com.solambda.swiffer.api.model.decider.Decisions;
-import com.solambda.swiffer.api.model.tasks.TaskOptions;
 
 public class DecisionsImpl implements Decisions {
 
@@ -22,7 +35,7 @@ public class DecisionsImpl implements Decisions {
 	}
 
 	private Decision newDecision(final DecisionType decisionType) {
-		Decision decision = new Decision().withDecisionType(decisionType);
+		final Decision decision = new Decision().withDecisionType(decisionType);
 		decisions.add(decision);
 		return decision;
 	}
@@ -71,21 +84,21 @@ public class DecisionsImpl implements Decisions {
 
 	@Override
 	public void scheduleTask(final TaskType type) {
-		scheduleTask(type, null, new TaskOptions());
+		scheduleTask(type, null, new ActivityOptions());
 	}
 
 	@Override
 	public void scheduleTask(final TaskType type, final String input) {
-		scheduleTask(type, input, new TaskOptions());
+		scheduleTask(type, input, new ActivityOptions());
 	}
 
 	@Override
-	public void scheduleTask(final TaskType type, final TaskOptions options) {
-		scheduleTask(type, null, options == null ? new TaskOptions() : options);
+	public void scheduleTask(final TaskType type, final ActivityOptions options) {
+		scheduleTask(type, null, options == null ? new ActivityOptions() : options);
 	}
 
 	@Override
-	public void scheduleTask(final TaskType type, final String input, final TaskOptions options) {
+	public void scheduleTask(final TaskType type, final String input, final ActivityOptions options) {
 		newDecision(DecisionType.ScheduleActivityTask)
 				.withScheduleActivityTaskDecisionAttributes(new ScheduleActivityTaskDecisionAttributes()
 						.withActivityType(new ActivityType().withName(type.name()).withVersion(type.version()))
@@ -97,7 +110,11 @@ public class DecisionsImpl implements Decisions {
 						.withScheduleToStartTimeout(options.scheduleToStartTimeout())
 						.withStartToCloseTimeout(options.startToCloseTimeout())
 						.withTaskList(options.taskList())
-						.withTaskPriority(options.taskPriority()));
+						.withTaskPriority(nullify(options.taskPriority())));
+	}
+
+	private String nullify(final Integer taskPriority) {
+		return taskPriority == null ? null : taskPriority.toString();
 	}
 
 	@Override
@@ -111,8 +128,7 @@ public class DecisionsImpl implements Decisions {
 				.withStartTimerDecisionAttributes(new StartTimerDecisionAttributes()
 						.withTimerId(timerId)
 						.withStartToFireTimeout(Long.toString(duration.getSeconds()))
-						.withControl(control)
-				);
+						.withControl(control));
 	}
 
 	@Override
@@ -146,8 +162,7 @@ public class DecisionsImpl implements Decisions {
 		newDecision(DecisionType.RecordMarker)
 				.withRecordMarkerDecisionAttributes(new RecordMarkerDecisionAttributes()
 						.withMarkerName(markerName)
-						.withDetails(details)
-				);
+						.withDetails(details));
 	}
 
 }

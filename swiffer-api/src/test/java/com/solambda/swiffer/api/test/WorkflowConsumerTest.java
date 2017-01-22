@@ -8,9 +8,9 @@ import java.util.concurrent.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.solambda.swiffer.api.internal.DecisionsImpl;
 import com.solambda.swiffer.api.model.decider.*;
 import com.solambda.swiffer.api.model.decider.impl.DecisionExecutorImpl;
-import com.solambda.swiffer.api.model.decider.impl.DecisionsImpl;
 
 public class WorkflowConsumerTest {
 
