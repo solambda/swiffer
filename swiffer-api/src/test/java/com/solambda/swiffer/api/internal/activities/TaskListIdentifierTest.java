@@ -1,9 +1,10 @@
-package com.solambda.swiffer.api.internal;
+package com.solambda.swiffer.api.internal.activities;
 
 import org.assertj.core.api.Assertions;
 import org.junit.Test;
 
 import com.google.common.base.Strings;
+import com.solambda.swiffer.api.internal.TaskListIdentifier;
 
 public class TaskListIdentifierTest {
 

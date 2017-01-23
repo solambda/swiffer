@@ -1,4 +1,4 @@
-package com.solambda.swiffer.api.internal;
+package com.solambda.swiffer.api.internal.activities;
 
 import static com.solambda.swiffer.test.Tests.returnAfterDelay;
 import static com.solambda.swiffer.test.Tests.sleep;
@@ -30,10 +30,11 @@ import com.solambda.swiffer.api.ActivityType;
 import com.solambda.swiffer.api.Executor;
 import com.solambda.swiffer.api.Swiffer;
 import com.solambda.swiffer.api.Worker;
-import com.solambda.swiffer.api.internal.WorkerImplTest.Definitions.FailingActivity;
-import com.solambda.swiffer.api.internal.WorkerImplTest.Definitions.NoArgumentActivity;
-import com.solambda.swiffer.api.internal.WorkerImplTest.Definitions.NoReturnValueActivity;
-import com.solambda.swiffer.api.internal.WorkerImplTest.Definitions.ToUpperCase;
+import com.solambda.swiffer.api.internal.WorkerImpl;
+import com.solambda.swiffer.api.internal.activities.WorkerImplTest.Definitions.FailingActivity;
+import com.solambda.swiffer.api.internal.activities.WorkerImplTest.Definitions.NoArgumentActivity;
+import com.solambda.swiffer.api.internal.activities.WorkerImplTest.Definitions.NoReturnValueActivity;
+import com.solambda.swiffer.api.internal.activities.WorkerImplTest.Definitions.ToUpperCase;
 import com.solambda.swiffer.test.Tests;
 
 public class WorkerImplTest {
