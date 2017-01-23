@@ -42,27 +42,27 @@ public class SimpleWorkflowExample {
 	}
 
 	private void sendSignal(final Swiffer swiffer) {
-		swiffer// .sendToWorkflow("workflowid")
-				.sendSignalToWorkflow("workflowid", "name", "input");
+		// swiffer// .sendToWorkflow("workflowid")
+		// .sendSignalToWorkflow("workflowid", "name", "input");
 	}
 
 	private void createAndStartDecider(final Swiffer swiffer) {
-		decider = swiffer.newDeciderBuilder()
+		this.decider = swiffer.newDeciderBuilder()
 				.decisionTaskList("myDecisionTaskList")
 				.activityTaskList("myActivityTaskList")
 				.identity("myWorker")
 				.workflowTemplates(new WorkflowTemplateSimpleExample())
 				.build();
-		decider.start();
+		this.decider.start();
 	}
 
 	private void createAndStartWorker(final Swiffer swiffer) {
-		worker = swiffer.newWorkerBuilder()
+		this.worker = swiffer.newWorkerBuilder()
 				.taskList("myTaskList")
 				.identity("simple-example-worker")
 				.executors(new ActivityImplementations())
 				.build();
-		worker.start();
+		this.worker.start();
 	}
 
 	private Swiffer initializeSwiffer() {

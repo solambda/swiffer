@@ -44,4 +44,16 @@ public class SWFUtils {
 				"must be between 1 and 256 characters");
 		return id;
 	}
+
+	public static String checkVersion(final String version) {
+		Preconditions.checkArgument(version != null, "cannot be null");
+		Preconditions.checkArgument(version.length() >= 1 && version.length() <= 64,
+				"must be between 1 and 64 characters");
+		Preconditions.checkArgument(version.trim().equals(version),
+				"must not start or end with whitespace");
+		Preconditions.checkArgument(!version.matches(".*([:/|]|\\p{Cntrl}).*"),
+				"must not contain a : (colon), / (slash), | (vertical bar), or any control characters (\\u0000-\\u001f | \\u007f - \\u009f).");
+		Preconditions.checkArgument(!version.contains("arn"), "must not contain the literal string 'arn'");
+		return version;
+	}
 }

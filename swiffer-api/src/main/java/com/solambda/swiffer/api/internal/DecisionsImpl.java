@@ -18,7 +18,6 @@ import com.amazonaws.services.simpleworkflow.model.RecordMarkerDecisionAttribute
 import com.amazonaws.services.simpleworkflow.model.ScheduleActivityTaskDecisionAttributes;
 import com.amazonaws.services.simpleworkflow.model.StartTimerDecisionAttributes;
 import com.solambda.swiffer.api.ActivityOptions;
-import com.solambda.swiffer.api.model.TaskType;
 import com.solambda.swiffer.api.model.decider.Decisions;
 
 public class DecisionsImpl implements Decisions {
@@ -83,22 +82,22 @@ public class DecisionsImpl implements Decisions {
 	}
 
 	@Override
-	public void scheduleTask(final TaskType type) {
+	public void scheduleTask(final VersionedName type) {
 		scheduleTask(type, null, new ActivityOptions());
 	}
 
 	@Override
-	public void scheduleTask(final TaskType type, final String input) {
+	public void scheduleTask(final VersionedName type, final String input) {
 		scheduleTask(type, input, new ActivityOptions());
 	}
 
 	@Override
-	public void scheduleTask(final TaskType type, final ActivityOptions options) {
+	public void scheduleTask(final VersionedName type, final ActivityOptions options) {
 		scheduleTask(type, null, options == null ? new ActivityOptions() : options);
 	}
 
 	@Override
-	public void scheduleTask(final TaskType type, final String input, final ActivityOptions options) {
+	public void scheduleTask(final VersionedName type, final String input, final ActivityOptions options) {
 		newDecision(DecisionType.ScheduleActivityTask)
 				.withScheduleActivityTaskDecisionAttributes(new ScheduleActivityTaskDecisionAttributes()
 						.withActivityType(new ActivityType().withName(type.name()).withVersion(type.version()))

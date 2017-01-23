@@ -1,4 +1,4 @@
-package com.solambda.swiffer.api.model;
+package com.solambda.swiffer.api.internal;
 
 import com.solambda.swiffer.api.internal.utils.SWFUtils;
 

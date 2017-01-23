@@ -2,6 +2,7 @@ package com.solambda.swiffer.api.model;
 
 import com.amazonaws.services.simpleworkflow.model.ChildPolicy;
 import com.solambda.swiffer.api.WorkflowOptions;
+import com.solambda.swiffer.api.internal.Failure;
 
 /**
  * Represents a particular execution of a workflow or a future execution of a

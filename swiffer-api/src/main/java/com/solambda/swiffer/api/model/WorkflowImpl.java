@@ -30,6 +30,7 @@ import com.amazonaws.services.simpleworkflow.model.WorkflowExecutionInfo;
 import com.amazonaws.services.simpleworkflow.model.WorkflowExecutionInfos;
 import com.amazonaws.services.simpleworkflow.model.WorkflowType;
 import com.solambda.swiffer.api.WorkflowOptions;
+import com.solambda.swiffer.api.internal.Failure;
 
 public class WorkflowImpl implements Workflow {
 

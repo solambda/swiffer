@@ -1,6 +1,6 @@
 package com.solambda.swiffer.api.model.decider;
 
-import com.solambda.swiffer.api.model.TaskType;
+import com.solambda.swiffer.api.internal.VersionedName;
 import com.solambda.swiffer.api.model.WorkflowTypeId;
 
 public abstract class DeciderConfigurerImpl extends EventContextHandlerRegistryBuilder implements DeciderConfigurer {
@@ -31,7 +31,7 @@ public abstract class DeciderConfigurerImpl extends EventContextHandlerRegistryB
 	}
 
 	@Override
-	public TaskHandlerRegistryBuilder on(final TaskType type) {
+	public TaskHandlerRegistryBuilder on(final VersionedName type) {
 		return builder.on(type);
 	}
 

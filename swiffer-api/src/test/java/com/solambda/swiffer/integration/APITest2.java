@@ -7,7 +7,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import com.solambda.swiffer.api.model.tasks.TaskContext;
+import com.solambda.swiffer.api.internal.activities.ActivityTaskContext;
 
 public class APITest2 {
 
@@ -69,7 +69,7 @@ public class APITest2 {
 	}
 
 	public static interface TaskResultConfigurer<I, O> {
-		public void completed(BiConsumer<TaskContext, DecisionMaker> code);
+		public void completed(BiConsumer<ActivityTaskContext, DecisionMaker> code);
 	}
 
 	public static interface Serializer<I> {

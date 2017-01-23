@@ -4,7 +4,6 @@ import org.assertj.core.api.Assertions;
 import org.junit.Test;
 
 import com.google.common.base.Strings;
-import com.solambda.swiffer.api.model.TaskListIdentifier;
 
 public class TaskListIdentifierTest {
 

@@ -1,4 +1,4 @@
-package com.solambda.swiffer.api.model;
+package com.solambda.swiffer.api.internal;
 
 public interface HasInput {
 

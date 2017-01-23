@@ -15,8 +15,8 @@ import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.services.simpleworkflow.AmazonSimpleWorkflow;
 import com.amazonaws.services.simpleworkflow.AmazonSimpleWorkflowClient;
+import com.solambda.swiffer.api.internal.VersionedName;
 import com.solambda.swiffer.api.model.DomainIdentifier;
-import com.solambda.swiffer.api.model.TaskType;
 import com.solambda.swiffer.api.model.WorkflowTypeId;
 import com.solambda.swiffer.api.model.decider.Decider;
 import com.solambda.swiffer.api.model.decider.Decisions;
@@ -153,12 +153,12 @@ public class ObjectMother {
 		}
 	}
 
-	public static TaskType taskType() {
-		return new TaskType(taskName(), taskVersion());
+	public static VersionedName taskType() {
+		return new VersionedName(taskName(), taskVersion());
 	}
 
-	public static TaskType smallTimeoutTaskType() {
-		return new TaskType(smallTimeoutTaskName(), smallTimeoutTaskVersion());
+	public static VersionedName smallTimeoutTaskType() {
+		return new VersionedName(smallTimeoutTaskName(), smallTimeoutTaskVersion());
 	}
 
 	public static SignalName signalName() {
@@ -173,8 +173,8 @@ public class ObjectMother {
 		return MarkerName.of("my-marker");
 	}
 
-	public static TaskType unregisteredTaskType() {
-		return new TaskType("unregistered", "1");
+	public static VersionedName unregisteredTaskType() {
+		return new VersionedName("unregistered", "1");
 	}
 
 }

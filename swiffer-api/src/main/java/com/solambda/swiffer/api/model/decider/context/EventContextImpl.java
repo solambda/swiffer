@@ -2,6 +2,7 @@ package com.solambda.swiffer.api.model.decider.context;
 
 import java.util.List;
 
+import com.solambda.swiffer.api.internal.VersionedName;
 import com.solambda.swiffer.api.model.*;
 import com.solambda.swiffer.api.model.decider.ContextTypeMap;
 import com.solambda.swiffer.api.model.decider.DecisionContext;
@@ -107,7 +108,7 @@ public class EventContextImpl implements
 	}
 
 	@Override
-	public TaskType taskType() {
+	public VersionedName taskType() {
 		return event.taskType();
 	}
 

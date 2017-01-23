@@ -16,6 +16,7 @@ import com.amazonaws.services.simpleworkflow.AmazonSimpleWorkflow;
 import com.amazonaws.services.simpleworkflow.model.ChildPolicy;
 import com.amazonaws.services.simpleworkflow.model.Run;
 import com.amazonaws.services.simpleworkflow.model.StartWorkflowExecutionRequest;
+import com.solambda.swiffer.test.Tests;
 
 public class SwifferTest {
 

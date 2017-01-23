@@ -9,7 +9,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import com.solambda.swiffer.api.ActivityOptions;
-import com.solambda.swiffer.api.model.TaskType;
+import com.solambda.swiffer.api.internal.VersionedName;
 import com.solambda.swiffer.api.registries.TaskRegistry;
 import com.solambda.swiffer.api.test.ObjectMother;
 
@@ -27,7 +27,7 @@ public class TaskRegistryTest {
 	@Test
 	@Ignore("do not exceeds the workflow limits")
 	public void createAndDeleteWorksAsExpected() throws Exception {
-		TaskType taskType = new TaskType("name", version);
+		VersionedName taskType = new VersionedName("name", version);
 		registry.create(ObjectMother.domainName(), taskType, "description", new ActivityOptions());
 		assertThat(registry.exists(ObjectMother.domainName(), taskType)).isTrue();
 		registry.delete(ObjectMother.domainName(), taskType);
@@ -36,27 +36,27 @@ public class TaskRegistryTest {
 
 	@Test(expected = IllegalStateException.class)
 	public void cannotRegisterIfDomainDoesnotExist() throws Exception {
-		TaskType taskType = new TaskType("name", "1");
+		VersionedName taskType = new VersionedName("name", "1");
 		registry.create(ObjectMother.notExistingDomain().getName(), taskType, "description", new ActivityOptions());
 	}
 
 	@Test(expected = IllegalStateException.class)
 	public void cannotRegisterIfDomainIsDeprecated() throws Exception {
-		TaskType taskType = new TaskType("name", "1");
+		VersionedName taskType = new VersionedName("name", "1");
 		registry.create(ObjectMother.deprecatedDomain().getName(), taskType, "description", new ActivityOptions());
 	}
 
 	@Test
 	public void existsReturnFalseWhenActivityTypeDoesNotExist() {
-		TaskType taskType1 = new TaskType("not_existing", "1");
-		TaskType taskType2 = new TaskType("exists", "not_existing_version");
+		VersionedName taskType1 = new VersionedName("not_existing", "1");
+		VersionedName taskType2 = new VersionedName("exists", "not_existing_version");
 		assertThat(registry.exists(ObjectMother.domainName(), taskType1)).isFalse();
 		assertThat(registry.exists(ObjectMother.domainName(), taskType2)).isFalse();
 	}
 
 	@Test
 	public void existsReturnTrueWhenActivityTypeExists() {
-		TaskType taskType = new TaskType("exists", "1");
+		VersionedName taskType = new VersionedName("exists", "1");
 		try {
 			registry.create(ObjectMother.domainName(), taskType, "description", new ActivityOptions());
 		} catch (Exception e) {

@@ -1,12 +1,12 @@
 package com.solambda.swiffer.api.model.decider.context.identifier;
 
-import com.solambda.swiffer.api.model.TaskType;
+import com.solambda.swiffer.api.internal.VersionedName;
 
 public class TaskName implements ContextName {
 
-	private TaskType type;
+	private VersionedName type;
 
-	public TaskName(final TaskType type) {
+	public TaskName(final VersionedName type) {
 		super();
 		this.type = type;
 	}

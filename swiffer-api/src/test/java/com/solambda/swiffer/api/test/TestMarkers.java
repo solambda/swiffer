@@ -1,4 +1,4 @@
-package com.solambda.swiffer.api;
+package com.solambda.swiffer.api.test;
 
 import org.junit.Test;
 
@@ -6,8 +6,6 @@ import com.solambda.swiffer.api.model.Workflow;
 import com.solambda.swiffer.api.model.WorkflowBuilder;
 import com.solambda.swiffer.api.model.decider.*;
 import com.solambda.swiffer.api.model.decider.impl.DecisionContextProviderImpl;
-import com.solambda.swiffer.api.test.ObjectMother;
-import com.solambda.swiffer.api.test.WorkflowConsumerTest;
 
 public class TestMarkers {
 

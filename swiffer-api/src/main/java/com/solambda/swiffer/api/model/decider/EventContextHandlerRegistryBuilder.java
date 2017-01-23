@@ -1,6 +1,6 @@
 package com.solambda.swiffer.api.model.decider;
 
-import com.solambda.swiffer.api.model.TaskType;
+import com.solambda.swiffer.api.internal.VersionedName;
 import com.solambda.swiffer.api.model.WorkflowTypeId;
 import com.solambda.swiffer.api.model.decider.context.*;
 import com.solambda.swiffer.api.model.decider.context.identifier.*;
@@ -21,7 +21,7 @@ public class EventContextHandlerRegistryBuilder {
 		return registry;
 	}
 
-	public TaskHandlerRegistryBuilder on(final TaskType type) {
+	public TaskHandlerRegistryBuilder on(final VersionedName type) {
 		return new TaskHandlerRegistryBuilder(type);
 	}
 
@@ -117,7 +117,7 @@ public class EventContextHandlerRegistryBuilder {
 	public final class TaskHandlerRegistryBuilder extends EventContextHandlerRegistryBuilder {
 		private TaskName name;
 
-		private TaskHandlerRegistryBuilder(final TaskType type) {
+		private TaskHandlerRegistryBuilder(final VersionedName type) {
 			super(workflowTypeId);
 			this.name = new TaskName(type);
 		}

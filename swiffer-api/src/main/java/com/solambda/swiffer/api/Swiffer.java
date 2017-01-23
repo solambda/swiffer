@@ -47,7 +47,7 @@ public class Swiffer {
 	}
 
 	public WorkerBuilder newWorkerBuilder() {
-		return new WorkerBuilder();
+		return new WorkerBuilder(this.swf, this.domain);
 	}
 
 	public DeciderBuilder newDeciderBuilder() {

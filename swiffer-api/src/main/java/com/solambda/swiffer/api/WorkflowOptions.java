@@ -5,7 +5,7 @@ import java.time.Duration;
 import com.amazonaws.services.simpleworkflow.model.ChildPolicy;
 import com.amazonaws.services.simpleworkflow.model.TaskList;
 import com.google.common.base.Preconditions;
-import com.solambda.swiffer.api.model.TaskListIdentifier;
+import com.solambda.swiffer.api.internal.TaskListIdentifier;
 
 public class WorkflowOptions {
 	// private static final TaskListIdentifier DEFAULT_TASK_LIST = new

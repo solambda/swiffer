@@ -13,7 +13,7 @@ import com.amazonaws.services.simpleworkflow.model.TypeAlreadyExistsException;
 import com.amazonaws.services.simpleworkflow.model.TypeDeprecatedException;
 import com.amazonaws.services.simpleworkflow.model.UnknownResourceException;
 import com.solambda.swiffer.api.ActivityOptions;
-import com.solambda.swiffer.api.model.TaskType;
+import com.solambda.swiffer.api.internal.VersionedName;
 
 public class TaskRegistry {
 
@@ -42,11 +42,11 @@ public class TaskRegistry {
 		this.swf = swf;
 	}
 
-	public void create(final String domainName, final TaskType taskType, final String taskDescription) {
+	public void create(final String domainName, final VersionedName taskType, final String taskDescription) {
 		create(domainName, taskType, taskDescription, DEFAULT_OPTIONS);
 	}
 
-	public void create(final String domain, final TaskType taskType, final String description,
+	public void create(final String domain, final VersionedName taskType, final String description,
 			final ActivityOptions options) {
 		final ActivityOptions opts = options == null ? DEFAULT_OPTIONS : options;
 		try {
@@ -78,7 +78,7 @@ public class TaskRegistry {
 
 	/**
 	 */
-	public void delete(final String domain, final TaskType taskType) {
+	public void delete(final String domain, final VersionedName taskType) {
 		try {
 			swf.deprecateActivityType(new DeprecateActivityTypeRequest()
 					.withDomain(domain)
@@ -88,7 +88,7 @@ public class TaskRegistry {
 		}
 	}
 
-	public boolean exists(final String domain, final TaskType taskType) {
+	public boolean exists(final String domain, final VersionedName taskType) {
 		try {
 			final ActivityTypeDetail details = swf.describeActivityType(new DescribeActivityTypeRequest()
 					.withDomain(domain)

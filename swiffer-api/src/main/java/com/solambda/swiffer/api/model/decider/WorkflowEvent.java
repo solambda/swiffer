@@ -22,6 +22,7 @@ import java.time.Instant;
 import com.amazonaws.services.simpleworkflow.model.ActivityType;
 import com.amazonaws.services.simpleworkflow.model.EventType;
 import com.amazonaws.services.simpleworkflow.model.HistoryEvent;
+import com.solambda.swiffer.api.internal.VersionedName;
 import com.solambda.swiffer.api.model.*;
 
 public class WorkflowEvent implements Comparable<WorkflowEvent> {
@@ -782,7 +783,7 @@ public class WorkflowEvent implements Comparable<WorkflowEvent> {
 		}
 	}
 
-	public TaskType taskType() {
+	public VersionedName taskType() {
 		switch (type()) {
 		case ScheduleActivityTaskFailed:
 			return toTaskType(historyEvent().getScheduleActivityTaskFailedEventAttributes().getActivityType());
@@ -848,8 +849,8 @@ public class WorkflowEvent implements Comparable<WorkflowEvent> {
 		}
 	}
 
-	private TaskType toTaskType(final ActivityType activityType) {
-		return new TaskType(activityType.getName(), activityType.getVersion());
+	private VersionedName toTaskType(final ActivityType activityType) {
+		return new VersionedName(activityType.getName(), activityType.getVersion());
 	}
 
 	public String timerId() {

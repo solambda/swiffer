@@ -5,7 +5,7 @@ import java.util.Collection;
 
 import com.amazonaws.services.simpleworkflow.model.Decision;
 import com.solambda.swiffer.api.ActivityOptions;
-import com.solambda.swiffer.api.model.TaskType;
+import com.solambda.swiffer.api.internal.VersionedName;
 
 public interface Decisions {
 
@@ -33,16 +33,16 @@ public interface Decisions {
 
 	// TASKS
 
-	public void scheduleTask(TaskType taskType);
+	public void scheduleTask(VersionedName taskType);
 
-	public void scheduleTask(TaskType taskType, String input);
+	public void scheduleTask(VersionedName taskType, String input);
 
 	// public <I> void scheduleTask(TaskType taskType, I input);
 	// public <I> void scheduleTask(TaskType taskType, I input, Mapper<I>
 	// mapper);
-	public void scheduleTask(TaskType taskType, ActivityOptions options);
+	public void scheduleTask(VersionedName taskType, ActivityOptions options);
 
-	public void scheduleTask(TaskType taskType, String input, ActivityOptions options);
+	public void scheduleTask(VersionedName taskType, String input, ActivityOptions options);
 
 	// public <I> void scheduleTask(TaskType taskType, I input, TaskOptions
 	// options);

@@ -4,7 +4,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 
 import com.solambda.swiffer.api.Swiffer;
-import com.solambda.swiffer.api.model.TaskType;
+import com.solambda.swiffer.api.internal.VersionedName;
 import com.solambda.swiffer.api.model.Workflow;
 import com.solambda.swiffer.api.model.WorkflowBuilder;
 import com.solambda.swiffer.api.model.WorkflowTypeId;
@@ -17,7 +17,7 @@ import com.solambda.swiffer.examples.utils.Constants;
 
 public class BasicWorkflowExample {
 
-	public static final TaskType SLEEP_TASK = new TaskType("sleep", "1.0");
+	public static final VersionedName SLEEP_TASK = new VersionedName("sleep", "1.0");
 	private DeciderService deciderService;
 	private Workflow workflow;
 
@@ -30,8 +30,8 @@ public class BasicWorkflowExample {
 	}
 
 	private void gracefullyStop() {
-		workflow.awaitClose();
-		deciderService.stop();
+		this.workflow.awaitClose();
+		this.deciderService.stop();
 		// deciderService.awaitStopped();
 	}
 
@@ -73,14 +73,14 @@ public class BasicWorkflowExample {
 	}
 
 	private void launchDecider() {
-		deciderService = Swiffer.get(Constants.swf(), Constants.DOMAIN)
-				.decider(new DeciderExample())
-				.start();
+		// deciderService = Swiffer.get(Constants.swf(), Constants.DOMAIN)
+		// .decider(new DeciderExample())
+		// .start();
 	}
 
 	private void launchTaskExecutor() {
 		final Swiffer swiffer = Swiffer.get(Constants.swf(), Constants.DOMAIN);
-		swiffer.task(SLEEP_TASK, this::sleep);
+		// swiffer.task(SLEEP_TASK, this::sleep);
 	}
 
 	public void sleep(final String input) {
@@ -111,12 +111,12 @@ public class BasicWorkflowExample {
 	}
 
 	private void startTheWorkflowExternally() {
-		workflow = new WorkflowBuilder()
+		this.workflow = new WorkflowBuilder()
 				.domain(Constants.DOMAIN)
 				.client(Constants.swf())
 				.type(Constants.WORKFLOW)
 				.id("my-business-id")
 				.build();
-		workflow.start();
+		this.workflow.start();
 	}
 }

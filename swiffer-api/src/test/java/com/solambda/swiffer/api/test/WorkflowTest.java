@@ -1,4 +1,4 @@
-package com.solambda.swiffer.api;
+package com.solambda.swiffer.api.test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -11,8 +11,6 @@ import com.solambda.swiffer.api.model.Workflow;
 import com.solambda.swiffer.api.model.WorkflowBuilder;
 import com.solambda.swiffer.api.model.decider.Decider;
 import com.solambda.swiffer.api.model.decider.impl.DecisionContextProviderImpl;
-import com.solambda.swiffer.api.test.ObjectMother;
-import com.solambda.swiffer.api.test.WorkflowConsumerTest;
 
 /**
  * TODO: - test output retrieval of complete, failed, and canceled

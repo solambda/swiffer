@@ -3,8 +3,6 @@ package com.solambda.swiffer.api;
 import java.util.Arrays;
 import java.util.List;
 
-import com.solambda.swiffer.api.internal.DeciderImpl;
-
 /**
  * A builder of {@link Decider}.
  */
@@ -19,7 +17,7 @@ public class DeciderBuilder {
 	 * @return a new instance of {@link Decider}
 	 */
 	public Decider build() {
-		return new DeciderImpl();
+		return null;
 	}
 
 	/**
