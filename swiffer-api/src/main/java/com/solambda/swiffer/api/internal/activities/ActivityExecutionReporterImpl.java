@@ -11,6 +11,7 @@ import com.amazonaws.services.simpleworkflow.model.RespondActivityTaskCompletedR
 import com.amazonaws.services.simpleworkflow.model.RespondActivityTaskFailedRequest;
 import com.google.common.base.Strings;
 import com.solambda.swiffer.api.internal.Failure;
+import com.solambda.swiffer.api.internal.activities.exceptions.CancelActivityRequested;
 
 public class ActivityExecutionReporterImpl implements ActivityExecutionReporter {
 
@@ -18,7 +19,7 @@ public class ActivityExecutionReporterImpl implements ActivityExecutionReporter 
 
 	private AmazonSimpleWorkflow client;
 
-	public ActivityExecutionReporterImpl(final AmazonSimpleWorkflow client, final String taskToken) {
+	public ActivityExecutionReporterImpl(final AmazonSimpleWorkflow client) {
 		super();
 		this.client = client;
 	}

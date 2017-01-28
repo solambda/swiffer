@@ -2,16 +2,17 @@ package com.solambda.swiffer.api.internal.activities;
 
 import java.lang.reflect.InvocationTargetException;
 
-import org.assertj.core.util.Preconditions;
-
+import com.google.common.base.Preconditions;
 import com.solambda.swiffer.api.internal.ArgumentsProvider;
 import com.solambda.swiffer.api.internal.MethodInvoker;
+import com.solambda.swiffer.api.internal.activities.exceptions.ActivityTaskExecutionFailedException;
 
 public class ActivityExecutorImpl implements ActivityExecutor {
 	private MethodInvoker invoker;
-	private ArgumentsProvider argumentsProvider;
+	private ArgumentsProvider<ActivityTaskContext> argumentsProvider;
 
-	public ActivityExecutorImpl(final MethodInvoker invoker, final ArgumentsProvider argumentsProvider) {
+	public ActivityExecutorImpl(final MethodInvoker invoker,
+			final ArgumentsProvider<ActivityTaskContext> argumentsProvider) {
 		super();
 		Preconditions.checkNotNull(invoker, "MethodInvoker should not be null");
 		this.argumentsProvider = argumentsProvider;

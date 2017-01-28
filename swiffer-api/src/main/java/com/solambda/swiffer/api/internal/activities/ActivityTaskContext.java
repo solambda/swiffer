@@ -2,7 +2,7 @@ package com.solambda.swiffer.api.internal.activities;
 
 import com.solambda.swiffer.api.internal.HasInput;
 import com.solambda.swiffer.api.internal.VersionedName;
-import com.solambda.swiffer.api.model.WorkflowHistory;
+import com.solambda.swiffer.api.internal.decisions.WorkflowHistory;
 
 /**
  * Context of the task being executed.

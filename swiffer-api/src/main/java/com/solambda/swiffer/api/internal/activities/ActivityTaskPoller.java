@@ -7,29 +7,21 @@ import com.amazonaws.services.simpleworkflow.AmazonSimpleWorkflow;
 import com.amazonaws.services.simpleworkflow.model.ActivityTask;
 import com.amazonaws.services.simpleworkflow.model.PollForActivityTaskRequest;
 import com.amazonaws.services.simpleworkflow.model.TaskList;
+import com.solambda.swiffer.api.internal.AbstractContextProviderImpl;
 
-public class ActivityTaskPoller implements ActivityTaskContextProvider {
+public class ActivityTaskPoller extends AbstractContextProviderImpl implements ActivityTaskContextProvider {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ActivityTaskPoller.class);
-
-	private final AmazonSimpleWorkflow client;
-	private final String domain;
-	private final TaskList taskList;
-	private final String identity;
 
 	public ActivityTaskPoller(final AmazonSimpleWorkflow client, final String domain, final String taskList,
 			final String identity) {
-		super();
-		this.client = client;
-		this.domain = domain;
-		this.taskList = new TaskList().withName(taskList == null ? "default" : taskList);
-		this.identity = identity;
+		super(client, domain, taskList, identity);
 	}
 
 	@Override
 	public ActivityTaskContext get() {
 		final ActivityTask task = task();
 		if (task != null) {
-			return new ActivityTaskContextImpl(this.client, task);
+			return new ActivityTaskContextImpl(this.swf, task);
 		} else {
 			return null;
 		}
@@ -37,24 +29,22 @@ public class ActivityTaskPoller implements ActivityTaskContextProvider {
 
 	private ActivityTask task() {
 		try {
-			LOGGER.debug("[{}:{}] Polling taskList {}", this.domain, this.identity, this.taskList.getName());
+			LOGGER.debug("[{}:{}] Polling ActivityTask list {}", this.domain, this.identity, this.taskList);
 			final PollForActivityTaskRequest pollForActivityTaskRequest = new PollForActivityTaskRequest()
 					.withDomain(this.domain)
 					.withIdentity(this.identity)
-					.withTaskList(this.taskList);
-			final ActivityTask activityTask = this.client.pollForActivityTask(pollForActivityTaskRequest);
+					.withTaskList(new TaskList().withName(this.taskList));
+			final ActivityTask activityTask = this.swf.pollForActivityTask(pollForActivityTaskRequest);
 			if (activityTask == null || activityTask.getTaskToken() == null) {
-				LOGGER.debug("[{}:{}] no ActivityTask available in taskList {}", this.domain, this.identity,
-						this.taskList.getName());
+				LOGGER.debug("[{}:{}] no ActivityTask available in {}", this.domain, this.identity, this.taskList);
 				return null;
 			}
-			LOGGER.debug("[{}:{}]  ActivityTask received from {}: {}", this.domain, this.identity,
-					this.taskList.getName(),
+			LOGGER.debug("[{}:{}] ActivityTask received from {}:{}", this.domain, this.identity, this.taskList,
 					activityTask);
 			return activityTask;
 		} catch (final Exception e) {
-			throw new IllegalStateException(String.format("[%s:%s] Cannot poll activity taskList %s",
-					this.domain, this.identity, this.taskList.getName()), e);
+			throw new IllegalStateException(String.format("[%s:%s] Cannot poll ActivityTask list %s",
+					this.domain, this.identity, this.taskList), e);
 		}
 	}
 

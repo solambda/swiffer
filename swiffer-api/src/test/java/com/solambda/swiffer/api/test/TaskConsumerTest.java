@@ -36,8 +36,7 @@ public class TaskConsumerTest {
 		final ActivityTaskContext context = getContextTimeout(Duration.ofSeconds(5));
 		if (context != null) {
 			try {
-				final ActivityExecutionReporter report = new ActivityExecutionReporterImpl(ObjectMother.client(),
-						context.taskToken());
+				final ActivityExecutionReporter report = new ActivityExecutionReporterImpl(ObjectMother.client());
 				LOGGER.debug("executing task context {}", context);
 				// this.executor.execute(context, report);
 			} catch (final Exception e) {

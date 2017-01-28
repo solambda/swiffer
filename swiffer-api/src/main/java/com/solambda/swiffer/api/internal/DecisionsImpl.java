@@ -17,112 +17,138 @@ import com.amazonaws.services.simpleworkflow.model.FailWorkflowExecutionDecision
 import com.amazonaws.services.simpleworkflow.model.RecordMarkerDecisionAttributes;
 import com.amazonaws.services.simpleworkflow.model.ScheduleActivityTaskDecisionAttributes;
 import com.amazonaws.services.simpleworkflow.model.StartTimerDecisionAttributes;
+import com.google.common.base.Preconditions;
 import com.solambda.swiffer.api.ActivityOptions;
-import com.solambda.swiffer.api.model.decider.Decisions;
+import com.solambda.swiffer.api.Decisions;
 
 public class DecisionsImpl implements Decisions {
 
 	private List<Decision> decisions;
 
 	public DecisionsImpl() {
-		decisions = new ArrayList<Decision>();
+		this.decisions = new ArrayList<Decision>();
 	}
 
-	@Override
+	/**
+	 * @return the list of decisions
+	 */
 	public Collection<Decision> get() {
-		return Collections.unmodifiableList(decisions);
+		return Collections.unmodifiableList(this.decisions);
 	}
 
+	/**
+	 * add a new decision to the list of deicisions for the given type, and
+	 * return the decision to allow configuring it
+	 *
+	 * @param decisionType
+	 * @return
+	 */
 	private Decision newDecision(final DecisionType decisionType) {
 		final Decision decision = new Decision().withDecisionType(decisionType);
-		decisions.add(decision);
+		this.decisions.add(decision);
 		return decision;
 	}
 
-	@Override
-	public void completeWorfklow() {
-		completeWorfklow(null);
+	/**
+	 * @param object
+	 * @return
+	 */
+	private String serialize(final Object object) {
+		// TODO: user jackson serialization
+		// TODO: allow customization of the serializer
+		return object == null ? null : object.toString();
 	}
 
 	@Override
-	public void completeWorfklow(final String result) {
+	public Decisions scheduleActivityTask(final Class<?> activityTypeClass) {
+		return scheduleActivityTask(activityTypeClass, null, null, null);
+	}
+
+	@Override
+	public Decisions scheduleActivityTask(final Class<?> activityTypeClass, final ActivityOptions options) {
+		return scheduleActivityTask(activityTypeClass, null, null, options);
+	}
+
+	@Override
+	public Decisions scheduleActivityTask(final Class<?> activityTypeClass, final Object input,
+			final ActivityOptions options) {
+		return scheduleActivityTask(activityTypeClass, null, input, options);
+	}
+
+	@Override
+	public Decisions scheduleActivityTask(final Class<?> activityTypeClass, final String activityId) {
+		return scheduleActivityTask(activityTypeClass, activityId, null, null);
+	}
+
+	@Override
+	public Decisions scheduleActivityTask(final Class<?> activityTypeClass, final String activityId,
+			final ActivityOptions options) {
+		return scheduleActivityTask(activityTypeClass, activityId, null, options);
+	}
+
+	@Override
+	public Decisions scheduleActivityTask(final Class<?> activityTypeClass, final String activityId, final Object input,
+			final ActivityOptions options) {
+		newDecision(DecisionType.ScheduleActivityTask)
+				.withScheduleActivityTaskDecisionAttributes(new ScheduleActivityTaskDecisionAttributes()
+						.withActivityType(toActivityType(activityTypeClass))
+						.withActivityId(activityId == null ? UUID.randomUUID().toString() : activityId)
+						.withControl(options.control())
+						.withHeartbeatTimeout(options.heartbeatTimeout())
+						.withInput(serialize(input))
+						.withScheduleToCloseTimeout(options.scheduleToCloseTimeout())
+						.withScheduleToStartTimeout(options.scheduleToStartTimeout())
+						.withStartToCloseTimeout(options.startToCloseTimeout())
+						.withTaskList(options.taskList())
+						.withTaskPriority(nullSafeToString(options.taskPriority())));
+		return this;
+	}
+
+	private ActivityType toActivityType(final Class<?> activityTypeClass) {
+		Preconditions.checkArgument(activityTypeClass.isInterface());
+		final com.solambda.swiffer.api.ActivityType activityType = activityTypeClass
+				.getAnnotation(com.solambda.swiffer.api.ActivityType.class);
+		Preconditions.checkState(activityType != null, "The interface %s, should be annotated with %s!",
+				activityTypeClass, ActivityType.class);
+		return new ActivityType().withName(activityType.name()).withVersion(activityType.version());
+	}
+
+	@Override
+	public Decisions completeWorfklow() {
+		return completeWorfklow(null);
+	}
+
+	@Override
+	public Decisions completeWorfklow(final Object result) {
 		newDecision(DecisionType.CompleteWorkflowExecution)
-				.withCompleteWorkflowExecutionDecisionAttributes(new CompleteWorkflowExecutionDecisionAttributes()
-						.withResult(result));
+				.withCompleteWorkflowExecutionDecisionAttributes(
+						new CompleteWorkflowExecutionDecisionAttributes()
+								.withResult(serialize(result)));
+		return this;
 	}
 
-	@Override
-	public void cancelWorfklow() {
-		cancelWorfklow(null);
-	}
-
-	@Override
-	public void cancelWorfklow(final String details) {
+	// TODO
+	private void cancelWorfklow(final String details) {
 		newDecision(DecisionType.CancelWorkflowExecution)
 				.withCancelWorkflowExecutionDecisionAttributes(new CancelWorkflowExecutionDecisionAttributes()
 						.withDetails(details));
 	}
 
-	@Override
-	public void failWorfklow() {
-		failWorfklow(null);
-	}
-
-	@Override
-	public void failWorfklow(final String reason) {
-		failWorfklow(null, null);
-	}
-
-	@Override
-	public void failWorfklow(final String reason, final String details) {
+	// TODO
+	private Decisions failWorfklow(final String reason, final String details) {
 		newDecision(DecisionType.FailWorkflowExecution)
 				.withFailWorkflowExecutionDecisionAttributes(new FailWorkflowExecutionDecisionAttributes()
 						.withReason(details)
 						.withDetails(details));
+		return this;
 	}
 
-	@Override
-	public void scheduleTask(final VersionedName type) {
-		scheduleTask(type, null, new ActivityOptions());
+	private String nullSafeToString(final Object object) {
+		return object == null ? null : object.toString();
 	}
 
-	@Override
-	public void scheduleTask(final VersionedName type, final String input) {
-		scheduleTask(type, input, new ActivityOptions());
-	}
-
-	@Override
-	public void scheduleTask(final VersionedName type, final ActivityOptions options) {
-		scheduleTask(type, null, options == null ? new ActivityOptions() : options);
-	}
-
-	@Override
-	public void scheduleTask(final VersionedName type, final String input, final ActivityOptions options) {
-		newDecision(DecisionType.ScheduleActivityTask)
-				.withScheduleActivityTaskDecisionAttributes(new ScheduleActivityTaskDecisionAttributes()
-						.withActivityType(new ActivityType().withName(type.name()).withVersion(type.version()))
-						.withActivityId(UUID.randomUUID().toString())
-						.withControl(options.control())
-						.withHeartbeatTimeout(options.heartbeatTimeout())
-						.withInput(input)
-						.withScheduleToCloseTimeout(options.scheduleToCloseTimeout())
-						.withScheduleToStartTimeout(options.scheduleToStartTimeout())
-						.withStartToCloseTimeout(options.startToCloseTimeout())
-						.withTaskList(options.taskList())
-						.withTaskPriority(nullify(options.taskPriority())));
-	}
-
-	private String nullify(final Integer taskPriority) {
-		return taskPriority == null ? null : taskPriority.toString();
-	}
-
-	@Override
-	public void startTimer(final String timerId, final Duration duration) {
-		startTimer(timerId, null, duration);
-	}
-
-	@Override
-	public void startTimer(final String timerId, final String control, final Duration duration) {
+	// TODO
+	private void startTimer(final String timerId, final String control, final Duration duration) {
 		newDecision(DecisionType.StartTimer)
 				.withStartTimerDecisionAttributes(new StartTimerDecisionAttributes()
 						.withTimerId(timerId)
@@ -130,33 +156,15 @@ public class DecisionsImpl implements Decisions {
 						.withControl(control));
 	}
 
-	@Override
-	public void cancelTimer(final String timerId) {
-		cancelTimer(timerId, false);
-	}
-
-	@Override
-	public void cancelTimer(final String timerId, final boolean forceDecisionMaking) {
+	// TODO
+	private void cancelTimer(final String timerId) {
 		// TODO: we should add a force decision
 		newDecision(DecisionType.CancelTimer)
 				.withCancelTimerDecisionAttributes(new CancelTimerDecisionAttributes()
 						.withTimerId(timerId));
-		if (forceDecisionMaking) {
-			forceDecisionMaking();
-		}
 	}
 
-	private void forceDecisionMaking() {
-		// we publish a fake timer
-		startTimer(FORCE_TIMER_ID, "fake timer to trigger a decision task", Duration.ZERO);
-	}
-
-	@Override
-	public void createMarker(final String markerName) {
-		createMarker(markerName, null);
-	}
-
-	@Override
+	// TODO
 	public void createMarker(final String markerName, final String details) {
 		newDecision(DecisionType.RecordMarker)
 				.withRecordMarkerDecisionAttributes(new RecordMarkerDecisionAttributes()

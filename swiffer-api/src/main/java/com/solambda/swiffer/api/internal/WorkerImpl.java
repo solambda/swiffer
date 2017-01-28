@@ -5,14 +5,13 @@ import java.io.StringWriter;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import com.amazonaws.services.simpleworkflow.AmazonSimpleWorkflow;
 import com.solambda.swiffer.api.Worker;
 import com.solambda.swiffer.api.internal.activities.ActivityExecutionReporter;
-import com.solambda.swiffer.api.internal.activities.ActivityExecutionReporterImpl;
 import com.solambda.swiffer.api.internal.activities.ActivityExecutor;
+import com.solambda.swiffer.api.internal.activities.ActivityExecutorRegistry;
 import com.solambda.swiffer.api.internal.activities.ActivityTaskContext;
-import com.solambda.swiffer.api.internal.activities.ActivityTaskExecutionFailedException;
-import com.solambda.swiffer.api.internal.activities.ActivityTaskPoller;
+import com.solambda.swiffer.api.internal.activities.ActivityTaskContextProvider;
+import com.solambda.swiffer.api.internal.activities.exceptions.ActivityTaskExecutionFailedException;
 
 public class WorkerImpl extends AbstractTaskListPoller<ActivityTaskContext> implements Worker {
 
@@ -20,15 +19,16 @@ public class WorkerImpl extends AbstractTaskListPoller<ActivityTaskContext> impl
 
 	private ActivityExecutorRegistry registry;
 
+	final ActivityExecutionReporter reporter;
+
 	public WorkerImpl(
-			final AmazonSimpleWorkflow swf,
-			final String domain,
-			final String taskList,
-			final String identity,
-			final ActivityExecutorRegistry registry) {
-		super(swf, domain, taskList, identity, new ActivityTaskPoller(swf, domain, taskList, identity));
+			final ActivityTaskContextProvider provider,
+			final ActivityExecutorRegistry registry,
+			final ActivityExecutionReporter reporter) {
+		super(provider);
 		this.executor = Executors.newFixedThreadPool(10);
 		this.registry = registry;
+		this.reporter = reporter;
 	}
 
 	@Override
@@ -44,13 +44,12 @@ public class WorkerImpl extends AbstractTaskListPoller<ActivityTaskContext> impl
 		// retrieve the executor
 		final VersionedName activityType = task.activityType();
 		final ActivityExecutor executor = getActivityExecutor(activityType);
-		final ActivityExecutionReporter reporter = new ActivityExecutionReporterImpl(this.swf, task.activityId());
 		if (executor == null) {
 			final String reason = String.format("no activity executor defined "
 					+ "for activity type {name=\"%s\",version=\"%s\"", activityType.name(), activityType.version());
-			reporter.failed(task.taskToken(), new Failure(reason));
+			this.reporter.failed(task.taskToken(), new Failure(reason));
 		} else {
-			execute(task, executor, reporter);
+			execute(task, executor, this.reporter);
 		}
 	}
 

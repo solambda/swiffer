@@ -27,7 +27,6 @@ import com.amazonaws.services.simpleworkflow.model.WorkflowExecutionInfos;
 import com.amazonaws.services.simpleworkflow.model.WorkflowType;
 import com.google.common.base.Preconditions;
 import com.solambda.swiffer.api.internal.utils.SWFUtils;
-import com.solambda.swiffer.api.model.Tags;
 
 public class Swiffer {
 
@@ -51,7 +50,7 @@ public class Swiffer {
 	}
 
 	public DeciderBuilder newDeciderBuilder() {
-		return new DeciderBuilder();
+		return new DeciderBuilder(this.swf, this.domain);
 	}
 
 	/**

@@ -48,8 +48,8 @@ public class SimpleWorkflowExample {
 
 	private void createAndStartDecider(final Swiffer swiffer) {
 		this.decider = swiffer.newDeciderBuilder()
-				.decisionTaskList("myDecisionTaskList")
-				.activityTaskList("myActivityTaskList")
+				.taskList("myDecisionTaskList")
+				// .activityTaskList("myActivityTaskList")
 				.identity("myWorker")
 				.workflowTemplates(new WorkflowTemplateSimpleExample())
 				.build();

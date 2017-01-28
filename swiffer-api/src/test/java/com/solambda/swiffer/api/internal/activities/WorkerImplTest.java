@@ -39,22 +39,23 @@ import com.solambda.swiffer.test.Tests;
 
 public class WorkerImplTest {
 	private static final String TASK_TOKEN = "token";
-	private static TestExecutors executors;
-	public static final String ACTIVITY_NAME = "activity1";
-	public static final String ACTIVITY_VERSION = "1";
-	public static final String NO_EXECUTOR_ACTIVITY_NAME = "noExecutorActivity";
-	public static final String NO_ARGUMENT_ACTIVITY_NAME = "noArgumentActivity";
-	public static final String NO_RETURN_VALUE_ACTIVITY_NAME = "noReturnValueActivity";
-	public static final String FAILING_ACTIVITY_NAME = "failingActivity";
+	private static final String ACTIVITY_NAME = "activity1";
+	private static final String ACTIVITY_VERSION = "1";
+	private static final String NO_EXECUTOR_ACTIVITY_NAME = "noExecutorActivity";
+	private static final String NO_ARGUMENT_ACTIVITY_NAME = "noArgumentActivity";
+	private static final String NO_RETURN_VALUE_ACTIVITY_NAME = "noReturnValueActivity";
+	private static final String FAILING_ACTIVITY_NAME = "failingActivity";
 	private static final String ACTIVITY_ID = "activityId";
+
 	private AmazonSimpleWorkflow swf;
 	private Swiffer swiffer;
+	private TestExecutors executors;
 
 	@Before
 	public void setup() {
 		this.swf = mock(AmazonSimpleWorkflow.class);
 		this.swiffer = new Swiffer(this.swf, Tests.DOMAIN);
-		executors = spy(new TestExecutors());
+		this.executors = spy(new TestExecutors());
 	}
 
 	public static class Definitions {
@@ -111,7 +112,7 @@ public class WorkerImplTest {
 		return this.swiffer.newWorkerBuilder()
 				.identity("worker-test")
 				.taskList("test-task-list")
-				.executors(executors)
+				.executors(this.executors)
 				.build();
 	}
 
@@ -202,8 +203,8 @@ public class WorkerImplTest {
 		worker.pollAndExecuteTask();
 
 		// THEN
-		verify(executors, times(1)).noArgActivity();
-		verify(executors, never()).doActivity1(anyString());
+		verify(this.executors, times(1)).noArgActivity();
+		verify(this.executors, never()).doActivity1(anyString());
 	}
 
 	@Test
@@ -289,7 +290,7 @@ public class WorkerImplTest {
 		worker.pollAndExecuteTask();
 
 		// THEN
-		verify(executors, times(1)).doActivity1("some input text");
+		verify(this.executors, times(1)).doActivity1("some input text");
 
 		final ArgumentCaptor<RespondActivityTaskCompletedRequest> captor = ArgumentCaptor
 				.forClass(RespondActivityTaskCompletedRequest.class);
@@ -364,4 +365,9 @@ public class WorkerImplTest {
 		fail("not yet implemented");
 	}
 
+	@Test
+	@Ignore("not yet implemetned")
+	public void activityTypesAreRegisteredOnBuildTime() {
+		fail("not yet implemented");
+	}
 }

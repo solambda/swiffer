@@ -11,8 +11,8 @@ import com.amazonaws.services.simpleworkflow.model.GetWorkflowExecutionHistoryRe
 import com.amazonaws.services.simpleworkflow.model.History;
 import com.amazonaws.services.simpleworkflow.model.HistoryEvent;
 import com.solambda.swiffer.api.internal.VersionedName;
-import com.solambda.swiffer.api.model.WorkflowHistory;
-import com.solambda.swiffer.api.model.impl.WorkflowHistoryImpl;
+import com.solambda.swiffer.api.internal.decisions.WorkflowHistory;
+import com.solambda.swiffer.api.internal.decisions.WorkflowHistoryImpl;
 
 public class ActivityTaskContextImpl implements ActivityTaskContext {
 

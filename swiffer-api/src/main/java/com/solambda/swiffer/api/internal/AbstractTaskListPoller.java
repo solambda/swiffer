@@ -1,35 +1,16 @@
 package com.solambda.swiffer.api.internal;
 
-import com.amazonaws.services.simpleworkflow.AmazonSimpleWorkflow;
 import com.google.common.util.concurrent.AbstractExecutionThreadService;
 import com.google.common.util.concurrent.Service.State;
 import com.solambda.swiffer.api.TaskListPoller;
-import com.solambda.swiffer.api.model.decider.ContextProvider;
 
 public abstract class AbstractTaskListPoller<T> implements TaskListPoller {
 
-	protected AmazonSimpleWorkflow swf;
-	protected String domain;
-	protected String taskList;
-	protected String identity;
 	protected ContextProvider<T> provider;
-
 	private AbstractExecutionThreadService pollingService;
 
-	public AbstractTaskListPoller(
-			final AmazonSimpleWorkflow swf,
-			final String domain,
-			final String taskList,
-			final String identity,
-			final ContextProvider<T> provider) {
+	public AbstractTaskListPoller(final ContextProvider<T> provider) {
 		super();
-		this.swf = swf;
-		this.domain = domain;
-		this.taskList = taskList;
-		this.identity = identity;
-		// final ExecutorService executorService =
-		// Executors.newFixedThreadPool(10);
-		// this.provider = new ContextProviderThreadedImpl<>(provider, service);
 		this.provider = provider;
 	}
 
@@ -74,7 +55,7 @@ public abstract class AbstractTaskListPoller<T> implements TaskListPoller {
 
 	/**
 	 * Execute the task. For testing purpose
-	 * 
+	 *
 	 * @param task
 	 */
 	protected abstract void executeTaskImmediately(final T task);
@@ -109,11 +90,6 @@ public abstract class AbstractTaskListPoller<T> implements TaskListPoller {
 	public boolean isStarted() {
 		return this.pollingService != null
 				&& (this.pollingService.isRunning() || this.pollingService.state() == State.STARTING);
-	}
-
-	@Override
-	public String getTaskList() {
-		return this.taskList;
 	}
 
 }

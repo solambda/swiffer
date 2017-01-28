@@ -32,4 +32,5 @@ public @interface ActivityType {
 	 * @return
 	 */
 	String version();
+
 }

@@ -34,9 +34,4 @@ public interface TaskListPoller {
 	 */
 	public boolean isStarted();
 
-	/**
-	 * @return the task list to poll
-	 */
-	public String getTaskList();
-
 }

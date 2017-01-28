@@ -1,8 +1,12 @@
 package com.solambda.swiffer.api.internal;
 
-import com.solambda.swiffer.api.internal.activities.ActivityTaskContext;
+public interface ArgumentsProvider<T> {
 
-public interface ArgumentsProvider {
-
-	public Object[] getArguments(ActivityTaskContext context);
+	/**
+	 * Transform the given context into an array of arguments.
+	 * 
+	 * @param context
+	 * @return
+	 */
+	public Object[] getArguments(T context);
 }

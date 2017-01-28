@@ -10,6 +10,7 @@ import org.junit.Test;
 
 import com.solambda.swiffer.api.ActivityOptions;
 import com.solambda.swiffer.api.internal.VersionedName;
+import com.solambda.swiffer.api.internal.registration.TaskRegistry;
 import com.solambda.swiffer.api.test.ObjectMother;
 
 @Ignore
