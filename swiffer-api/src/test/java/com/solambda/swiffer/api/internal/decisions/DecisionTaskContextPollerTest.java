@@ -1,4 +1,4 @@
-package com.solambda.swiffer.api.internal.activities;
+package com.solambda.swiffer.api.internal.decisions;
 
 import static com.solambda.swiffer.test.Tests.failWith;
 import static com.solambda.swiffer.test.Tests.returnAfterDelay;
