@@ -14,5 +14,5 @@ import com.solambda.swiffer.api.Decisions;
  */
 public interface WorkflowTemplate {
 
-	public Decisions decide(DecisionTaskContext decisionContext);
+	public Decisions decide(DecisionTaskContext decisionContext) throws DecisionTaskExecutionFailedException;
 }

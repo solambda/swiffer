@@ -17,17 +17,32 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.amazonaws.services.simpleworkflow.model.EventType;
 import com.google.common.base.Preconditions;
 import com.solambda.swiffer.api.ActivityType;
 import com.solambda.swiffer.api.OnActivityCompleted;
+import com.solambda.swiffer.api.OnWorkflowStarted;
+import com.solambda.swiffer.api.WorkflowType;
 import com.solambda.swiffer.api.internal.ArgumentsProvider;
 import com.solambda.swiffer.api.internal.MethodInvoker;
 import com.solambda.swiffer.api.internal.VersionedName;
 import com.solambda.swiffer.api.internal.context.identifier.ContextName;
 import com.solambda.swiffer.api.internal.context.identifier.TaskName;
+import com.solambda.swiffer.api.internal.context.identifier.WorkflowName;
 
 public class WorkflowTemplateFactory {
+
+	public static final Logger LOGGER = LoggerFactory.getLogger(WorkflowTemplateFactory.class);
+
+	public VersionedName createWorkflowType(final Object template) {
+		final WorkflowType workflowType = findWorkflowTypeAnnotation(template);
+		LOGGER.debug("WorkflowType {}", workflowType);
+		return new VersionedName(workflowType.name(), workflowType.version());
+
+	}
 
 	/**
 	 * @param template
@@ -57,8 +72,9 @@ public class WorkflowTemplateFactory {
 		for (final Method method : methods) {
 			final Annotation[] annotations = method.getAnnotations();
 			for (final Annotation annotation : annotations) {
-				final EventHandlerType type = toEventHandlerType(annotation);
+				final EventHandlerType type = toEventHandlerType(annotation, template);
 				if (type != null) {
+					LOGGER.debug("Found event handler for {}", type);
 					final EventHandler handler = createEventHandler(template, type, method);
 					registry.put(type, handler);
 				}
@@ -233,13 +249,18 @@ public class WorkflowTemplateFactory {
 		// - any other type is considered as an output
 	}
 
-	private EventHandlerType toEventHandlerType(final Annotation annotation) {
+	private EventHandlerType toEventHandlerType(final Annotation annotation, final Object template) {
 		final Class<? extends Annotation> annotationType = annotation.annotationType();
 		if (annotationType.isAnnotationPresent(com.solambda.swiffer.api.EventHandler.class)) {
 			if (OnActivityCompleted.class.isAssignableFrom(annotationType)) {
 				return new EventHandlerType(EventType.ActivityTaskCompleted,
 						toContextName((OnActivityCompleted) annotation));
-			} else {
+			} else if (OnWorkflowStarted.class.isAssignableFrom(annotationType)) {
+				return new EventHandlerType(EventType.WorkflowExecutionStarted,
+						toContextName((OnWorkflowStarted) annotation, template));
+			}
+
+			else {
 				throw new IllegalStateException("cannot convert from " + annotationType + " to a EventHandlerType");
 			}
 		}
@@ -252,6 +273,10 @@ public class WorkflowTemplateFactory {
 		return new TaskName(new VersionedName(activityType.name(), activityType.version()));
 	}
 
+	private ContextName toContextName(final OnWorkflowStarted started, final Object template) {
+		return new WorkflowName(createWorkflowType(template));
+	}
+
 	private ActivityType toActivityType(final Class<?> activityDefinition) {
 		final ActivityType annotation = activityDefinition.getAnnotation(ActivityType.class);
 		Preconditions.checkState(annotation != null,
@@ -259,6 +284,27 @@ public class WorkflowTemplateFactory {
 				activityDefinition.getSimpleName(),
 				ActivityType.class.getSimpleName());
 		return annotation;
+	}
+
+	private WorkflowType findWorkflowTypeAnnotation(final Object workflowTemplate) {
+		final Class<?> clazz = workflowTemplate.getClass();
+		LOGGER.debug("Search workflow type information for {}", clazz);
+		final WorkflowType workflowType = findWorkflowType(clazz);
+		Preconditions.checkState(workflowType != null,
+				"The provided object %s has no workflow type information. "
+						+ "Annotate it with a custom annotation which is itself"
+						+ " annotated with %s. Set the annotation Retention to SOURCE level",
+				clazz.getName(), WorkflowType.class.getName());
+		return workflowType;
+	}
+
+	private WorkflowType findWorkflowType(final Class<?> clazz) {
+		final Annotation[] annotations = clazz.getAnnotations();
+		for (final Annotation annotation : annotations) {
+			final Class<? extends Annotation> annotationType = annotation.annotationType();
+			return annotationType.getAnnotation(WorkflowType.class);
+		}
+		return null;
 	}
 
 }

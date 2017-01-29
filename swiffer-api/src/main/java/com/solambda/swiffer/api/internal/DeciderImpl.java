@@ -1,19 +1,22 @@
 package com.solambda.swiffer.api.internal;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.solambda.swiffer.api.Decider;
 import com.solambda.swiffer.api.Decisions;
 import com.solambda.swiffer.api.internal.decisions.DecisionExecutor;
 import com.solambda.swiffer.api.internal.decisions.DecisionTaskContext;
-import com.solambda.swiffer.api.internal.decisions.DecisionTaskContextProvider;
 import com.solambda.swiffer.api.internal.decisions.WorkflowTemplate;
 import com.solambda.swiffer.api.internal.decisions.WorkflowTemplateRegistry;
 
-public class DeciderImpl extends AbstractTaskListPoller<DecisionTaskContext> implements Decider {
+public class DeciderImpl extends AbstractTaskListService<DecisionTaskContext> implements Decider {
+	private static final Logger LOGGER = LoggerFactory.getLogger(DeciderImpl.class);
 
 	private WorkflowTemplateRegistry registry;
 	private DecisionExecutor executor;
 
-	public DeciderImpl(final DecisionTaskContextProvider provider, final WorkflowTemplateRegistry registry) {
+	public DeciderImpl(final TaskContextPoller<DecisionTaskContext> provider, final WorkflowTemplateRegistry registry) {
 		super(provider);
 		this.registry = registry;
 	}
@@ -27,7 +30,7 @@ public class DeciderImpl extends AbstractTaskListPoller<DecisionTaskContext> imp
 	protected void executeTaskImmediately(final DecisionTaskContext task) {
 		// retrieve the workflow template:
 		// retrieve the event handler in the template
-
+		LOGGER.debug("executing decision task {}", task);
 		final WorkflowTemplate template = getWorkflowTemplate(task);
 		if (template == null) {
 			// FATAL issue : how to recover from that ?

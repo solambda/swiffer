@@ -9,6 +9,8 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Date;
@@ -38,11 +40,13 @@ public class DeciderImplTest {
 	private WorkflowTemplate1 workflowTemplate1;
 
 	@WorkflowType(name = "workflowType1", version = "1")
+	@Retention(RetentionPolicy.RUNTIME)
 	public static @interface WorkflowDef1 {
 
 	}
 
 	@WorkflowType(name = "workflowType2", version = "1")
+	@Retention(RetentionPolicy.RUNTIME)
 	public static @interface WorkflowDef2 {
 
 	}
@@ -121,7 +125,7 @@ public class DeciderImplTest {
 		aDecisionTaskInTheTaskList();
 		// WHEN
 		decider.start();
-		sleep(Duration.ofMillis(100));
+		sleep(Duration.ofMillis(1000));
 		// THEN
 
 		final ArgumentCaptor<String> captor = ArgumentCaptor

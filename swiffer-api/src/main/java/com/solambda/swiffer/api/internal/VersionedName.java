@@ -61,7 +61,7 @@ public class VersionedName {
 
 	@Override
 	public String toString() {
-		return "Activity['" + this.name + "','" + this.version + "']";
+		return "['" + this.name + "','" + this.version + "']";
 	}
 
 }

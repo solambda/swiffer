@@ -1,10 +1,12 @@
 package com.solambda.swiffer.api;
 
-import java.lang.annotation.Annotation;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.amazonaws.services.simpleworkflow.AmazonSimpleWorkflow;
 import com.solambda.swiffer.api.internal.DeciderImpl;
@@ -18,6 +20,8 @@ import com.solambda.swiffer.api.internal.decisions.WorkflowTemplateRegistry;
  * A builder of {@link Decider}.
  */
 public class DeciderBuilder {
+	private static final Logger LOGGER = LoggerFactory.getLogger(DeciderBuilder.class);
+
 	private AmazonSimpleWorkflow swf;
 	private String domain;
 	private String identity;
@@ -62,21 +66,7 @@ public class DeciderBuilder {
 	}
 
 	private VersionedName createVersionedName(final Object workflowTemplate) {
-		final WorkflowType workflowType = findWorkflowTypeAnnotation(workflowTemplate);
-		return new VersionedName(workflowType.name(), workflowType.version());
-	}
-
-	private WorkflowType findWorkflowTypeAnnotation(final Object workflowTemplate) {
-		final Annotation[] annotations = workflowTemplate.getClass().getAnnotations();
-		for (final Annotation annotation : annotations) {
-			final Class<? extends Annotation> annotationType = annotation.annotationType();
-			final WorkflowType workflowType = annotationType.getAnnotation(WorkflowType.class);
-			return workflowType;
-		}
-		throw new IllegalArgumentException(
-				"The provided object " + workflowTemplate.getClass().getName()
-						+ " has no workflow type information. Annotate it with a custom annotation which is itself"
-						+ " annotated with " + WorkflowType.class.getName() + ".");
+		return this.templateFactory.createWorkflowType(workflowTemplate);
 	}
 
 	/**

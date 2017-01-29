@@ -1,25 +1,15 @@
 package com.solambda.swiffer.api.internal.activities;
 
 import com.solambda.swiffer.api.internal.HasInput;
+import com.solambda.swiffer.api.internal.TaskContext;
 import com.solambda.swiffer.api.internal.VersionedName;
-import com.solambda.swiffer.api.internal.decisions.WorkflowHistory;
 
 /**
  * Context of the task being executed.
  * <p>
  *
  */
-public interface ActivityTaskContext extends HasInput {
-
-	/**
-	 * @return the history of the workflow
-	 */
-	WorkflowHistory history();
-
-	/**
-	 * @return the id of the task being executed, used to report the task
-	 */
-	String taskToken();
+public interface ActivityTaskContext extends TaskContext, HasInput {
 
 	/**
 	 * @return the type of task being executed
@@ -27,7 +17,7 @@ public interface ActivityTaskContext extends HasInput {
 	VersionedName activityType();
 
 	/**
-	 * @return the unique id of the task execution (generated)
+	 * @return the unique id of the task execution
 	 */
 	String activityId();
 

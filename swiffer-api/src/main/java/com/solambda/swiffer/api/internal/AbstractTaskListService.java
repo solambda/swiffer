@@ -1,15 +1,22 @@
 package com.solambda.swiffer.api.internal;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.common.util.concurrent.AbstractExecutionThreadService;
+import com.google.common.util.concurrent.MoreExecutors;
+import com.google.common.util.concurrent.Service;
 import com.google.common.util.concurrent.Service.State;
-import com.solambda.swiffer.api.TaskListPoller;
+import com.solambda.swiffer.api.TaskListService;
 
-public abstract class AbstractTaskListPoller<T> implements TaskListPoller {
+public abstract class AbstractTaskListService<T extends TaskContext> implements TaskListService {
 
-	protected ContextProvider<T> provider;
+	private final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
+
+	protected TaskContextPoller<T> provider;
 	private AbstractExecutionThreadService pollingService;
 
-	public AbstractTaskListPoller(final ContextProvider<T> provider) {
+	public AbstractTaskListService(final TaskContextPoller<T> provider) {
 		super();
 		this.provider = provider;
 	}
@@ -21,11 +28,23 @@ public abstract class AbstractTaskListPoller<T> implements TaskListPoller {
 				@Override
 				protected void run() throws Exception {
 					while (isRunning()) {
-						final T task = pollTaskList();
-						executeTask(task);
+						try {
+							final T task = pollTaskList();
+							executeTask(task);
+						} catch (final Exception e) {
+							AbstractTaskListService.this.LOGGER.error("Error running provider. Poller will now stop.",
+									e);
+							throw e;
+						}
 					}
 				}
 			};
+			this.pollingService.addListener(new Service.Listener() {
+				@Override
+				public void failed(final State from, final Throwable failure) {
+					super.failed(from, failure);
+				}
+			}, MoreExecutors.directExecutor());
 		}
 		final State state = this.pollingService.state();
 		switch (state) {
@@ -61,7 +80,7 @@ public abstract class AbstractTaskListPoller<T> implements TaskListPoller {
 	protected abstract void executeTaskImmediately(final T task);
 
 	private T pollTaskList() {
-		final T t = this.provider.get();
+		final T t = this.provider.poll();
 		return t;
 	}
 

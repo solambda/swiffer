@@ -10,10 +10,9 @@ import com.solambda.swiffer.api.internal.activities.ActivityExecutionReporter;
 import com.solambda.swiffer.api.internal.activities.ActivityExecutor;
 import com.solambda.swiffer.api.internal.activities.ActivityExecutorRegistry;
 import com.solambda.swiffer.api.internal.activities.ActivityTaskContext;
-import com.solambda.swiffer.api.internal.activities.ActivityTaskContextProvider;
 import com.solambda.swiffer.api.internal.activities.exceptions.ActivityTaskExecutionFailedException;
 
-public class WorkerImpl extends AbstractTaskListPoller<ActivityTaskContext> implements Worker {
+public class WorkerImpl extends AbstractTaskListService<ActivityTaskContext> implements Worker {
 
 	private ExecutorService executor;
 
@@ -22,7 +21,7 @@ public class WorkerImpl extends AbstractTaskListPoller<ActivityTaskContext> impl
 	final ActivityExecutionReporter reporter;
 
 	public WorkerImpl(
-			final ActivityTaskContextProvider provider,
+			final TaskContextPoller<ActivityTaskContext> provider,
 			final ActivityExecutorRegistry registry,
 			final ActivityExecutionReporter reporter) {
 		super(provider);

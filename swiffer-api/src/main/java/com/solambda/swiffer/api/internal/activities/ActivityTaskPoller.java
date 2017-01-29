@@ -7,9 +7,11 @@ import com.amazonaws.services.simpleworkflow.AmazonSimpleWorkflow;
 import com.amazonaws.services.simpleworkflow.model.ActivityTask;
 import com.amazonaws.services.simpleworkflow.model.PollForActivityTaskRequest;
 import com.amazonaws.services.simpleworkflow.model.TaskList;
-import com.solambda.swiffer.api.internal.AbstractContextProviderImpl;
+import com.solambda.swiffer.api.internal.AbstractContextPoller;
 
-public class ActivityTaskPoller extends AbstractContextProviderImpl implements ActivityTaskContextProvider {
+public class ActivityTaskPoller
+		extends AbstractContextPoller<ActivityTaskContext> {
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(ActivityTaskPoller.class);
 
 	public ActivityTaskPoller(final AmazonSimpleWorkflow client, final String domain, final String taskList,
@@ -18,38 +20,21 @@ public class ActivityTaskPoller extends AbstractContextProviderImpl implements A
 	}
 
 	@Override
-	public ActivityTaskContext get() {
-		final ActivityTask task = task();
-		if (task != null) {
-			return new ActivityTaskContextImpl(this.swf, task);
-		} else {
+	protected ActivityTaskContext pollForTask() throws Exception {
+		LOGGER.debug("[{}:{}] Polling ActivityTask list {}", this.domain, this.identity, this.taskList);
+		final PollForActivityTaskRequest pollForActivityTaskRequest = new PollForActivityTaskRequest()
+				.withDomain(this.domain)
+				.withIdentity(this.identity)
+				.withTaskList(new TaskList().withName(this.taskList));
+		final ActivityTask activityTask = this.swf.pollForActivityTask(pollForActivityTaskRequest);
+		if (activityTask == null || activityTask.getTaskToken() == null) {
+			LOGGER.debug("[{}:{}] no ActivityTask available in {}", this.domain, this.identity, this.taskList);
 			return null;
 		}
-	}
-
-	private ActivityTask task() {
-		try {
-			LOGGER.debug("[{}:{}] Polling ActivityTask list {}", this.domain, this.identity, this.taskList);
-			final PollForActivityTaskRequest pollForActivityTaskRequest = new PollForActivityTaskRequest()
-					.withDomain(this.domain)
-					.withIdentity(this.identity)
-					.withTaskList(new TaskList().withName(this.taskList));
-			final ActivityTask activityTask = this.swf.pollForActivityTask(pollForActivityTaskRequest);
-			if (activityTask == null || activityTask.getTaskToken() == null) {
-				LOGGER.debug("[{}:{}] no ActivityTask available in {}", this.domain, this.identity, this.taskList);
-				return null;
-			}
-			LOGGER.debug("[{}:{}] ActivityTask received from {}:{}", this.domain, this.identity, this.taskList,
-					activityTask);
-			return activityTask;
-		} catch (final Exception e) {
-			throw new IllegalStateException(String.format("[%s:%s] Cannot poll ActivityTask list %s",
-					this.domain, this.identity, this.taskList), e);
-		}
-	}
-
-	@Override
-	public void stop() {
+		LOGGER.debug("[{}:{}] ActivityTask received from {}:{}", this.domain, this.identity, this.taskList,
+				activityTask);
+		return new ActivityTaskContextImpl(this.swf, activityTask);
 
 	}
+
 }

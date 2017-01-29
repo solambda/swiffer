@@ -2,25 +2,16 @@ package com.solambda.swiffer.api.internal.decisions;
 
 import java.util.List;
 
+import com.solambda.swiffer.api.internal.TaskContext;
 import com.solambda.swiffer.api.internal.VersionedName;
 
 /**
- * Provide information useful during decision making of workflow.
+ * Provide information useful during decision making of a workflow.
  * <p>
  *
  *
  */
-public interface DecisionTaskContext {
-
-	/**
-	 * @return the history of the workflow
-	 */
-	WorkflowHistory history();
-
-	/**
-	 * @return the id of the context of decision, used to apply the decisions
-	 */
-	String taskToken();
+public interface DecisionTaskContext extends TaskContext {
 
 	/**
 	 * @return the workflow type id, used to identify this workflow
