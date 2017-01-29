@@ -75,7 +75,7 @@ public class ActivityTaskContextPollerTest {
 				.submit(() -> poller.poll());
 		final ActivityTaskContext context = pollingFuture.get(expectedPollingDuration + 100, MILLISECONDS);
 		// THEN the polling operation blocked
-		assertThat(watch.elapsed(MILLISECONDS)).isCloseTo(expectedPollingDuration, Offset.offset(20L));
+		assertThat(watch.elapsed(MILLISECONDS)).isCloseTo(expectedPollingDuration, Offset.offset(60L));
 		assertThat(context.taskToken()).isEqualTo(TOKEN);
 	}
 

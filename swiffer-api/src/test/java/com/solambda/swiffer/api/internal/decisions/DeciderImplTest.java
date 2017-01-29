@@ -30,6 +30,7 @@ import com.solambda.swiffer.api.Decider;
 import com.solambda.swiffer.api.OnWorkflowStarted;
 import com.solambda.swiffer.api.Swiffer;
 import com.solambda.swiffer.api.WorkflowType;
+import com.solambda.swiffer.api.internal.DeciderImpl;
 import com.solambda.swiffer.test.Tests;
 
 public class DeciderImplTest {
@@ -89,12 +90,14 @@ public class DeciderImplTest {
 				.withEventId(1L)
 				.withEventType(EventType.WorkflowExecutionStarted)
 				.withWorkflowExecutionStartedEventAttributes(
-						new WorkflowExecutionStartedEventAttributes().withInput("workflowInput"))
+						new WorkflowExecutionStartedEventAttributes()
+								.withInput("workflowInput"))
 				.withEventTimestamp(new Date()));
 
 		when(this.swf.pollForDecisionTask(any(PollForDecisionTaskRequest.class)))
 				.thenReturn(new DecisionTask()
 						.withTaskToken(TASK_TOKEN)
+						.withPreviousStartedEventId(0L)
 						.withWorkflowType(new com.amazonaws.services.simpleworkflow.model.WorkflowType()
 								.withName("workflowType1").withVersion("1"))
 						.withEvents(events));
@@ -140,17 +143,16 @@ public class DeciderImplTest {
 	@Test
 	public void theCorrectWorkflowTemplateIsInvoked() throws Exception {
 		// GIVEN
-		final Decider decider = createDecider();
+		final DeciderImpl decider = (DeciderImpl) createDecider();
 		aDecisionTaskInTheTaskList();
 		// WHEN
-		decider.start();
-		sleep(Duration.ofMillis(1000));
+		decider.pollAndExecuteTask();
 		// THEN
 
 		final ArgumentCaptor<String> captor = ArgumentCaptor
 				.forClass(String.class);
 		verify(this.workflowTemplate1).started(captor.capture());
 		final String request = captor.getValue();
-		assertThat(request).isEqualTo("workflow-input");
+		assertThat(request).isEqualTo("workflowInput");
 	}
 }

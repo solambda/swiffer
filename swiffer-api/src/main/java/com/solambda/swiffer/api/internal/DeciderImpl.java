@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import com.solambda.swiffer.api.Decider;
 import com.solambda.swiffer.api.Decisions;
 import com.solambda.swiffer.api.internal.decisions.DecisionExecutor;
+import com.solambda.swiffer.api.internal.decisions.DecisionExecutorImpl;
 import com.solambda.swiffer.api.internal.decisions.DecisionTaskContext;
 import com.solambda.swiffer.api.internal.decisions.WorkflowTemplate;
 import com.solambda.swiffer.api.internal.decisions.WorkflowTemplateRegistry;
@@ -19,6 +20,7 @@ public class DeciderImpl extends AbstractTaskListService<DecisionTaskContext> im
 	public DeciderImpl(final TaskContextPoller<DecisionTaskContext> poller, final WorkflowTemplateRegistry registry) {
 		super(poller);
 		this.registry = registry;
+		this.executor = new DecisionExecutorImpl(poller.swf());
 	}
 
 	@Override
@@ -36,6 +38,7 @@ public class DeciderImpl extends AbstractTaskListService<DecisionTaskContext> im
 			// FATAL issue : how to recover from that ?
 			throw new IllegalStateException("Cannot find a workflow template for " + task.workflowType());
 		} else {
+			LOGGER.debug("executing decision task with template of workflow {}", template.getWorkflowType());
 			execute(task, template);
 		}
 	}

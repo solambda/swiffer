@@ -17,7 +17,8 @@ public class DecisionTaskContextImpl implements DecisionTaskContext {
 	private WorkflowHistory history;
 	private String domain;
 
-	public DecisionTaskContextImpl(final AmazonSimpleWorkflow swf, final String domain, final DecisionTask decisionTask) {
+	public DecisionTaskContextImpl(final AmazonSimpleWorkflow swf, final String domain,
+			final DecisionTask decisionTask) {
 		super();
 		this.swf = swf;
 		this.decisionTask = decisionTask;
@@ -57,4 +58,12 @@ public class DecisionTaskContextImpl implements DecisionTaskContext {
 		final WorkflowType workflowType = this.decisionTask.getWorkflowType();
 		return new VersionedName(workflowType.getName(), workflowType.getVersion());
 	}
+
+	@Override
+	public String toString() {
+		return "DecisionTaskContextImpl [domain=" + this.domain
+				+ ", workflowType=" + workflowType() + ", taskToken="
+				+ taskToken() + "]";
+	}
+
 }

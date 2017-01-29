@@ -59,4 +59,14 @@ public abstract class AbstractTaskContextPoller<T extends TaskContext> implement
 		}
 	}
 
+	@Override
+	public AmazonSimpleWorkflow swf() {
+		return this.swf;
+	}
+
+	@Override
+	public String domain() {
+		return this.domain;
+	}
+
 }

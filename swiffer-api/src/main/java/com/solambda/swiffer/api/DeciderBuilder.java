@@ -48,20 +48,10 @@ public class DeciderBuilder {
 	private WorkflowTemplateRegistry createWorkflowTemplateRegistry() {
 		final Map<VersionedName, WorkflowTemplate> registry = new HashMap<>();
 		for (final Object workflowTemplate : this.workflowTemplates) {
-			createWorkflowTemplate(workflowTemplate, registry);
+			final WorkflowTemplate template = this.templateFactory.createWorkflowTemplate(workflowTemplate);
+			registry.put(template.getWorkflowType(), template);
 		}
 		return new WorkflowTemplateRegistry(registry);
-	}
-
-	private void createWorkflowTemplate(
-			final Object workflowTemplate,
-			final Map<VersionedName, WorkflowTemplate> registry) {
-		final WorkflowTemplate value = createWorkflowTemplate(workflowTemplate);
-		registry.put(value.getWorkflowType(), value);
-	}
-
-	private WorkflowTemplate createWorkflowTemplate(final Object workflowTemplate) {
-		return this.templateFactory.createWorkflowTemplate(workflowTemplate);
 	}
 
 	/**

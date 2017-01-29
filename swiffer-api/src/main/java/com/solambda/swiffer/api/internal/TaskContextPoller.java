@@ -7,7 +7,7 @@ import com.solambda.swiffer.api.exceptions.TaskContextPollingException;
  *
  * @param <T>
  */
-public interface TaskContextPoller<T extends TaskContext> {
+public interface TaskContextPoller<T extends TaskContext> extends SwfAware {
 
 	/**
 	 * Poll the tasklist. This method can be blocking up to 60s if no task is
