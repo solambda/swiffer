@@ -2,11 +2,11 @@ package com.solambda.swiffer.api.internal.context.identifier;
 
 import com.solambda.swiffer.api.internal.VersionedName;
 
-public class TaskName implements ContextName {
+public class ActivityName implements ContextName {
 
 	private VersionedName type;
 
-	public TaskName(final VersionedName type) {
+	public ActivityName(final VersionedName type) {
 		super();
 		this.type = type;
 	}
@@ -30,7 +30,7 @@ public class TaskName implements ContextName {
 		if (getClass() != obj.getClass()) {
 			return false;
 		}
-		TaskName other = (TaskName) obj;
+		ActivityName other = (ActivityName) obj;
 		if (type == null) {
 			if (other.type != null) {
 				return false;

@@ -3,16 +3,15 @@ package com.solambda.swiffer.api.internal.activities;
 import java.lang.reflect.InvocationTargetException;
 
 import com.google.common.base.Preconditions;
-import com.solambda.swiffer.api.internal.ArgumentsProvider;
+import com.solambda.swiffer.api.exceptions.ActivityTaskExecutionFailedException;
 import com.solambda.swiffer.api.internal.MethodInvoker;
-import com.solambda.swiffer.api.internal.activities.exceptions.ActivityTaskExecutionFailedException;
 
 public class ActivityExecutorImpl implements ActivityExecutor {
 	private MethodInvoker invoker;
-	private ArgumentsProvider<ActivityTaskContext> argumentsProvider;
+	private ActivityExecutorArgumentsProvider argumentsProvider;
 
 	public ActivityExecutorImpl(final MethodInvoker invoker,
-			final ArgumentsProvider<ActivityTaskContext> argumentsProvider) {
+			final ActivityExecutorArgumentsProvider argumentsProvider) {
 		super();
 		Preconditions.checkNotNull(invoker, "MethodInvoker should not be null");
 		this.argumentsProvider = argumentsProvider;

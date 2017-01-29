@@ -1,4 +1,4 @@
-package com.solambda.swiffer.api.internal.activities.exceptions;
+package com.solambda.swiffer.api.exceptions;
 
 import com.solambda.swiffer.api.internal.activities.ActivityExecutionReporter;
 

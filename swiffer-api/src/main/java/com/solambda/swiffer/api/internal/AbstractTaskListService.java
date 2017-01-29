@@ -8,23 +8,24 @@ import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.Service;
 import com.google.common.util.concurrent.Service.State;
 import com.solambda.swiffer.api.TaskListService;
+import com.solambda.swiffer.api.exceptions.TaskContextPollingException;
 
 public abstract class AbstractTaskListService<T extends TaskContext> implements TaskListService {
 
 	private final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
 
-	protected TaskContextPoller<T> provider;
-	private AbstractExecutionThreadService pollingService;
+	protected TaskContextPoller<T> poller;
+	private AbstractExecutionThreadService daemonService;
 
-	public AbstractTaskListService(final TaskContextPoller<T> provider) {
+	public AbstractTaskListService(final TaskContextPoller<T> poller) {
 		super();
-		this.provider = provider;
+		this.poller = poller;
 	}
 
 	@Override
 	public void start() {
-		if (this.pollingService == null) {
-			this.pollingService = new AbstractExecutionThreadService() {
+		if (this.daemonService == null) {
+			this.daemonService = new AbstractExecutionThreadService() {
 				@Override
 				protected void run() throws Exception {
 					while (isRunning()) {
@@ -32,28 +33,35 @@ public abstract class AbstractTaskListService<T extends TaskContext> implements 
 							final T task = pollTaskList();
 							executeTask(task);
 						} catch (final Exception e) {
-							AbstractTaskListService.this.LOGGER.error("Error running provider. Poller will now stop.",
+							AbstractTaskListService.this.LOGGER.error(
+									"Error running poller. Service is going to stop now.",
 									e);
 							throw e;
 						}
 					}
 				}
+
+				@Override
+				protected void triggerShutdown() {
+					super.triggerShutdown();
+					AbstractTaskListService.this.poller.stop();
+				}
 			};
-			this.pollingService.addListener(new Service.Listener() {
+			this.daemonService.addListener(new Service.Listener() {
 				@Override
 				public void failed(final State from, final Throwable failure) {
 					super.failed(from, failure);
 				}
 			}, MoreExecutors.directExecutor());
 		}
-		final State state = this.pollingService.state();
+		final State state = this.daemonService.state();
 		switch (state) {
 		case NEW:
-			this.pollingService.startAsync();
-			this.pollingService.awaitRunning();
+			this.daemonService.startAsync();
+			this.daemonService.awaitRunning();
 			break;
 		case STARTING:
-			this.pollingService.awaitRunning();
+			this.daemonService.awaitRunning();
 			break;
 		case RUNNING:
 			break;
@@ -79,15 +87,17 @@ public abstract class AbstractTaskListService<T extends TaskContext> implements 
 	 */
 	protected abstract void executeTaskImmediately(final T task);
 
-	private T pollTaskList() {
-		final T t = this.provider.poll();
+	private T pollTaskList() throws TaskContextPollingException {
+		final T t = this.poller.poll();
 		return t;
 	}
 
 	/**
 	 * A test only method that poll the task list once and execute the task
+	 *
+	 * @throws TaskContextPollingException
 	 */
-	public void pollAndExecuteTask() {
+	public void pollAndExecuteTask() throws TaskContextPollingException {
 		final T task = pollTaskList();
 		if (task == null) {
 			throw new IllegalStateException("no task available for execution!");
@@ -97,18 +107,18 @@ public abstract class AbstractTaskListService<T extends TaskContext> implements 
 
 	@Override
 	public void stop() {
-		if (this.pollingService == null) {
+		if (this.daemonService == null) {
 
 		} else {
-			this.pollingService.stopAsync();
-			this.pollingService = null;
+			this.daemonService.stopAsync();
+			this.daemonService = null;
 		}
 	}
 
 	@Override
 	public boolean isStarted() {
-		return this.pollingService != null
-				&& (this.pollingService.isRunning() || this.pollingService.state() == State.STARTING);
+		return this.daemonService != null
+				&& (this.daemonService.isRunning() || this.daemonService.state() == State.STARTING);
 	}
 
 }

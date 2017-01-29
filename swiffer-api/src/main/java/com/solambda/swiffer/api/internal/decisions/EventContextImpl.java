@@ -17,7 +17,7 @@ import com.solambda.swiffer.api.internal.context.WorkflowTerminatedContext;
 import com.solambda.swiffer.api.internal.context.identifier.ContextName;
 import com.solambda.swiffer.api.internal.context.identifier.MarkerName;
 import com.solambda.swiffer.api.internal.context.identifier.SignalName;
-import com.solambda.swiffer.api.internal.context.identifier.TaskName;
+import com.solambda.swiffer.api.internal.context.identifier.ActivityName;
 import com.solambda.swiffer.api.internal.context.identifier.TimerName;
 import com.solambda.swiffer.api.internal.context.identifier.WorkflowName;
 import com.solambda.swiffer.api.internal.events.EventCategory;
@@ -65,7 +65,7 @@ public class EventContextImpl implements
 	public ContextName name() {
 		switch (category()) {
 		case ACTIVITY:
-			return new TaskName(activityType());
+			return new ActivityName(activityType());
 		case SIGNAL:
 			return new SignalName(signalName());
 		case MARKER:

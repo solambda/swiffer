@@ -10,8 +10,8 @@ import com.amazonaws.services.simpleworkflow.model.RespondActivityTaskCanceledRe
 import com.amazonaws.services.simpleworkflow.model.RespondActivityTaskCompletedRequest;
 import com.amazonaws.services.simpleworkflow.model.RespondActivityTaskFailedRequest;
 import com.google.common.base.Strings;
+import com.solambda.swiffer.api.exceptions.CancelActivityRequested;
 import com.solambda.swiffer.api.internal.Failure;
-import com.solambda.swiffer.api.internal.activities.exceptions.CancelActivityRequested;
 
 public class ActivityExecutionReporterImpl implements ActivityExecutionReporter {
 

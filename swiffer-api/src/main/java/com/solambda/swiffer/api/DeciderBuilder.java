@@ -56,17 +56,12 @@ public class DeciderBuilder {
 	private void createWorkflowTemplate(
 			final Object workflowTemplate,
 			final Map<VersionedName, WorkflowTemplate> registry) {
-		final VersionedName key = createVersionedName(workflowTemplate);
 		final WorkflowTemplate value = createWorkflowTemplate(workflowTemplate);
-		registry.put(key, value);
+		registry.put(value.getWorkflowType(), value);
 	}
 
 	private WorkflowTemplate createWorkflowTemplate(final Object workflowTemplate) {
-		return this.templateFactory.create(workflowTemplate);
-	}
-
-	private VersionedName createVersionedName(final Object workflowTemplate) {
-		return this.templateFactory.createWorkflowType(workflowTemplate);
+		return this.templateFactory.createWorkflowTemplate(workflowTemplate);
 	}
 
 	/**

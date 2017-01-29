@@ -6,11 +6,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import com.solambda.swiffer.api.Worker;
+import com.solambda.swiffer.api.exceptions.ActivityTaskExecutionFailedException;
 import com.solambda.swiffer.api.internal.activities.ActivityExecutionReporter;
 import com.solambda.swiffer.api.internal.activities.ActivityExecutor;
 import com.solambda.swiffer.api.internal.activities.ActivityExecutorRegistry;
 import com.solambda.swiffer.api.internal.activities.ActivityTaskContext;
-import com.solambda.swiffer.api.internal.activities.exceptions.ActivityTaskExecutionFailedException;
 
 public class WorkerImpl extends AbstractTaskListService<ActivityTaskContext> implements Worker {
 
@@ -21,10 +21,10 @@ public class WorkerImpl extends AbstractTaskListService<ActivityTaskContext> imp
 	final ActivityExecutionReporter reporter;
 
 	public WorkerImpl(
-			final TaskContextPoller<ActivityTaskContext> provider,
+			final TaskContextPoller<ActivityTaskContext> poller,
 			final ActivityExecutorRegistry registry,
 			final ActivityExecutionReporter reporter) {
-		super(provider);
+		super(poller);
 		this.executor = Executors.newFixedThreadPool(10);
 		this.registry = registry;
 		this.reporter = reporter;

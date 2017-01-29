@@ -1,5 +1,7 @@
 package com.solambda.swiffer.api.internal;
 
+import com.solambda.swiffer.api.exceptions.TaskContextPollingException;
+
 /**
  * Provide a context object by polling a SWF tasklist.
  *
@@ -14,8 +16,9 @@ public interface TaskContextPoller<T extends TaskContext> {
 	 *
 	 * @return a new task context, or null if no task context is available in
 	 *         the task list.
+	 * @throws TaskContextPollingException
 	 */
-	public abstract T poll();
+	public abstract T poll() throws TaskContextPollingException;
 
 	/**
 	 * Immediately stop polling, making the thread blocked on {@link #poll()}

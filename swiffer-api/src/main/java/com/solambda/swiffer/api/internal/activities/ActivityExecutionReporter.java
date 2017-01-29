@@ -1,7 +1,7 @@
 package com.solambda.swiffer.api.internal.activities;
 
+import com.solambda.swiffer.api.exceptions.CancelActivityRequested;
 import com.solambda.swiffer.api.internal.Failure;
-import com.solambda.swiffer.api.internal.activities.exceptions.CancelActivityRequested;
 
 public interface ActivityExecutionReporter {
 

@@ -119,6 +119,25 @@ public class DeciderImplTest {
 	}
 
 	@Test
+	public void invokeDecisionExecutorWithDecisions() {
+		// GIVEN
+		final Decider decider = createDecider();
+		aDecisionTaskInTheTaskList();
+
+		// WHEN
+		decider.start();
+		sleep(Duration.ofMillis(100));
+		// THEN
+		final ArgumentCaptor<PollForDecisionTaskRequest> captor = ArgumentCaptor
+				.forClass(PollForDecisionTaskRequest.class);
+		verify(this.swf, atLeastOnce()).pollForDecisionTask(captor.capture());
+		final PollForDecisionTaskRequest request = captor.getValue();
+		assertThat(request.getTaskList().getName()).isEqualTo("test-decision-task-list");
+		assertThat(request.getIdentity()).isEqualTo("decider-name");
+		assertThat(request.getDomain()).isEqualTo(Tests.DOMAIN);
+	}
+
+	@Test
 	public void theCorrectWorkflowTemplateIsInvoked() throws Exception {
 		// GIVEN
 		final Decider decider = createDecider();

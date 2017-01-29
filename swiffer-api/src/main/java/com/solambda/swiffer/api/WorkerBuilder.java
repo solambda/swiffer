@@ -12,13 +12,13 @@ import java.util.function.Function;
 
 import com.amazonaws.services.simpleworkflow.AmazonSimpleWorkflow;
 import com.google.common.base.Preconditions;
-import com.solambda.swiffer.api.internal.ArgumentsProvider;
 import com.solambda.swiffer.api.internal.MethodInvoker;
 import com.solambda.swiffer.api.internal.VersionedName;
 import com.solambda.swiffer.api.internal.WorkerImpl;
 import com.solambda.swiffer.api.internal.activities.ActivityExecutionReporter;
 import com.solambda.swiffer.api.internal.activities.ActivityExecutionReporterImpl;
 import com.solambda.swiffer.api.internal.activities.ActivityExecutor;
+import com.solambda.swiffer.api.internal.activities.ActivityExecutorArgumentsProvider;
 import com.solambda.swiffer.api.internal.activities.ActivityExecutorImpl;
 import com.solambda.swiffer.api.internal.activities.ActivityExecutorRegistry;
 import com.solambda.swiffer.api.internal.activities.ActivityTaskContext;
@@ -39,13 +39,13 @@ public class WorkerBuilder {
 
 	public Worker build() {
 		final ActivityExecutorRegistry registry = createExecutorRegistry();
-		final ActivityTaskPoller activityTaskPoller = new ActivityTaskPoller(
+		final ActivityTaskPoller poller = new ActivityTaskPoller(
 				this.swf,
 				this.domain,
 				this.taskList,
 				this.identity);
 		final ActivityExecutionReporter reporter = new ActivityExecutionReporterImpl(this.swf);
-		return new WorkerImpl(activityTaskPoller, registry, reporter);
+		return new WorkerImpl(poller, registry, reporter);
 	}
 
 	private ActivityExecutorRegistry createExecutorRegistry() {
@@ -92,12 +92,13 @@ public class WorkerBuilder {
 			final ActivityType annotation) {
 		final VersionedName key = new VersionedName(annotation.name(), annotation.version());
 		final MethodInvoker invoker = new MethodInvoker(executorClassInstance, publicMethod);
-		final ArgumentsProvider<ActivityTaskContext> argumentsProvider = createArgumentsProvider(publicMethod);
+		final ActivityExecutorArgumentsProvider argumentsProvider = createArgumentsProvider(
+				publicMethod);
 		final ActivityExecutor value = new ActivityExecutorImpl(invoker, argumentsProvider);
 		registry.put(key, value);
 	}
 
-	private ArgumentsProvider<ActivityTaskContext> createArgumentsProvider(final Method publicMethod) {
+	private ActivityExecutorArgumentsProvider createArgumentsProvider(final Method publicMethod) {
 		final AnnotatedType[] parameterTypes = publicMethod.getAnnotatedParameterTypes();
 		if (parameterTypes.length == 0) {
 			return (c) -> new Object[0];

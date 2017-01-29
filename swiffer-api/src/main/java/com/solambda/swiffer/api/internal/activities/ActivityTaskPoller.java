@@ -7,16 +7,16 @@ import com.amazonaws.services.simpleworkflow.AmazonSimpleWorkflow;
 import com.amazonaws.services.simpleworkflow.model.ActivityTask;
 import com.amazonaws.services.simpleworkflow.model.PollForActivityTaskRequest;
 import com.amazonaws.services.simpleworkflow.model.TaskList;
-import com.solambda.swiffer.api.internal.AbstractContextPoller;
+import com.solambda.swiffer.api.internal.AbstractTaskContextPoller;
 
 public class ActivityTaskPoller
-		extends AbstractContextPoller<ActivityTaskContext> {
+		extends AbstractTaskContextPoller<ActivityTaskContext> {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ActivityTaskPoller.class);
 
-	public ActivityTaskPoller(final AmazonSimpleWorkflow client, final String domain, final String taskList,
+	public ActivityTaskPoller(final AmazonSimpleWorkflow swf, final String domain, final String taskList,
 			final String identity) {
-		super(client, domain, taskList, identity);
+		super(swf, domain, taskList, identity);
 	}
 
 	@Override

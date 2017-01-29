@@ -7,20 +7,28 @@ import org.slf4j.LoggerFactory;
 
 import com.solambda.swiffer.api.Decisions;
 import com.solambda.swiffer.api.internal.DecisionsImpl;
+import com.solambda.swiffer.api.internal.VersionedName;
 
 public class WorkflowTemplateImpl implements WorkflowTemplate {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(WorkflowTemplateImpl.class);
 
+	private VersionedName workflowType;
 	private final EventHandlerRegistry eventHandlerRegistry;
 
-	public WorkflowTemplateImpl(final EventHandlerRegistry eventHandlerRegistry) {
+	public WorkflowTemplateImpl(final VersionedName workflowType, final EventHandlerRegistry eventHandlerRegistry) {
 		super();
+		this.workflowType = workflowType;
 		this.eventHandlerRegistry = eventHandlerRegistry;
 	}
 
 	@Override
-	public Decisions decide(final DecisionTaskContext decisionContext) throws DecisionTaskExecutionFailedException {
+	public VersionedName getWorkflowType() {
+		return this.workflowType;
+	}
+
+	@Override
+	public Decisions decide(final DecisionTaskContext decisionContext) throws DecisionTaskExecutionException {
 		final Decisions decisions = new DecisionsImpl();
 		final List<WorkflowEvent> newEvents = decisionContext.newEvents();
 		LOGGER.debug("processing {} new events", newEvents.size());
@@ -36,13 +44,13 @@ public class WorkflowTemplateImpl implements WorkflowTemplate {
 	}
 
 	private void processEventHandler(final EventHandler eventHandler, final EventContext eventContext,
-			final Decisions decisions) throws DecisionTaskExecutionFailedException {
+			final Decisions decisions) throws DecisionTaskExecutionException {
 		if (eventContext == null) {
 			doDefaultEventHandler(eventContext);
 		} else {
 			try {
 				eventHandler.handleEvent(eventContext, decisions);
-			} catch (final DecisionTaskExecutionFailedException e) {
+			} catch (final DecisionTaskExecutionException e) {
 				// TODO let's make the failing behavior configurable by the
 				// a failure here should
 				// - an error here is a development bug:
@@ -57,7 +65,7 @@ public class WorkflowTemplateImpl implements WorkflowTemplate {
 
 	private void doDefaultEventHandler(final EventContext eventContext) {
 		// do
-		this.LOGGER.debug("no event handler defined for {}", eventContext.event());
+		LOGGER.debug("no event handler defined for {}", eventContext.event());
 	}
 
 }

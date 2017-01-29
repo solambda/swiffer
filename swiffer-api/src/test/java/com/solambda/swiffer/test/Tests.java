@@ -16,6 +16,13 @@ public class Tests {
 		};
 	}
 
+	public static <T> Answer<T> failWith(final Throwable e) {
+
+		return (i) -> {
+			throw e;
+		};
+	}
+
 	public static void sleep(final Duration delay) {
 		try {
 			Thread.sleep(delay.toMillis());

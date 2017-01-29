@@ -1,6 +1,6 @@
 package com.solambda.swiffer.api.internal.activities;
 
-import com.solambda.swiffer.api.internal.activities.exceptions.ActivityTaskExecutionFailedException;
+import com.solambda.swiffer.api.exceptions.ActivityTaskExecutionFailedException;
 
 public interface ActivityExecutor {
 

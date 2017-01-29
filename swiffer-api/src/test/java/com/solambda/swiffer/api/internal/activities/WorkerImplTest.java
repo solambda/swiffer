@@ -30,6 +30,7 @@ import com.solambda.swiffer.api.ActivityType;
 import com.solambda.swiffer.api.Executor;
 import com.solambda.swiffer.api.Swiffer;
 import com.solambda.swiffer.api.Worker;
+import com.solambda.swiffer.api.exceptions.TaskContextPollingException;
 import com.solambda.swiffer.api.internal.WorkerImpl;
 import com.solambda.swiffer.api.internal.activities.WorkerImplTest.Definitions.FailingActivity;
 import com.solambda.swiffer.api.internal.activities.WorkerImplTest.Definitions.NoArgumentActivity;
@@ -226,7 +227,7 @@ public class WorkerImplTest {
 	}
 
 	@Test
-	public void outputIsPassedToRespondTaskCompletedWithExecutorReturnValue() {
+	public void outputIsPassedToRespondTaskCompletedWithExecutorReturnValue() throws TaskContextPollingException {
 		// GIVEN
 		anActivityTaskInTheTaskList(NO_ARGUMENT_ACTIVITY_NAME);
 		// WHEN
@@ -244,7 +245,8 @@ public class WorkerImplTest {
 	}
 
 	@Test
-	public void noOutputIsPassedToRespondTaskCompletedForExecutorWithVoidReturnValue() {
+	public void noOutputIsPassedToRespondTaskCompletedForExecutorWithVoidReturnValue()
+			throws TaskContextPollingException {
 		// GIVEN
 		anActivityTaskInTheTaskList(NO_RETURN_VALUE_ACTIVITY_NAME);
 		// WHEN
@@ -276,7 +278,9 @@ public class WorkerImplTest {
 
 		assertThat(request.getReason()).isEqualTo("Task execution failed");
 		assertThat(request.getDetails())
-				.contains("Execution of activity Activity['failingActivity','1'], id=" + ACTIVITY_ID + " failed!");
+				.contains("Execution of activity")
+				.contains("['failingActivity','1']")
+				.contains("id=" + ACTIVITY_ID + " failed!");
 		assertThat(request.getTaskToken()).isEqualTo(TASK_TOKEN);
 	}
 

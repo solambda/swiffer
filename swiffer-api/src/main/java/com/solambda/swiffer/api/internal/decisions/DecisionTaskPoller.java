@@ -7,9 +7,9 @@ import com.amazonaws.services.simpleworkflow.AmazonSimpleWorkflow;
 import com.amazonaws.services.simpleworkflow.model.DecisionTask;
 import com.amazonaws.services.simpleworkflow.model.PollForDecisionTaskRequest;
 import com.amazonaws.services.simpleworkflow.model.TaskList;
-import com.solambda.swiffer.api.internal.AbstractContextPoller;
+import com.solambda.swiffer.api.internal.AbstractTaskContextPoller;
 
-public class DecisionTaskPoller extends AbstractContextPoller<DecisionTaskContext> {
+public class DecisionTaskPoller extends AbstractTaskContextPoller<DecisionTaskContext> {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(DecisionTaskPoller.class);
 

@@ -11,13 +11,13 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 /**
- * Annotation to put on a event handler parameter to receive the input of a
- * activity , a signal or a workflow.
+ * Annotation to put on a event handler parameter to receive the reason of a
+ * failed or timed out activity, or a terminated worfklow.
  * <p>
  */
 @Documented
 @Retention(RUNTIME)
 @Target(PARAMETER)
-public @interface Input {
+public @interface Reason {
 
 }

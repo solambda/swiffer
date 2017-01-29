@@ -1,11 +1,12 @@
 package com.solambda.swiffer.api.internal.decisions;
 
 import com.solambda.swiffer.api.Decisions;
+import com.solambda.swiffer.api.internal.VersionedName;
 
 /**
- * A workflow template is the runtime representation of a user-defined workflow
- * instance, invoking the user-defined event handlers and returning a
- * {@link Decisions} object.
+ * A workflow template is the runtime object of a user-defined workflow
+ * instance, turning a {@link DecisionTaskContext} into a {@link Decisions}
+ * object.
  * <p>
  * Instances of {@link WorkflowTemplate} are created by a
  * {@link WorkflowTemplateFactory}.
@@ -14,5 +15,10 @@ import com.solambda.swiffer.api.Decisions;
  */
 public interface WorkflowTemplate {
 
-	public Decisions decide(DecisionTaskContext decisionContext) throws DecisionTaskExecutionFailedException;
+	public Decisions decide(DecisionTaskContext decisionContext) throws DecisionTaskExecutionException;
+
+	/**
+	 * @return the type of workflow this template can handle.
+	 */
+	public VersionedName getWorkflowType();
 }

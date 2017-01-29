@@ -14,4 +14,5 @@ public class EventHandlerRegistry {
 	public EventHandler get(final EventHandlerType key) {
 		return this.eventHandlerRegistry.get(key);
 	}
+
 }

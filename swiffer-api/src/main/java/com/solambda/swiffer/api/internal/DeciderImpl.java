@@ -16,8 +16,8 @@ public class DeciderImpl extends AbstractTaskListService<DecisionTaskContext> im
 	private WorkflowTemplateRegistry registry;
 	private DecisionExecutor executor;
 
-	public DeciderImpl(final TaskContextPoller<DecisionTaskContext> provider, final WorkflowTemplateRegistry registry) {
-		super(provider);
+	public DeciderImpl(final TaskContextPoller<DecisionTaskContext> poller, final WorkflowTemplateRegistry registry) {
+		super(poller);
 		this.registry = registry;
 	}
 
