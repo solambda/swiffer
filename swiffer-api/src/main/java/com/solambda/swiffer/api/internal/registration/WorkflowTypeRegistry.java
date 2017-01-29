@@ -19,16 +19,16 @@ import com.google.common.base.Preconditions;
 import com.solambda.swiffer.api.WorkflowType;
 import com.solambda.swiffer.api.internal.SwfAware;
 
-public class WorkflowRegistry implements SwfAware {
+public class WorkflowTypeRegistry implements SwfAware {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(WorkflowRegistry.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(WorkflowTypeRegistry.class);
 
 	private static final int ONE_YEAR = 365 * 24 * 60 * 60;
 
 	private AmazonSimpleWorkflow swf;
 	private String domain;
 
-	public WorkflowRegistry(final AmazonSimpleWorkflow swf, final String domain) {
+	public WorkflowTypeRegistry(final AmazonSimpleWorkflow swf, final String domain) {
 		super();
 		this.swf = swf;
 		this.domain = domain;
@@ -59,12 +59,22 @@ public class WorkflowRegistry implements SwfAware {
 				.withVersion(identifier.version());
 	}
 
-	public void registerWorkflow(final WorkflowType workflowType) {
+	/**
+	 * Register the given workflow if unregistered, or ensure the reigstered
+	 * workflow configuration is the same as the specified one.
+	 *
+	 * @param workflowType
+	 * @return true if the workflow has been registered by this method, false
+	 *         otherwise (already registered)
+	 */
+	public boolean registerWorkflowOrCheckConfiguration(final WorkflowType workflowType) {
 		final WorkflowTypeDetail detail = getWorkflowTypeDetail(workflowType);
 		if (detail != null) {
 			ensureRegisteredAndSpecifedConfigurationsAreTheSame(detail, workflowType);
+			return false;
 		} else {
 			doWorkflowTypeRegistration(workflowType);
+			return true;
 		}
 	}
 
@@ -137,13 +147,17 @@ public class WorkflowRegistry implements SwfAware {
 				.withDefaultChildPolicy(workflowType.defaultChildPolicy())
 				.withDefaultExecutionStartToCloseTimeout(
 						executionTimeout(workflowType))
-				.withDefaultLambdaRole(workflowType.defaultLambdaRole())
+				.withDefaultLambdaRole(lambdaRole(workflowType))
 				.withDefaultTaskList(taskList(workflowType))
 				.withDefaultTaskPriority(taskPriority(workflowType))
 				.withDefaultTaskStartToCloseTimeout(taskTimeout(workflowType));
 		return new WorkflowTypeDetail()
 				.withConfiguration(specifiedConfiguration)
 				.withTypeInfo(specifiedInfo);
+	}
+
+	private String lambdaRole(final WorkflowType workflowType) {
+		return workflowType.defaultLambdaRole().equals("") ? null : workflowType.defaultLambdaRole();
 	}
 
 	@Override

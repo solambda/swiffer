@@ -8,60 +8,67 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import com.amazonaws.services.simpleworkflow.AmazonSimpleWorkflow;
 import com.solambda.swiffer.api.internal.domains.DomainConfiguration;
-import com.solambda.swiffer.api.internal.domains.DomainIdentifier;
 import com.solambda.swiffer.api.internal.registration.DomainRegistry;
-import com.solambda.swiffer.api.test.ObjectMother;
+import com.solambda.swiffer.test.Tests;
 
-@Ignore
 public class DomainRegistryTest {
 
 	private DomainRegistry registry;
 
 	@Before
 	public void createRegistry() {
-		final AmazonSimpleWorkflow client = ObjectMother.client();
-		this.registry = new DomainRegistry(client);
+		this.registry = new DomainRegistry(Tests.swf(), Tests.DOMAIN);
 	}
 
 	@Test
+	public void listDomain() {
+		this.registry.listDomains();
+	}
+
+	@Test
+	@Ignore
 	public void createWorksAsExpected() throws Exception {
 		// we wont do that, since domain are persisted for eternity...
-		this.registry.createDomain(new DomainIdentifier(ObjectMother.domainName()),
+		this.registry.register(
 				new DomainConfiguration("Domain for testing Swiffer lib", Period.ofDays(1)));
 	}
 
 	@Test
+	@Ignore
 	public void existsReturnFalseWhenDomainIsDeprecated() {
-		assertThat(this.registry.domainExists(ObjectMother.deprecatedDomain())).isFalse();
+		assertThat(this.registry.isRegistered()).isFalse();
 	}
 
 	@Test
+	@Ignore
 	public void existsReturnFalseWhenDomainDoesNotExist() {
-		assertThat(this.registry.domainExists(ObjectMother.notExistingDomain())).isFalse();
+		assertThat(this.registry.isRegistered()).isFalse();
 	}
 
 	@Test
 	public void existsReturnTrueWhenDomainExist() {
-		assertThat(this.registry.domainExists(ObjectMother.domain())).isTrue();
+		assertThat(this.registry.isRegistered()).isTrue();
 	}
 
 	@Test
+	@Ignore
 	public void readReturnNullWhenDomainIsDeprecated() {
-		assertThat(this.registry.getDomainConfiguration(ObjectMother.deprecatedDomain())).isNull();
+		assertThat(this.registry.getDomainConfiguration()).isNull();
 	}
 
 	@Test
+	@Ignore
 	public void readReturnNullWhenDomainDoesNotExist() {
-		assertThat(this.registry.getDomainConfiguration(ObjectMother.notExistingDomain())).isNull();
+		assertThat(this.registry.getDomainConfiguration()).isNull();
 	}
 
 	@Test
+	@Ignore
 	public void readReturnsTheConfigurationWhenDomainExists() {
-		assertThat(this.registry.getDomainConfiguration(ObjectMother.domain()).getDescription())
+		assertThat(this.registry.getDomainConfiguration().getDescription())
 				.isEqualTo("Domain for testing Swiffer lib");
-		assertThat(this.registry.getDomainConfiguration(ObjectMother.domain()).getRetention())
+		assertThat(this.registry.getDomainConfiguration().getRetention())
 				.isEqualTo(Period.ofDays(1));
 	}
 

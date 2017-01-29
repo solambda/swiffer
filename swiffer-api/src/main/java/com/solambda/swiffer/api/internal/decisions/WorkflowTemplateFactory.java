@@ -35,7 +35,7 @@ public class WorkflowTemplateFactory {
 
 	}
 
-	private WorkflowType findWorkflowTypeAnnotation(final Object workflowTemplate) {
+	public static WorkflowType findWorkflowTypeAnnotation(final Object workflowTemplate) {
 		final Class<?> clazz = workflowTemplate.getClass();
 		LOGGER.debug("Search workflow type information for {}", clazz);
 		final WorkflowType workflowType = findWorkflowType(clazz);
@@ -47,7 +47,7 @@ public class WorkflowTemplateFactory {
 		return workflowType;
 	}
 
-	private WorkflowType findWorkflowType(final Class<?> clazz) {
+	private static WorkflowType findWorkflowType(final Class<?> clazz) {
 		final Annotation[] annotations = clazz.getAnnotations();
 		for (final Annotation annotation : annotations) {
 			final Class<? extends Annotation> annotationType = annotation.annotationType();

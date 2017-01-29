@@ -15,6 +15,7 @@ import com.solambda.swiffer.api.internal.decisions.DecisionTaskPoller;
 import com.solambda.swiffer.api.internal.decisions.WorkflowTemplate;
 import com.solambda.swiffer.api.internal.decisions.WorkflowTemplateFactory;
 import com.solambda.swiffer.api.internal.decisions.WorkflowTemplateRegistry;
+import com.solambda.swiffer.api.internal.registration.WorkflowTypeRegistry;
 
 /**
  * A builder of {@link Decider}.
@@ -28,12 +29,14 @@ public class DeciderBuilder {
 	private String taskList;
 	private List<Object> workflowTemplates;
 	private WorkflowTemplateFactory templateFactory;
+	private WorkflowTypeRegistry workflowTypeRegistry;
 
 	public DeciderBuilder(final AmazonSimpleWorkflow swf, final String domain) {
 		super();
 		this.swf = swf;
 		this.domain = domain;
 		this.templateFactory = new WorkflowTemplateFactory();
+		this.workflowTypeRegistry = new WorkflowTypeRegistry(swf, domain);
 	}
 
 	/**
@@ -49,9 +52,15 @@ public class DeciderBuilder {
 		final Map<VersionedName, WorkflowTemplate> registry = new HashMap<>();
 		for (final Object workflowTemplate : this.workflowTemplates) {
 			final WorkflowTemplate template = this.templateFactory.createWorkflowTemplate(workflowTemplate);
+			ensureWorkflowTypeRegistration(workflowTemplate);
 			registry.put(template.getWorkflowType(), template);
 		}
 		return new WorkflowTemplateRegistry(registry);
+	}
+
+	private void ensureWorkflowTypeRegistration(final Object workflowTemplate) {
+		this.workflowTypeRegistry.registerWorkflowOrCheckConfiguration(
+				this.templateFactory.findWorkflowTypeAnnotation(workflowTemplate));
 	}
 
 	/**

@@ -12,7 +12,6 @@ import com.solambda.swiffer.api.internal.VersionedName;
 import com.solambda.swiffer.api.internal.context.identifier.MarkerName;
 import com.solambda.swiffer.api.internal.context.identifier.SignalName;
 import com.solambda.swiffer.api.internal.context.identifier.TimerName;
-import com.solambda.swiffer.api.internal.domains.DomainIdentifier;
 
 public class ObjectMother {
 
@@ -39,18 +38,6 @@ public class ObjectMother {
 
 	private static AWSCredentialsProvider getProvider() {
 		return new DefaultAWSCredentialsProviderChain();
-	}
-
-	public static DomainIdentifier deprecatedDomain() {
-		return new DomainIdentifier(DEPRECATED_DOMAIN);
-	}
-
-	public static DomainIdentifier notExistingDomain() {
-		return new DomainIdentifier(NOT_EXISTING_DOMAIN);
-	}
-
-	public static DomainIdentifier domain() {
-		return new DomainIdentifier(domainName());
 	}
 
 	public static String domainName() {

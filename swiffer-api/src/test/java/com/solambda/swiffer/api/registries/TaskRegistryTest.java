@@ -12,6 +12,7 @@ import com.solambda.swiffer.api.ActivityOptions;
 import com.solambda.swiffer.api.internal.VersionedName;
 import com.solambda.swiffer.api.internal.registration.TaskRegistry;
 import com.solambda.swiffer.api.test.ObjectMother;
+import com.solambda.swiffer.test.Tests;
 
 @Ignore
 public class TaskRegistryTest {
@@ -38,14 +39,14 @@ public class TaskRegistryTest {
 	@Test(expected = IllegalStateException.class)
 	public void cannotRegisterIfDomainDoesnotExist() throws Exception {
 		final VersionedName taskType = new VersionedName("name", "1");
-		this.registry.create(ObjectMother.notExistingDomain().getName(), taskType, "description",
+		this.registry.create(Tests.DOMAIN, taskType, "description",
 				new ActivityOptions());
 	}
 
 	@Test(expected = IllegalStateException.class)
 	public void cannotRegisterIfDomainIsDeprecated() throws Exception {
 		final VersionedName taskType = new VersionedName("name", "1");
-		this.registry.create(ObjectMother.deprecatedDomain().getName(), taskType, "description", new ActivityOptions());
+		this.registry.create(Tests.DOMAIN, taskType, "description", new ActivityOptions());
 	}
 
 	@Test

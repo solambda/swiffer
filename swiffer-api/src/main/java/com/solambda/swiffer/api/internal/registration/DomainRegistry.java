@@ -1,5 +1,6 @@
 package com.solambda.swiffer.api.internal.registration;
 
+import java.util.List;
 import java.util.Objects;
 
 import org.slf4j.Logger;
@@ -12,11 +13,13 @@ import com.amazonaws.services.simpleworkflow.model.DomainAlreadyExistsException;
 import com.amazonaws.services.simpleworkflow.model.DomainDeprecatedException;
 import com.amazonaws.services.simpleworkflow.model.DomainDetail;
 import com.amazonaws.services.simpleworkflow.model.DomainInfo;
+import com.amazonaws.services.simpleworkflow.model.DomainInfos;
+import com.amazonaws.services.simpleworkflow.model.ListDomainsRequest;
 import com.amazonaws.services.simpleworkflow.model.RegisterDomainRequest;
+import com.amazonaws.services.simpleworkflow.model.RegistrationStatus;
 import com.amazonaws.services.simpleworkflow.model.UnknownResourceException;
 import com.google.common.base.Preconditions;
 import com.solambda.swiffer.api.internal.domains.DomainConfiguration;
-import com.solambda.swiffer.api.internal.domains.DomainIdentifier;
 import com.solambda.swiffer.api.internal.utils.PeriodUtils;
 
 /**
@@ -27,35 +30,46 @@ public class DomainRegistry {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DomainRegistry.class);
 
 	private AmazonSimpleWorkflow client;
+	private String domain;
 
-	public DomainRegistry(final AmazonSimpleWorkflow client) {
+	public DomainRegistry(final AmazonSimpleWorkflow client, final String domain) {
 		super();
 		this.client = client;
+		this.domain = domain;
 	}
 
-	public void createDomain(final DomainIdentifier id, final DomainConfiguration domainConfiguration) {
+	public void listDomains() {
+		final DomainInfos domainInfos = this.client.listDomains(new ListDomainsRequest()
+				.withRegistrationStatus(RegistrationStatus.REGISTERED));
+		final List<DomainInfo> domainInfos2 = domainInfos.getDomainInfos();
+		for (final DomainInfo domainInfo : domainInfos2) {
+			System.out.println(domainInfo);
+		}
+	}
+
+	public void register(final DomainConfiguration domainConfiguration) {
 		Preconditions.checkArgument(
 				domainConfiguration.getRetention() == null || domainConfiguration.getRetention().getDays() <= 90,
 				"Retention must be lower than or equals to 90 days");
 		try {
 			final RegisterDomainRequest request = new RegisterDomainRequest()
-					.withName(id.getName())
+					.withName(this.domain)
 					.withDescription(domainConfiguration.getDescription())
 					.withWorkflowExecutionRetentionPeriodInDays(
 							domainConfiguration.getRetention() == null ? "NONE"
 									: Integer.toString(domainConfiguration.getRetention().getDays()));
 			this.client.registerDomain(request);
 		} catch (final DomainAlreadyExistsException e) {
-			LOGGER.info("Fail to create domain {} : it already exists.", id.getName());
+			LOGGER.info("Fail to create domain {} : it already exists.", this.domain);
 		} catch (final Exception e) {
-			throw new IllegalStateException("Cannot create domain " + id, e);
+			throw new IllegalStateException("Cannot create domain " + this.domain, e);
 		}
 	}
 
-	public boolean domainExists(final DomainIdentifier id) {
+	public boolean isRegistered() {
 		try {
 			final DomainDetail domainDetail = this.client
-					.describeDomain(new DescribeDomainRequest().withName(id.getName()));
+					.describeDomain(new DescribeDomainRequest().withName(this.domain));
 			final DomainInfo domainInfo = domainDetail.getDomainInfo();
 			return domainDetail != null && Objects.equals(domainInfo.getStatus(), "REGISTERED") ? true : false;
 		} catch (final UnknownResourceException e) {
@@ -67,9 +81,9 @@ public class DomainRegistry {
 	 * @param id
 	 *            the id of the domain to remove
 	 */
-	public void removeDomain(final DomainIdentifier id) {
+	public void deprecate() {
 		try {
-			this.client.deprecateDomain(new DeprecateDomainRequest().withName(id.getName()));
+			this.client.deprecateDomain(new DeprecateDomainRequest().withName(this.domain));
 		} catch (final UnknownResourceException e) {
 		} catch (final DomainDeprecatedException e) {
 		}
@@ -82,10 +96,10 @@ public class DomainRegistry {
 	 * @throws IllegalStateException
 	 *             if if's impossible to get the domain configuration
 	 */
-	public DomainConfiguration getDomainConfiguration(final DomainIdentifier id) {
+	public DomainConfiguration getDomainConfiguration() {
 		try {
 			final DomainDetail domainDetail = this.client
-					.describeDomain(new DescribeDomainRequest().withName(id.getName()));
+					.describeDomain(new DescribeDomainRequest().withName(this.domain));
 			final DomainInfo domainInfo = domainDetail.getDomainInfo();
 			return domainDetail != null && Objects.equals(domainInfo.getStatus(), "REGISTERED")
 					? new DomainConfiguration(domainInfo.getDescription(),
@@ -95,7 +109,7 @@ public class DomainRegistry {
 		} catch (final UnknownResourceException e) {
 			return null;
 		} catch (final Exception e) {
-			throw new IllegalStateException("cannot get the domain configuration for " + id, e);
+			throw new IllegalStateException("cannot get the domain configuration for " + this.domain, e);
 		}
 	}
 
