@@ -23,6 +23,7 @@ import com.solambda.swiffer.api.internal.activities.ActivityExecutorImpl;
 import com.solambda.swiffer.api.internal.activities.ActivityExecutorRegistry;
 import com.solambda.swiffer.api.internal.activities.ActivityTaskContext;
 import com.solambda.swiffer.api.internal.activities.ActivityTaskPoller;
+import com.solambda.swiffer.api.internal.registration.ActivityTypeRegistry;
 
 public class WorkerBuilder {
 	private AmazonSimpleWorkflow swf;
@@ -30,11 +31,13 @@ public class WorkerBuilder {
 	private String identity;
 	private String taskList;
 	private List<Object> executors;
+	private ActivityTypeRegistry activityTypeRegistry;
 
 	public WorkerBuilder(final AmazonSimpleWorkflow swf, final String domain) {
 		super();
 		this.swf = swf;
 		this.domain = domain;
+		this.activityTypeRegistry = new ActivityTypeRegistry(swf, domain);
 	}
 
 	public Worker build() {
@@ -72,6 +75,7 @@ public class WorkerBuilder {
 			if (executorAnnotation != null) {
 				final Class<?> activity = executorAnnotation.activity();
 				final ActivityType activityTypeAnnotation = validateActivityParameter(activity);
+				this.activityTypeRegistry.registerActivityOrCheckConfiguration(activityTypeAnnotation);
 				fillRegistryForMethod(registry, executorClassInstance, publicMethod, activityTypeAnnotation);
 			}
 		}
@@ -96,6 +100,13 @@ public class WorkerBuilder {
 				publicMethod);
 		final ActivityExecutor value = new ActivityExecutorImpl(invoker, argumentsProvider);
 		registry.put(key, value);
+	}
+
+	public static void main(final String[] args) {
+		System.out.println(1 << 0);
+		System.out.println(1 << 1);
+		System.out.println(1 << 2);
+		System.out.println(1 << 3);
 	}
 
 	private ActivityExecutorArgumentsProvider createArgumentsProvider(final Method publicMethod) {

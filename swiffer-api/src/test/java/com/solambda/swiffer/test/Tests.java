@@ -10,6 +10,7 @@ import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.simpleworkflow.AmazonSimpleWorkflow;
 import com.amazonaws.services.simpleworkflow.AmazonSimpleWorkflowClient;
+import com.solambda.swiffer.api.ActivityType;
 import com.solambda.swiffer.api.WorkflowType;
 
 public class Tests {
@@ -71,6 +72,39 @@ public class Tests {
 
 	private static WorkflowType getWorkflowType(final Class<?> class1) {
 		return class1.getAnnotation(WorkflowType.class);
+	}
+
+	@ActivityType(name = "registered-activity", version = "1",
+			defaultTaskStartToCloseTimeout = 500,
+			defaultTaskScheduleToStartTimeout = 500,
+			defaultTaskPriority = 0,
+			defaultTaskScheduleToCloseTimeout = 500,
+			defaultTaskHeartbeatTimeout = 500)
+	@Retention(RetentionPolicy.RUNTIME)
+	public static @interface RegisteredActivity {
+
+	}
+
+	@ActivityType(name = "registered-activity", version = "1")
+	@Retention(RetentionPolicy.RUNTIME)
+	public static @interface RegisteredActivityWithAnotherConfiguration {
+
+	}
+
+	@ActivityType(name = "unregistered-activity", version = "2")
+	@Retention(RetentionPolicy.RUNTIME)
+	public static @interface UnregisteredActivity {
+
+	}
+
+	public static final ActivityType UNREGISTERED_ACTIVITY_TYPE = getActivityType(UnregisteredActivity.class);
+
+	public static final ActivityType REGISTERED_ACTIVITY_TYPE = getActivityType(RegisteredActivity.class);
+	public static final ActivityType REGISTERED_ACTIVITY_TYPE_WITH_ANOTHER_CONFIGURATION = getActivityType(
+			RegisteredActivityWithAnotherConfiguration.class);
+
+	private static ActivityType getActivityType(final Class<?> class1) {
+		return class1.getAnnotation(ActivityType.class);
 	}
 
 }

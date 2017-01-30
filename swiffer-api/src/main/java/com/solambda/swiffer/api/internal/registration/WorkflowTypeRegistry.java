@@ -111,6 +111,10 @@ public class WorkflowTypeRegistry implements SwfAware {
 
 	private String taskTimeout(final WorkflowType workflowType) {
 		final int timeout = workflowType.defaultTaskStartToCloseTimeout();
+		return negativeToNone(timeout);
+	}
+
+	private String negativeToNone(final int timeout) {
 		return timeout >= 0 ? Integer.toString(timeout) : "NONE";
 	}
 
