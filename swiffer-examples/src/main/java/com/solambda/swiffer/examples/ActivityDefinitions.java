@@ -1,4 +1,4 @@
-package com.solambda.swiffer.examples.simple;
+package com.solambda.swiffer.examples;
 
 import com.solambda.swiffer.api.ActivityType;
 

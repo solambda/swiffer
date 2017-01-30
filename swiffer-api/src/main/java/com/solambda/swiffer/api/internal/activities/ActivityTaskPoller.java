@@ -21,17 +21,18 @@ public class ActivityTaskPoller
 
 	@Override
 	protected ActivityTaskContext pollForTask() throws Exception {
-		LOGGER.debug("[{}:{}] Polling ActivityTask list {}", this.domain, this.identity, this.taskList);
+		LOGGER.debug("[{}:{}] Polling Activity task list '{}'", this.domain, this.identity, this.taskList);
 		final PollForActivityTaskRequest pollForActivityTaskRequest = new PollForActivityTaskRequest()
 				.withDomain(this.domain)
 				.withIdentity(this.identity)
 				.withTaskList(new TaskList().withName(this.taskList));
 		final ActivityTask activityTask = this.swf.pollForActivityTask(pollForActivityTaskRequest);
 		if (activityTask == null || activityTask.getTaskToken() == null) {
-			LOGGER.debug("[{}:{}] no ActivityTask available in {}", this.domain, this.identity, this.taskList);
+			LOGGER.debug("[{}:{}] no ActivityTask available in task list '{}'", this.domain, this.identity,
+					this.taskList);
 			return null;
 		}
-		LOGGER.debug("[{}:{}] ActivityTask received from {}:{}", this.domain, this.identity, this.taskList,
+		LOGGER.debug("[{}:{}] ActivityTask received from '{}':{}", this.domain, this.identity, this.taskList,
 				activityTask);
 		return new ActivityTaskContextImpl(this.swf, activityTask);
 

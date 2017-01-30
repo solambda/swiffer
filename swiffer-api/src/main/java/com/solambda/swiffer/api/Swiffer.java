@@ -153,17 +153,20 @@ public class Swiffer {
 		try {
 			final WorkflowOptions opts = options == null ? new WorkflowOptions()
 					: options;
-			return this.swf.startWorkflowExecution(new StartWorkflowExecutionRequest()
+			StartWorkflowExecutionRequest request = new StartWorkflowExecutionRequest()
 					.withDomain(this.domain)
 					.withWorkflowType(toSWFWorkflowType(workflowTypeDefinition))
 					.withWorkflowId(workflowId)
 					.withInput(serializeInput(input))
 					.withTaskList(opts.getTaskList())
 					.withTagList(tags.get())
-					.withExecutionStartToCloseTimeout(opts.getMaxExecutionDuration())
-					.withChildPolicy(opts.getChildTerminationPolicy())
-					.withTaskPriority(opts.getTaskPriority())
-					.withTaskStartToCloseTimeout(opts.getMaxDecisionTaskDuration()))
+					.withExecutionStartToCloseTimeout(opts.getMaxExecutionDuration());
+			if (opts.getChildTerminationPolicy() != null) {
+				request = request.withChildPolicy(opts.getChildTerminationPolicy());
+			}
+			request = request.withTaskPriority(opts.getTaskPriority())
+					.withTaskStartToCloseTimeout(opts.getMaxDecisionTaskDuration());
+			return this.swf.startWorkflowExecution(request)
 					.getRunId();
 		} catch (final WorkflowExecutionAlreadyStartedException e) {
 			throw new IllegalStateException(

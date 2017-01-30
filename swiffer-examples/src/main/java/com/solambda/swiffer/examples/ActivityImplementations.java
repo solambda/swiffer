@@ -1,7 +1,7 @@
-package com.solambda.swiffer.examples.simple;
+package com.solambda.swiffer.examples;
 
 import com.solambda.swiffer.api.Executor;
-import com.solambda.swiffer.examples.simple.ActivityDefinitions.ParseInteger;
+import com.solambda.swiffer.examples.ActivityDefinitions.ParseInteger;
 
 public class ActivityImplementations {
 

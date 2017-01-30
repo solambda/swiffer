@@ -1,4 +1,4 @@
-package com.solambda.swiffer.examples.simple;
+package com.solambda.swiffer.examples.templates;
 
 import com.solambda.swiffer.api.Decisions;
 import com.solambda.swiffer.api.Input;
@@ -7,11 +7,11 @@ import com.solambda.swiffer.api.OnActivityFailed;
 import com.solambda.swiffer.api.OnSignalReceived;
 import com.solambda.swiffer.api.OnTimerFired;
 import com.solambda.swiffer.api.OnWorkflowStarted;
-import com.solambda.swiffer.examples.simple.ActivityDefinitions.ParseInteger;
-import com.solambda.swiffer.examples.simple.WorkflowDefinitions.SimpleExampleWorkflowDefinition;
+import com.solambda.swiffer.examples.ActivityDefinitions.ParseInteger;
+import com.solambda.swiffer.examples.WorkflowDefinitions.SimpleExampleWorkflowDefinition;
 
 @SimpleExampleWorkflowDefinition
-public class WorkflowTemplateSimpleExample {
+public class SimpleTemplate {
 
 	@OnWorkflowStarted
 	public void onStart(final String stringToParse, final Decisions decideTo) {
@@ -25,7 +25,7 @@ public class WorkflowTemplateSimpleExample {
 	}
 
 	@OnActivityFailed(activity = ParseInteger.class)
-	public void couldNotParseInteger(final String reason, final String details) {
+	public void couldNotParseInteger(final String reason) {
 
 	}
 

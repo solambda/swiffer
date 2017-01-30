@@ -89,18 +89,22 @@ public class DecisionsImpl implements Decisions {
 	@Override
 	public Decisions scheduleActivityTask(final Class<?> activityTypeClass, final String activityId, final Object input,
 			final ActivityOptions options) {
+		ScheduleActivityTaskDecisionAttributes attributes = new ScheduleActivityTaskDecisionAttributes()
+				.withActivityType(toActivityType(activityTypeClass))
+				.withActivityId(activityId == null ? UUID.randomUUID().toString() : activityId)
+				.withInput(serialize(input));
+		if (options != null) {
+			attributes = attributes
+					.withControl(options.control())
+					.withHeartbeatTimeout(options.heartbeatTimeout())
+					.withScheduleToCloseTimeout(options.scheduleToCloseTimeout())
+					.withScheduleToStartTimeout(options.scheduleToStartTimeout())
+					.withStartToCloseTimeout(options.startToCloseTimeout())
+					.withTaskList(options.taskList())
+					.withTaskPriority(nullSafeToString(options.taskPriority()));
+		}
 		newDecision(DecisionType.ScheduleActivityTask)
-				.withScheduleActivityTaskDecisionAttributes(new ScheduleActivityTaskDecisionAttributes()
-						.withActivityType(toActivityType(activityTypeClass))
-						.withActivityId(activityId == null ? UUID.randomUUID().toString() : activityId)
-						.withControl(options.control())
-						.withHeartbeatTimeout(options.heartbeatTimeout())
-						.withInput(serialize(input))
-						.withScheduleToCloseTimeout(options.scheduleToCloseTimeout())
-						.withScheduleToStartTimeout(options.scheduleToStartTimeout())
-						.withStartToCloseTimeout(options.startToCloseTimeout())
-						.withTaskList(options.taskList())
-						.withTaskPriority(nullSafeToString(options.taskPriority())));
+				.withScheduleActivityTaskDecisionAttributes(attributes);
 		return this;
 	}
 

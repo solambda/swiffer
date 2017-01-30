@@ -20,7 +20,7 @@ public class DecisionTaskPoller extends AbstractTaskContextPoller<DecisionTaskCo
 
 	@Override
 	protected DecisionTaskContext pollForTask() throws Exception {
-		LOGGER.debug("[{}:{}] Polling DecisionTask list {}", this.domain, this.identity, this.taskList);
+		LOGGER.debug("[{}:{}] Polling Decision task list '{}'", this.domain, this.identity, this.taskList);
 		final DecisionTask decisionTask = this.swf.pollForDecisionTask(new PollForDecisionTaskRequest()
 				.withDomain(this.domain)
 				.withTaskList(this.taskList == null ? null : new TaskList().withName(this.taskList))
@@ -30,10 +30,11 @@ public class DecisionTaskPoller extends AbstractTaskContextPoller<DecisionTaskCo
 		// .withMaximumPageSize(maximumEventPageSize)
 		// .withNextPageToken(nextPageToken)
 		if (decisionTask == null || decisionTask.getTaskToken() == null) {
-			LOGGER.debug("[{}:{}] no DecisionTask available in {}", this.domain, this.identity, this.taskList);
+			LOGGER.debug("[{}:{}] no DecisionTask available in task list '{}'", this.domain, this.identity,
+					this.taskList);
 			return null;
 		}
-		LOGGER.debug("[{}:{}] DecisionTask received from {}:{}", this.domain, this.identity, this.taskList,
+		LOGGER.debug("[{}:{}] DecisionTask received from '{}':{}", this.domain, this.identity, this.taskList,
 				decisionTask);
 		return new DecisionTaskContextImpl(this.swf, this.domain, decisionTask);
 	}

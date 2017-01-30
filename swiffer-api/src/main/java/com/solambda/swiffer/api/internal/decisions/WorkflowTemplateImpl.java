@@ -33,6 +33,7 @@ public class WorkflowTemplateImpl implements WorkflowTemplate {
 		final List<WorkflowEvent> newEvents = decisionContext.newEvents();
 		LOGGER.debug("processing {} new events", newEvents.size());
 		for (final WorkflowEvent event : newEvents) {
+			LOGGER.debug("processing new event {}", event);
 			final EventContext eventContext = new EventContextImpl(decisionContext, event);
 			final EventHandlerType eventType = new EventHandlerType(eventContext.event().type(), eventContext.name());
 			// in some case, we can warn the user if there is no event handler
@@ -45,7 +46,7 @@ public class WorkflowTemplateImpl implements WorkflowTemplate {
 
 	private void processEventHandler(final EventHandler eventHandler, final EventContext eventContext,
 			final Decisions decisions) throws DecisionTaskExecutionException {
-		if (eventContext == null) {
+		if (eventHandler == null) {
 			doDefaultEventHandler(eventContext);
 		} else {
 			try {
@@ -66,6 +67,11 @@ public class WorkflowTemplateImpl implements WorkflowTemplate {
 	private void doDefaultEventHandler(final EventContext eventContext) {
 		// do
 		LOGGER.debug("no event handler defined for {}", eventContext.event());
+	}
+
+	@Override
+	public String toString() {
+		return getWorkflowType().toString();
 	}
 
 }

@@ -52,7 +52,8 @@ public class EventHandlerArgumentsProviderFactory {
 				if (argumentProvider.isDefaultProvider) {
 					Preconditions.checkState(!defaultProviderFound,
 							"Illegal event handler method %s. Only one non-annotated parameter is allowed. "
-									+ "Please annotate other parameters with a %s annotation, like @Input.",
+									+ "Please annotate other parameters with a %s annotation, like @Input,"
+									+ "@Output,@Control,@Reason,@Details",
 							method, EventHandlerCommonParameter.class);
 					defaultProviderFound = true;
 				}

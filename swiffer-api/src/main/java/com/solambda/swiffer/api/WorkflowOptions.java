@@ -168,6 +168,6 @@ public class WorkflowOptions {
 	}
 
 	public TaskList getTaskList() {
-		return new TaskList().withName(getTaskListIdentifier().getName());
+		return this.taskListIdentifier == null ? null : new TaskList().withName(getTaskListIdentifier().getName());
 	}
 }

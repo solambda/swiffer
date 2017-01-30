@@ -1,12 +1,16 @@
 package com.solambda.swiffer.examples.simple;
 
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
+import com.amazonaws.regions.Regions;
 import com.amazonaws.services.simpleworkflow.AmazonSimpleWorkflow;
 import com.amazonaws.services.simpleworkflow.AmazonSimpleWorkflowClient;
 import com.solambda.swiffer.api.Decider;
 import com.solambda.swiffer.api.Swiffer;
 import com.solambda.swiffer.api.Worker;
-import com.solambda.swiffer.examples.simple.WorkflowDefinitions.SimpleExampleWorkflowDefinition;
+import com.solambda.swiffer.examples.ActivityImplementations;
+import com.solambda.swiffer.examples.Domains;
+import com.solambda.swiffer.examples.WorkflowDefinitions.SimpleExampleWorkflowDefinition;
+import com.solambda.swiffer.examples.templates.SimpleTemplate;
 
 /**
  * Demonstrate usual features of swiffer.
@@ -42,16 +46,12 @@ public class SimpleWorkflowExample {
 	}
 
 	private void sendSignal(final Swiffer swiffer) {
-		// swiffer// .sendToWorkflow("workflowid")
-		// .sendSignalToWorkflow("workflowid", "name", "input");
 	}
 
 	private void createAndStartDecider(final Swiffer swiffer) {
 		this.decider = swiffer.newDeciderBuilder()
-				.taskList("myDecisionTaskList")
-				// .activityTaskList("myActivityTaskList")
-				.identity("myWorker")
-				.workflowTemplates(new WorkflowTemplateSimpleExample())
+				.identity(this.getClass().getSimpleName() + "-decider")
+				.workflowTemplates(new SimpleTemplate())
 				.build();
 		this.decider.start();
 	}
@@ -59,7 +59,7 @@ public class SimpleWorkflowExample {
 	private void createAndStartWorker(final Swiffer swiffer) {
 		this.worker = swiffer.newWorkerBuilder()
 				.taskList("myTaskList")
-				.identity("simple-example-worker")
+				.identity(this.getClass().getSimpleName() + "-worker")
 				.executors(new ActivityImplementations())
 				.build();
 		this.worker.start();
@@ -67,9 +67,9 @@ public class SimpleWorkflowExample {
 
 	private Swiffer initializeSwiffer() {
 		final AmazonSimpleWorkflow amazonSimpleWorkflow = new AmazonSimpleWorkflowClient(
-				new DefaultAWSCredentialsProviderChain());
-		final String domainName = "github-swiffer-example-domain";
-		final Swiffer swiffer = new Swiffer(amazonSimpleWorkflow, domainName);
+				new DefaultAWSCredentialsProviderChain())
+						.withRegion(Regions.EU_WEST_1);
+		final Swiffer swiffer = new Swiffer(amazonSimpleWorkflow, Domains.DOMAIN);
 		return swiffer;
 	}
 

@@ -73,9 +73,9 @@ public class ActivityTaskContextPollerTest {
 		final Stopwatch watch = Stopwatch.createStarted();
 		final Future<ActivityTaskContext> pollingFuture = Executors.newSingleThreadExecutor()
 				.submit(() -> poller.poll());
-		final ActivityTaskContext context = pollingFuture.get(expectedPollingDuration + 100, MILLISECONDS);
+		final ActivityTaskContext context = pollingFuture.get(expectedPollingDuration + 200, MILLISECONDS);
 		// THEN the polling operation blocked
-		assertThat(watch.elapsed(MILLISECONDS)).isCloseTo(expectedPollingDuration, Offset.offset(60L));
+		assertThat(watch.elapsed(MILLISECONDS)).isCloseTo(expectedPollingDuration, Offset.offset(100L));
 		assertThat(context.taskToken()).isEqualTo(TOKEN);
 	}
 

@@ -23,6 +23,7 @@ public class WorkflowTemplateFactory {
 	 */
 	public WorkflowTemplate createWorkflowTemplate(final Object template) {
 		final VersionedName workflowType = createWorkflowType(template);
+		LOGGER.debug("WorkflowType found: name={}, version={}", workflowType.name(), workflowType.version());
 		final EventHandlerRegistryFactory builder = new EventHandlerRegistryFactory(workflowType);
 		final EventHandlerRegistry eventHandlerRegistry = builder.build(template);
 		return new WorkflowTemplateImpl(workflowType, eventHandlerRegistry);
@@ -30,7 +31,6 @@ public class WorkflowTemplateFactory {
 
 	private VersionedName createWorkflowType(final Object template) {
 		final WorkflowType workflowType = findWorkflowTypeAnnotation(template);
-		LOGGER.debug("WorkflowType {}", workflowType);
 		return new VersionedName(workflowType.name(), workflowType.version());
 
 	}

@@ -38,7 +38,8 @@ public class DeciderImpl extends AbstractTaskListService<DecisionTaskContext> im
 			// FATAL issue : how to recover from that ?
 			throw new IllegalStateException("Cannot find a workflow template for " + task.workflowType());
 		} else {
-			LOGGER.debug("executing decision task with template of workflow {}", template.getWorkflowType());
+			LOGGER.debug("executing decision task with template {} of workflow {}", template.getClass().getSimpleName(),
+					template.getWorkflowType());
 			execute(task, template);
 		}
 	}

@@ -43,7 +43,8 @@ public class DeciderBuilder {
 	 * @return a new instance of {@link Decider}
 	 */
 	public Decider build() {
-		final DecisionTaskPoller poller = new DecisionTaskPoller(this.swf, this.domain, this.taskList, this.identity);
+		final String taskList = this.taskList == null ? "default" : this.taskList;
+		final DecisionTaskPoller poller = new DecisionTaskPoller(this.swf, this.domain, taskList, this.identity);
 		final WorkflowTemplateRegistry registry = createWorkflowTemplateRegistry();
 		return new DeciderImpl(poller, registry);
 	}
@@ -59,8 +60,8 @@ public class DeciderBuilder {
 	}
 
 	private void ensureWorkflowTypeRegistration(final Object workflowTemplate) {
-		this.workflowTypeRegistry.registerWorkflowOrCheckConfiguration(
-				this.templateFactory.findWorkflowTypeAnnotation(workflowTemplate));
+		final WorkflowType workflowType = WorkflowTemplateFactory.findWorkflowTypeAnnotation(workflowTemplate);
+		this.workflowTypeRegistry.registerWorkflowOrCheckConfiguration(workflowType);
 	}
 
 	/**

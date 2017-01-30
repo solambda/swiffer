@@ -31,7 +31,9 @@ public abstract class AbstractTaskListService<T extends TaskContext> implements 
 					while (isRunning()) {
 						try {
 							final T task = pollTaskList();
-							executeTask(task);
+							if (task != null) {
+								executeTask(task);
+							}
 						} catch (final Exception e) {
 							AbstractTaskListService.this.LOGGER.error(
 									"Error running poller. Service is going to stop now.",

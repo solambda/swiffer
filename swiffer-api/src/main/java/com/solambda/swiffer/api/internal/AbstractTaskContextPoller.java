@@ -7,6 +7,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import com.amazonaws.services.simpleworkflow.AmazonSimpleWorkflow;
+import com.google.common.base.Preconditions;
 import com.solambda.swiffer.api.exceptions.TaskContextPollingException;
 
 public abstract class AbstractTaskContextPoller<T extends TaskContext> implements TaskContextPoller<T> {
@@ -20,9 +21,9 @@ public abstract class AbstractTaskContextPoller<T extends TaskContext> implement
 	public AbstractTaskContextPoller(final AmazonSimpleWorkflow swf, final String domain, final String taskList,
 			final String identity) {
 		super();
-		this.swf = swf;
-		this.domain = domain;
-		this.taskList = taskList == null ? "default" : taskList;
+		this.swf = Preconditions.checkNotNull(swf, "please specify a SWF client!");
+		this.domain = Preconditions.checkNotNull(domain, "please specify the domain!");
+		this.taskList = Preconditions.checkNotNull(taskList, "please specify the task list to poll!");
 		this.identity = identity;
 	}
 
