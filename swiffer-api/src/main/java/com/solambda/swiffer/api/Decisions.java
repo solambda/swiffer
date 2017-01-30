@@ -113,4 +113,14 @@ public interface Decisions {
 	 * @return this decisions object
 	 */
 	Decisions startTimer(String timerId, Duration duration, Object control);
+
+	/**
+	 * Add a "cancel timer" decision.
+	 *
+	 * @param timerId
+	 *            the id of the timer, must be equals to an existing started
+	 *            timer that is not fired or cancelled
+	 * @return this decisions object
+	 */
+	Decisions cancelTimer(String timerId);
 }

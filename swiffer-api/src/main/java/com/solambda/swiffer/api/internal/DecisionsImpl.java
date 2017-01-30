@@ -161,12 +161,12 @@ public class DecisionsImpl implements Decisions {
 		return this;
 	}
 
-	// TODO
-	private void cancelTimer(final String timerId) {
-		// TODO: we should add a force decision
+	@Override
+	public Decisions cancelTimer(final String timerId) {
 		newDecision(DecisionType.CancelTimer)
 				.withCancelTimerDecisionAttributes(new CancelTimerDecisionAttributes()
 						.withTimerId(timerId));
+		return this;
 	}
 
 	// TODO

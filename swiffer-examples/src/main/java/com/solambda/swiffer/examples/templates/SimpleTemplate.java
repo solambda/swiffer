@@ -44,6 +44,7 @@ public class SimpleTemplate {
 
 	@OnSignalReceived(signalName = WorkflowDefinitions.SIGNAL_NAME)
 	public void signalReceived(final String input, final Decisions decideTo) {
+		decideTo.cancelTimer(TIMER_ID);
 		LOGGER.info("Signal received with input  {}", input);
 		decideTo.completeWorfklow(input);
 	}

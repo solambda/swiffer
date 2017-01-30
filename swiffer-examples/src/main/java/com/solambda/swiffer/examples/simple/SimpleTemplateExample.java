@@ -45,6 +45,8 @@ public class SimpleTemplateExample {
 		createAndStartDecider(swiffer);
 		startWorkflow(swiffer);
 		Tests.sleep(Duration.ofSeconds(7));
+		sendSignal(swiffer);
+		Tests.sleep(Duration.ofSeconds(3));
 		stopWorkerAndDecider();
 	}
 
