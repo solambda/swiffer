@@ -104,7 +104,7 @@ public class EventHandlerTypeFactory {
 	// CONTEXT NAME METHODS //
 
 	private ContextName toContextName(final OnActivityCompleted annotation) {
-		final Class<?> activityDefinitionClass = annotation.activity();
+		final Class<?> activityDefinitionClass = annotation.value();
 		return toActivityName(activityDefinitionClass);
 	}
 
@@ -127,11 +127,11 @@ public class EventHandlerTypeFactory {
 	}
 
 	private ContextName toContextName(final OnSignalReceived annotation) {
-		return new SignalName(annotation.signalName());
+		return new SignalName(annotation.value());
 	}
 
 	private ContextName toContextName(final OnTimerFired annotation) {
-		return new TimerName(annotation.timerId());
+		return new TimerName(annotation.value());
 	}
 
 }

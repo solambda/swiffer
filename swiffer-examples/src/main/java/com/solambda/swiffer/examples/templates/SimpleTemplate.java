@@ -23,28 +23,24 @@ public class SimpleTemplate {
 
 	@OnWorkflowStarted
 	public void onStart(final String stringToParse, final Decisions decideTo) {
-		decideTo.scheduleActivityTask(ParseInteger.class, stringToParse);
+		decideTo.startTimer(TIMER_ID, Duration.ofSeconds(3), stringToParse);
 	}
 
-	@OnActivityCompleted(activity = ParseInteger.class)
+	@OnActivityCompleted(ParseInteger.class)
 	// NOTE: this is stupid: the output should be an Integer, but the library
 	// does not know how to deserialize yet !
 	public void onParseInteger(final String output, @Input final String input, final Decisions decideTo) {
-		final String workflowResult = String.format("String '%s' parsed to the integer %s", input, output);
 		LOGGER.info("Task correctly executed with result {}", output);
-		decideTo.startTimer(TIMER_ID, Duration.ofSeconds(3), input);
-
 	}
 
-	@OnTimerFired(timerId = TIMER_ID)
+	@OnTimerFired(TIMER_ID)
 	public void timerFired(final String control, final Decisions decideTo) {
 		LOGGER.info("Timer fired with control {}", control);
 		decideTo.scheduleActivityTask(ParseInteger.class, control);
 	}
 
-	@OnSignalReceived(signalName = WorkflowDefinitions.SIGNAL_NAME)
+	@OnSignalReceived(WorkflowDefinitions.SIGNAL_NAME)
 	public void signalReceived(final String input, final Decisions decideTo) {
-		decideTo.cancelTimer(TIMER_ID);
 		LOGGER.info("Signal received with input  {}", input);
 		decideTo.completeWorfklow(input);
 	}

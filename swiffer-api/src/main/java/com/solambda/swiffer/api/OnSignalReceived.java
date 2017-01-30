@@ -32,5 +32,5 @@ public @interface OnSignalReceived {
 	 *
 	 * @return the id of the timer that fired.
 	 */
-	String signalName();
+	String value();
 }

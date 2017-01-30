@@ -34,6 +34,6 @@ public @interface OnActivityCompleted {
 	 *
 	 * @return the activity type that is completed
 	 */
-	Class<?> activity();
+	Class<?> value();
 
 }

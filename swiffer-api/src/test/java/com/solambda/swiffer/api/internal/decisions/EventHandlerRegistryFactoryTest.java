@@ -42,7 +42,7 @@ public class EventHandlerRegistryFactoryTest {
 
 		}
 
-		@OnActivityCompleted(activity = ActivityDef.class)
+		@OnActivityCompleted(value = ActivityDef.class)
 		public void onActivityCompleted() {
 
 		}
@@ -52,12 +52,12 @@ public class EventHandlerRegistryFactoryTest {
 
 		}
 
-		@OnTimerFired(timerId = TIMER1)
+		@OnTimerFired(value = TIMER1)
 		public void onTimerFired() {
 
 		}
 
-		@OnSignalReceived(signalName = SIGNAL1)
+		@OnSignalReceived(value = SIGNAL1)
 		public void onSignalReceived() {
 
 		}

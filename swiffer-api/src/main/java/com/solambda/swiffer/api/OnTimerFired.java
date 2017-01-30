@@ -31,5 +31,6 @@ public @interface OnTimerFired {
 	 *
 	 * @return the id of the timer that fired.
 	 */
-	String timerId();
+	String value();
+
 }
