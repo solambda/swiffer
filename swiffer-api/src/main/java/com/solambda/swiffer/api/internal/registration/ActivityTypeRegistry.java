@@ -68,6 +68,7 @@ public class ActivityTypeRegistry implements SwfAware {
 	public boolean registerActivityOrCheckConfiguration(final ActivityType activityType) {
 		final ActivityTypeDetail detail = getActivityTypeDetail(activityType);
 		if (detail != null) {
+			LOGGER.debug("Activity '{}' v='{}' is already registered", activityType.name(), activityType.version());
 			ensureRegisteredAndSpecifedConfigurationsAreTheSame(detail, activityType);
 			return false;
 		} else {
@@ -78,7 +79,8 @@ public class ActivityTypeRegistry implements SwfAware {
 
 	private void doActivityTypeRegistration(final ActivityType activityType) {
 		try {
-			LOGGER.debug("Registering activity {}", activityType);
+			LOGGER.info("Registering activity '{}' v='{}': {}", activityType.name(), activityType.version(),
+					activityType);
 			this.swf.registerActivityType(new RegisterActivityTypeRequest()
 					// identification of the WF
 					.withName(activityType.name())

@@ -176,4 +176,9 @@ public class DecisionsImpl implements Decisions {
 						.withDetails(details));
 	}
 
+	@Override
+	public String toString() {
+		return "Decisions=" + this.decisions + "";
+	}
+
 }

@@ -70,6 +70,7 @@ public class WorkflowTypeRegistry implements SwfAware {
 	public boolean registerWorkflowOrCheckConfiguration(final WorkflowType workflowType) {
 		final WorkflowTypeDetail detail = getWorkflowTypeDetail(workflowType);
 		if (detail != null) {
+			LOGGER.debug("Workflow '{}' v='{}' is already registered", workflowType.name(), workflowType.version());
 			ensureRegisteredAndSpecifedConfigurationsAreTheSame(detail, workflowType);
 			return false;
 		} else {
@@ -80,7 +81,8 @@ public class WorkflowTypeRegistry implements SwfAware {
 
 	private void doWorkflowTypeRegistration(final WorkflowType workflowType) {
 		try {
-			LOGGER.debug("Registering workflow {}", workflowType);
+			LOGGER.info("Registering workflow '{}' v='{}': {}", workflowType.name(), workflowType.version(),
+					workflowType);
 			this.swf.registerWorkflowType(new RegisterWorkflowTypeRequest()
 					// identification of the WF
 					.withName(workflowType.name())
