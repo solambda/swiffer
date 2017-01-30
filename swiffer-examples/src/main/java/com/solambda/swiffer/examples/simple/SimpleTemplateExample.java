@@ -11,6 +11,7 @@ import com.solambda.swiffer.api.Swiffer;
 import com.solambda.swiffer.api.Worker;
 import com.solambda.swiffer.examples.ActivityImplementations;
 import com.solambda.swiffer.examples.Domains;
+import com.solambda.swiffer.examples.WorkflowDefinitions;
 import com.solambda.swiffer.examples.WorkflowDefinitions.SimpleExampleWorkflowDefinition;
 import com.solambda.swiffer.examples.templates.SimpleTemplate;
 import com.solambda.swiffer.examples.utils.Tests;
@@ -31,6 +32,7 @@ import com.solambda.swiffer.examples.utils.Tests;
  */
 public class SimpleTemplateExample {
 
+	private static final String WORKFLOW_ID = "workflowid";
 	private Worker worker;
 	private Decider decider;
 
@@ -42,7 +44,7 @@ public class SimpleTemplateExample {
 		createAndStartWorker(swiffer);
 		createAndStartDecider(swiffer);
 		startWorkflow(swiffer);
-		Tests.sleep(Duration.ofSeconds(3));
+		Tests.sleep(Duration.ofSeconds(7));
 		stopWorkerAndDecider();
 	}
 
@@ -53,10 +55,11 @@ public class SimpleTemplateExample {
 
 	private void startWorkflow(final Swiffer swiffer) {
 		final String stringToParse = "123";
-		swiffer.startWorkflow(SimpleExampleWorkflowDefinition.class, "workflowid", stringToParse);
+		swiffer.startWorkflow(SimpleExampleWorkflowDefinition.class, WORKFLOW_ID, stringToParse);
 	}
 
 	private void sendSignal(final Swiffer swiffer) {
+		swiffer.sendSignalToWorkflow(WORKFLOW_ID, WorkflowDefinitions.SIGNAL_NAME, "signalInput");
 	}
 
 	private void createAndStartDecider(final Swiffer swiffer) {

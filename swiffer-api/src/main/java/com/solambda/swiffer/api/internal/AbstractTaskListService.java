@@ -110,19 +110,25 @@ public abstract class AbstractTaskListService<T extends TaskContext> implements 
 
 	@Override
 	public void stop() {
-		this.LOGGER.info("Stopping the service");
 		if (this.daemonService != null) {
-			this.daemonService.stopAsync();
-			this.daemonService.awaitTerminated();
-			this.daemonService = null;
-			this.LOGGER.info("Service stopped");
+			if (this.daemonService.state() == State.FAILED) {
+				this.LOGGER.info("Service is stopped with a failure state");
+			} else {
+				this.LOGGER.info("Stopping the service");
+				this.daemonService.stopAsync();
+				this.daemonService.awaitTerminated();
+				this.daemonService = null;
+				this.LOGGER.info("Service stopped");
+			}
 		}
 	}
 
 	@Override
 	public boolean isStarted() {
 		return this.daemonService != null
-				&& (this.daemonService.isRunning() || this.daemonService.state() == State.STARTING);
+				&& (this.daemonService.isRunning()
+						|| this.daemonService.state() == State.STARTING
+						|| this.daemonService.state() == State.STOPPING);
 	}
 
 }

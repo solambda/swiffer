@@ -89,9 +89,10 @@ public class WorkerImpl extends AbstractTaskListService<ActivityTaskContext> imp
 	public void stop() {
 		// super.stop blocks until the service poll and execute the last task
 		super.stop();
-		// ... so that we can safely shutdown
+		// ... so that we can safely shutdown (do not accept new tasks)
 		this.executor.shutdown();
 		try {
+			// ...and wait for the last activity to finish and respond to swf
 			this.executor.awaitTermination(1, TimeUnit.HOURS);
 		} catch (final InterruptedException e) {
 			throw new IllegalStateException("Awaited more than 1 hours for an activity to terminate!");

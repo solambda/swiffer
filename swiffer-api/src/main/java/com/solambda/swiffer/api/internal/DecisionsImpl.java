@@ -146,13 +146,19 @@ public class DecisionsImpl implements Decisions {
 		return object == null ? null : object.toString();
 	}
 
-	// TODO
-	private void startTimer(final String timerId, final String control, final Duration duration) {
+	@Override
+	public Decisions startTimer(final String timerId, final Duration duration) {
+		return startTimer(timerId, duration);
+	}
+
+	@Override
+	public Decisions startTimer(final String timerId, final Duration duration, final Object control) {
 		newDecision(DecisionType.StartTimer)
 				.withStartTimerDecisionAttributes(new StartTimerDecisionAttributes()
 						.withTimerId(timerId)
 						.withStartToFireTimeout(Long.toString(duration.getSeconds()))
-						.withControl(control));
+						.withControl(serialize(control)));
+		return this;
 	}
 
 	// TODO

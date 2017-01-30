@@ -187,11 +187,43 @@ public class Swiffer {
 		}
 	}
 
-	private void doSignal(final String workflowId, final String signalName, final String input) {
+	/**
+	 * Send a signal to the workflow represented by the given id.
+	 *
+	 * @param workflowId
+	 *            the workflow id
+	 * @param signalName
+	 *            the signal name
+	 * 
+	 * @throws IllegalStateException
+	 *             if the workflow designated by this workflowId is not open
+	 */
+	public void sendSignalToWorkflow(final String workflowId, final String signalName) {
+
+	}
+
+	/**
+	 * Send a signal to the workflow represented by the given id.
+	 *
+	 * @param workflowId
+	 *            the workflow id
+	 * @param signalName
+	 *            the signal name
+	 * @param input
+	 *            the input to send with the signal
+	 * 
+	 * @throws IllegalStateException
+	 *             if the workflow designated by this workflowId is not open
+	 */
+	public void sendSignalToWorkflow(final String workflowId, final String signalName, final Object input) {
+		doSignal(workflowId, signalName, input);
+	}
+
+	private void doSignal(final String workflowId, final String signalName, final Object input) {
 		try {
 			this.swf.signalWorkflowExecution(new SignalWorkflowExecutionRequest()
 					.withDomain(this.domain)
-					.withInput(input)
+					.withInput(serializeInput(input))
 					.withSignalName(signalName)
 					.withWorkflowId(workflowId));
 		} catch (final UnknownResourceException e) {
@@ -265,4 +297,5 @@ public class Swiffer {
 		}
 
 	}
+
 }

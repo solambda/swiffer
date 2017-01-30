@@ -1,5 +1,7 @@
 package com.solambda.swiffer.api;
 
+import java.time.Duration;
+
 /**
  * A convenient builder of decisions.
  * <p>
@@ -85,4 +87,30 @@ public interface Decisions {
 	 * @return this decision object
 	 */
 	Decisions completeWorfklow(Object result);
+
+	/**
+	 * Add a "start timer" decision.
+	 *
+	 * @param timerId
+	 *            the id of the timer, must not be equals to an existing started
+	 *            timer that is not fired or cancelled
+	 * @param duration
+	 *            duration of the timer before firing
+	 * @return this decisions object
+	 */
+	Decisions startTimer(String timerId, Duration duration);
+
+	/**
+	 * Add a "start timer" decision.
+	 *
+	 * @param timerId
+	 *            the id of the timer, must not be equals to an existing started
+	 *            timer that is not fired or cancelled
+	 * @param duration
+	 *            duration of the timer before firing
+	 * @param control
+	 *            an optional object to be set in the timer attributes
+	 * @return this decisions object
+	 */
+	Decisions startTimer(String timerId, Duration duration, Object control);
 }

@@ -22,12 +22,9 @@ public interface TaskListService {
 	/**
 	 * Stop polling. This method does nothing if the poller is not started.
 	 * <p>
-	 * FIXME: determine the correct behavior according to what it is possible to
-	 * do. <br>
 	 * This method wait for the current polling operation to finish (which can
-	 * take up to 1 minute if no task is available in the task list), but it
-	 * does not wait for the completion of the tasks being executed. The tasks
-	 * being executed finish
+	 * take up to 1 minute if no task is available in the task list), and wait
+	 * for the completion of the tasks being executed.
 	 * <p>
 	 *
 	 */
