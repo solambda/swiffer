@@ -1,10 +1,15 @@
 package com.solambda.swiffer.api.internal;
 
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.amazonaws.services.simpleworkflow.AmazonSimpleWorkflow;
 import com.google.common.base.Preconditions;
@@ -12,11 +17,14 @@ import com.solambda.swiffer.api.exceptions.TaskContextPollingException;
 
 public abstract class AbstractTaskContextPoller<T extends TaskContext> implements TaskContextPoller<T> {
 
+	private final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
+
 	protected AmazonSimpleWorkflow swf;
 	protected String domain;
 	protected String taskList;
 	protected String identity;
 	private Future<T> currentPollingOperation;
+	private ExecutorService executor;
 
 	public AbstractTaskContextPoller(final AmazonSimpleWorkflow swf, final String domain, final String taskList,
 			final String identity) {
@@ -25,6 +33,7 @@ public abstract class AbstractTaskContextPoller<T extends TaskContext> implement
 		this.domain = Preconditions.checkNotNull(domain, "please specify the domain!");
 		this.taskList = Preconditions.checkNotNull(taskList, "please specify the task list to poll!");
 		this.identity = identity;
+		this.executor = Executors.newSingleThreadExecutor();
 	}
 
 	@Override
@@ -33,8 +42,12 @@ public abstract class AbstractTaskContextPoller<T extends TaskContext> implement
 			throw new IllegalStateException("pending polling operation!");
 		}
 		try {
-			this.currentPollingOperation = Executors.newSingleThreadExecutor().submit(() -> pollForTask());
+			this.currentPollingOperation = this.executor.submit(() -> pollForTask());
 			return this.currentPollingOperation.get(70, TimeUnit.SECONDS);
+		} catch (final CancellationException e1) {
+			// was requested to stop
+			this.LOGGER.info("Cancelling the polling operation, the poller was requested to stop.");
+			return null;
 		} catch (final InterruptedException e1) {
 			throw new RuntimeException(e1);
 		} catch (final ExecutionException e1) {
@@ -55,9 +68,14 @@ public abstract class AbstractTaskContextPoller<T extends TaskContext> implement
 
 	@Override
 	public void stop() {
-		if (this.currentPollingOperation != null) {
-			this.currentPollingOperation.cancel(true);
-		}
+		// When we stop, we can only ask the executor not to accept new polling
+		// tasks.
+		// we cannot stop the underlying swf polling operation (it's gonna block
+		// for 60sec)
+		// even with our previous implem which called
+		// "currentPollingOperation.cancel(true);"
+		// on the contraty we should return a task if it is available
+		this.executor.shutdown();
 	}
 
 	@Override

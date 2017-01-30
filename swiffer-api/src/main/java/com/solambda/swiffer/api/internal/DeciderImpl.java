@@ -60,4 +60,9 @@ public class DeciderImpl extends AbstractTaskListService<DecisionTaskContext> im
 		}
 	}
 
+	@Override
+	public void stop() {
+		super.stop();
+	}
+
 }

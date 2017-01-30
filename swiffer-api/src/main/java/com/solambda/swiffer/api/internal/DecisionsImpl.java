@@ -60,34 +60,29 @@ public class DecisionsImpl implements Decisions {
 	}
 
 	@Override
-	public Decisions scheduleActivityTask(final Class<?> activityTypeClass) {
-		return scheduleActivityTask(activityTypeClass, null, null, null);
+	public Decisions scheduleActivityTask(final Class<?> activityType, final Object input) {
+		return doScheduleActivityTask(activityType, null, input, null);
 	}
 
 	@Override
-	public Decisions scheduleActivityTask(final Class<?> activityTypeClass, final ActivityOptions options) {
-		return scheduleActivityTask(activityTypeClass, null, null, options);
+	public Decisions scheduleActivityTask(final Class<?> activityType, final Object input, final String activityId,
+			final ActivityOptions options) {
+		return doScheduleActivityTask(activityType, activityId, input, options);
 	}
 
 	@Override
 	public Decisions scheduleActivityTask(final Class<?> activityTypeClass, final Object input,
 			final ActivityOptions options) {
-		return scheduleActivityTask(activityTypeClass, null, input, options);
+		return doScheduleActivityTask(activityTypeClass, null, input, options);
 	}
 
 	@Override
-	public Decisions scheduleActivityTask(final Class<?> activityTypeClass, final String activityId) {
-		return scheduleActivityTask(activityTypeClass, activityId, null, null);
+	public Decisions scheduleActivityTask(final Class<?> activityType, final ActivityOptions options) {
+		return doScheduleActivityTask(activityType, null, null, options);
 	}
 
-	@Override
-	public Decisions scheduleActivityTask(final Class<?> activityTypeClass, final String activityId,
-			final ActivityOptions options) {
-		return scheduleActivityTask(activityTypeClass, activityId, null, options);
-	}
-
-	@Override
-	public Decisions scheduleActivityTask(final Class<?> activityTypeClass, final String activityId, final Object input,
+	private Decisions doScheduleActivityTask(final Class<?> activityTypeClass, final String activityId,
+			final Object input,
 			final ActivityOptions options) {
 		ScheduleActivityTaskDecisionAttributes attributes = new ScheduleActivityTaskDecisionAttributes()
 				.withActivityType(toActivityType(activityTypeClass))

@@ -4,6 +4,10 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.solambda.swiffer.api.Worker;
 import com.solambda.swiffer.api.exceptions.ActivityTaskExecutionFailedException;
@@ -14,6 +18,7 @@ import com.solambda.swiffer.api.internal.activities.ActivityTaskContext;
 
 public class WorkerImpl extends AbstractTaskListService<ActivityTaskContext> implements Worker {
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(WorkerImpl.class);
 	private ExecutorService executor;
 
 	private ActivityExecutorRegistry registry;
@@ -40,12 +45,14 @@ public class WorkerImpl extends AbstractTaskListService<ActivityTaskContext> imp
 
 	@Override
 	protected void executeTaskImmediately(final ActivityTaskContext task) {
+
 		// retrieve the executor
 		final VersionedName activityType = task.activityType();
 		final ActivityExecutor executor = getActivityExecutor(activityType);
 		if (executor == null) {
-			final String reason = String.format("no activity executor defined "
-					+ "for activity type {name=\"%s\",version=\"%s\"", activityType.name(), activityType.version());
+			final String reason = String.format("no executor defined "
+					+ "for activity {name=\"%s\",version=\"%s\"", activityType.name(), activityType.version());
+			LOGGER.error(reason);
 			this.reporter.failed(task.taskToken(), new Failure(reason));
 		} else {
 			execute(task, executor, this.reporter);
@@ -62,15 +69,33 @@ public class WorkerImpl extends AbstractTaskListService<ActivityTaskContext> imp
 			final String output = executor.execute(context);
 			reporter.completed(context.taskToken(), output);
 		} catch (final ActivityTaskExecutionFailedException ex) {
+			LOGGER.error("Activity execution failed '{}', v='{}'", context.activityType().name(),
+					context.activityType().version(), ex);
 			final StringWriter errors = new StringWriter();
 			ex.printStackTrace(new PrintWriter(errors));
 			final String details = errors.toString();
 			reporter.failed(context.taskToken(), Failure.reason("Task execution failed").details(details));
 		} catch (final Exception exception) {
+			LOGGER.error("Exception during activity execution '{}', v='{}'", context.activityType().name(),
+					context.activityType().version(), exception);
 			final StringWriter errors = new StringWriter();
 			exception.printStackTrace(new PrintWriter(errors));
 			final String details = errors.toString();
 			reporter.failed(context.taskToken(), Failure.reason("Task execution failed").details(details));
 		}
 	}
+
+	@Override
+	public void stop() {
+		// super.stop blocks until the service poll and execute the last task
+		super.stop();
+		// ... so that we can safely shutdown
+		this.executor.shutdown();
+		try {
+			this.executor.awaitTermination(1, TimeUnit.HOURS);
+		} catch (final InterruptedException e) {
+			throw new IllegalStateException("Awaited more than 1 hours for an activity to terminate!");
+		}
+	}
+
 }

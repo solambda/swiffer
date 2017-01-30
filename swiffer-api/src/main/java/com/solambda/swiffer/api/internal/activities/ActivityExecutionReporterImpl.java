@@ -26,7 +26,7 @@ public class ActivityExecutionReporterImpl implements ActivityExecutionReporter 
 
 	@Override
 	public void completed(final String taskToken, final String output) {
-		LOGGER.debug("task completed: {}, output={}", taskToken, output);
+		LOGGER.debug("Responding task completed: {}, output={}", taskToken, output);
 		this.client.respondActivityTaskCompleted(new RespondActivityTaskCompletedRequest()
 				.withResult(output)
 				.withTaskToken(taskToken));
@@ -34,7 +34,8 @@ public class ActivityExecutionReporterImpl implements ActivityExecutionReporter 
 
 	@Override
 	public void failed(final String taskToken, final Failure failure) {
-		LOGGER.debug("task failed: {}, reason={}, details={}", taskToken, failure.reason(), failure.details());
+		LOGGER.debug("Responding task failed: {}, reason={}, details={}", taskToken, failure.reason(),
+				failure.details());
 		this.client.respondActivityTaskFailed(new RespondActivityTaskFailedRequest()
 				.withTaskToken(taskToken)
 				.withReason(Strings.nullToEmpty(failure.reason()))

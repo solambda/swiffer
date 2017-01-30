@@ -16,9 +16,11 @@ public interface Decisions {
 	 *
 	 * @param activityType
 	 *            class annotated with {@link ActivityType}
+	 * @param input
+	 *            the input to provide to the activity task
 	 * @return this decision object
 	 */
-	Decisions scheduleActivityTask(Class<?> activityType);
+	Decisions scheduleActivityTask(Class<?> activityType, Object input);
 
 	/**
 	 * Add a "schedule activity task" decision. *
@@ -52,46 +54,20 @@ public interface Decisions {
 
 	/**
 	 * Add a "schedule activity task" decision.
-	 *
-	 * @param activityType
-	 *            class annotated with {@link ActivityType}
-	 * @param activityId
-	 *            the id to give to this activity task, in order to cancel it
-	 *            later
-	 * @return this decision object
-	 */
-	Decisions scheduleActivityTask(final Class<?> activityType, String activityId);
-
-	/**
-	 * Add a "schedule activity task" decision.
 	 * <p>
 	 *
 	 * @param activityType
 	 *            class annotated with {@link ActivityType}
-	 * @param activityId
-	 *            the id to give to this activity task, in order to cancel it
-	 *            later
-	 * @param options
-	 *            the {@link ActivityOptions}
-	 * @return this decision object
-	 */
-	Decisions scheduleActivityTask(final Class<?> activityType, String activityId, ActivityOptions options);
-
-	/**
-	 * Add a "schedule activity task" decision.
-	 *
-	 * @param activityType
-	 *            class annotated with {@link ActivityType}
-	 * @param activityId
-	 *            the id to give to this activity task, in order to cancel it
-	 *            later
 	 * @param input
 	 *            the input to provide to the activity task
+	 * @param activityId
+	 *            the id to give to this activity task, in order to cancel it
+	 *            later
 	 * @param options
 	 *            the {@link ActivityOptions}
 	 * @return this decision object
 	 */
-	Decisions scheduleActivityTask(final Class<?> activityType, String activityId, Object input,
+	Decisions scheduleActivityTask(final Class<?> activityType, Object input, String activityId,
 			ActivityOptions options);
 
 	/**

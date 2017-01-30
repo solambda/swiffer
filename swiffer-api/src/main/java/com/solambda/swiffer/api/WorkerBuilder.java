@@ -26,6 +26,7 @@ import com.solambda.swiffer.api.internal.activities.ActivityTaskPoller;
 import com.solambda.swiffer.api.internal.registration.ActivityTypeRegistry;
 
 public class WorkerBuilder {
+
 	private AmazonSimpleWorkflow swf;
 	private String domain;
 	private String identity;
@@ -140,7 +141,12 @@ public class WorkerBuilder {
 			// default is to get the activitytask input
 			return (c) -> {
 				// FIXME: do deserialization
-				return c.input();
+				final String input = c.input();
+				if (input == null) {
+					// WARN with appropriate logger: an ninput was expected byt
+					// null was received
+				}
+				return input;
 			};
 		} else {
 			throw new IllegalStateException("cannot create argument resolver for parameter of type " + annotatedType);

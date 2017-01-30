@@ -67,7 +67,7 @@ public class Swiffer {
 	 *            specifying a TagFilter.
 	 * @return the runId of the execution
 	 */
-	public String startWorkflow(final Class<?> workflowTypeDefinition, final String workflowId, final String... tags) {
+	public String startWorkflow(final Class<?> workflowTypeDefinition, final String workflowId, final Tags tags) {
 		return startWorkflow(workflowTypeDefinition, workflowId, null, null, tags);
 	}
 
@@ -84,8 +84,21 @@ public class Swiffer {
 	 * @return the runId of the execution
 	 */
 	public String startWorkflow(final Class<?> workflowTypeDefinition, final String workflowId,
-			final WorkflowOptions options, final String... tags) {
+			final WorkflowOptions options, final Tags tags) {
 		return startWorkflow(workflowTypeDefinition, workflowId, null, options, tags);
+	}
+
+	/**
+	 * @param workflowTypeDefinition
+	 * @param workflowId
+	 * @param input
+	 *            the input for the workflow execution, to be made available to
+	 *            the new workflow execution in the WorkflowExecutionStarted
+	 *            history event.
+	 * @return the runId of the execution
+	 */
+	public String startWorkflow(final Class<?> workflowTypeDefinition, final String workflowId, final Object input) {
+		return startWorkflow(workflowTypeDefinition, workflowId, input, null, null);
 	}
 
 	/**
@@ -104,7 +117,7 @@ public class Swiffer {
 	 * @return the runId of the execution
 	 */
 	public String startWorkflow(final Class<?> workflowTypeDefinition, final String workflowId, final Object input,
-			final String... tags) {
+			final Tags tags) {
 		return startWorkflow(workflowTypeDefinition, workflowId, input, null, tags);
 	}
 
@@ -125,8 +138,8 @@ public class Swiffer {
 	 * @return the runId of the execution
 	 */
 	public String startWorkflow(final Class<?> workflowTypeDefinition, final String workflowId, final Object input,
-			final WorkflowOptions options, final String... tags) {
-		return doStart(workflowTypeDefinition, workflowId, input, options, Tags.of(tags));
+			final WorkflowOptions options, final Tags tags) {
+		return doStart(workflowTypeDefinition, workflowId, input, options, tags);
 	}
 
 	// CONVERSIONS
@@ -159,13 +172,13 @@ public class Swiffer {
 					.withWorkflowId(workflowId)
 					.withInput(serializeInput(input))
 					.withTaskList(opts.getTaskList())
-					.withTagList(tags.get())
-					.withExecutionStartToCloseTimeout(opts.getMaxExecutionDuration());
+					.withTagList(tags == null ? Tags.none().get() : tags.get())
+					.withExecutionStartToCloseTimeout(opts.getMaxExecutionDuration())
+					.withTaskPriority(opts.getTaskPriority())
+					.withTaskStartToCloseTimeout(opts.getMaxDecisionTaskDuration());
 			if (opts.getChildTerminationPolicy() != null) {
 				request = request.withChildPolicy(opts.getChildTerminationPolicy());
 			}
-			request = request.withTaskPriority(opts.getTaskPriority())
-					.withTaskStartToCloseTimeout(opts.getMaxDecisionTaskDuration());
 			return this.swf.startWorkflowExecution(request)
 					.getRunId();
 		} catch (final WorkflowExecutionAlreadyStartedException e) {

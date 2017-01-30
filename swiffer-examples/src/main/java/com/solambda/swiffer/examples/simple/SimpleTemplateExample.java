@@ -1,5 +1,7 @@
 package com.solambda.swiffer.examples.simple;
 
+import java.time.Duration;
+
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.simpleworkflow.AmazonSimpleWorkflow;
@@ -11,6 +13,7 @@ import com.solambda.swiffer.examples.ActivityImplementations;
 import com.solambda.swiffer.examples.Domains;
 import com.solambda.swiffer.examples.WorkflowDefinitions.SimpleExampleWorkflowDefinition;
 import com.solambda.swiffer.examples.templates.SimpleTemplate;
+import com.solambda.swiffer.examples.utils.Tests;
 
 /**
  * Demonstrate usual features of swiffer.
@@ -26,12 +29,12 @@ import com.solambda.swiffer.examples.templates.SimpleTemplate;
  * <ul>
  *
  */
-public class SimpleWorkflowExample {
+public class SimpleTemplateExample {
 
 	private Worker worker;
 	private Decider decider;
 
-	public SimpleWorkflowExample() {
+	public SimpleTemplateExample() {
 	}
 
 	public void run() {
@@ -39,10 +42,18 @@ public class SimpleWorkflowExample {
 		createAndStartWorker(swiffer);
 		createAndStartDecider(swiffer);
 		startWorkflow(swiffer);
+		Tests.sleep(Duration.ofSeconds(3));
+		stopWorkerAndDecider();
+	}
+
+	private void stopWorkerAndDecider() {
+		this.decider.stop();
+		this.worker.stop();
 	}
 
 	private void startWorkflow(final Swiffer swiffer) {
-		swiffer.startWorkflow(SimpleExampleWorkflowDefinition.class, "workflowid");
+		final String stringToParse = "123";
+		swiffer.startWorkflow(SimpleExampleWorkflowDefinition.class, "workflowid", stringToParse);
 	}
 
 	private void sendSignal(final Swiffer swiffer) {
@@ -58,7 +69,7 @@ public class SimpleWorkflowExample {
 
 	private void createAndStartWorker(final Swiffer swiffer) {
 		this.worker = swiffer.newWorkerBuilder()
-				.taskList("myTaskList")
+				.taskList("default")
 				.identity(this.getClass().getSimpleName() + "-worker")
 				.executors(new ActivityImplementations())
 				.build();
@@ -74,7 +85,7 @@ public class SimpleWorkflowExample {
 	}
 
 	public static void main(final String[] args) {
-		final SimpleWorkflowExample e = new SimpleWorkflowExample();
+		final SimpleTemplateExample e = new SimpleTemplateExample();
 		e.run();
 	}
 

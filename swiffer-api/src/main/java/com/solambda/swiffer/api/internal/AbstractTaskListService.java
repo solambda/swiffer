@@ -41,6 +41,7 @@ public abstract class AbstractTaskListService<T extends TaskContext> implements 
 							throw e;
 						}
 					}
+					AbstractTaskListService.this.LOGGER.info("Service not running anymore");
 				}
 
 				@Override
@@ -109,11 +110,12 @@ public abstract class AbstractTaskListService<T extends TaskContext> implements 
 
 	@Override
 	public void stop() {
-		if (this.daemonService == null) {
-
-		} else {
+		this.LOGGER.info("Stopping the service");
+		if (this.daemonService != null) {
 			this.daemonService.stopAsync();
+			this.daemonService.awaitTerminated();
 			this.daemonService = null;
+			this.LOGGER.info("Service stopped");
 		}
 	}
 

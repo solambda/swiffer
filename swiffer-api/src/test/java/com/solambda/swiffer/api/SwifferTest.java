@@ -38,7 +38,7 @@ public class SwifferTest {
 						.maxWorkflowDuration(Duration.ofDays(10))
 						.taskList("task-list-1")
 						.taskPriority(123),
-				"t1", "t2");
+				Tags.of("t1", "t2"));
 
 		//
 

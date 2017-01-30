@@ -62,8 +62,7 @@ public class DecisionTaskContextImpl implements DecisionTaskContext {
 	@Override
 	public String toString() {
 		return "DecisionTaskContextImpl [domain=" + this.domain
-				+ ", workflowType=" + workflowType() + ", taskToken="
-				+ taskToken() + "]";
+				+ ", workflowType=" + workflowType() + "]";
 	}
 
 }
