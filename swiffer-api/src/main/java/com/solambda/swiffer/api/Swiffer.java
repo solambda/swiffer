@@ -2,6 +2,7 @@ package com.solambda.swiffer.api;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 import org.joda.time.LocalDate;
 import org.slf4j.Logger;
@@ -10,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import com.amazonaws.services.simpleworkflow.AmazonSimpleWorkflow;
 import com.amazonaws.services.simpleworkflow.model.ChildPolicy;
 import com.amazonaws.services.simpleworkflow.model.DescribeWorkflowExecutionRequest;
+import com.amazonaws.services.simpleworkflow.model.ExecutionStatus;
 import com.amazonaws.services.simpleworkflow.model.ExecutionTimeFilter;
 import com.amazonaws.services.simpleworkflow.model.ListClosedWorkflowExecutionsRequest;
 import com.amazonaws.services.simpleworkflow.model.ListOpenWorkflowExecutionsRequest;
@@ -194,7 +196,7 @@ public class Swiffer {
 	 *            the workflow id
 	 * @param signalName
 	 *            the signal name
-	 * 
+	 *
 	 * @throws IllegalStateException
 	 *             if the workflow designated by this workflowId is not open
 	 */
@@ -211,12 +213,45 @@ public class Swiffer {
 	 *            the signal name
 	 * @param input
 	 *            the input to send with the signal
-	 * 
+	 *
 	 * @throws IllegalStateException
 	 *             if the workflow designated by this workflowId is not open
 	 */
 	public void sendSignalToWorkflow(final String workflowId, final String signalName, final Object input) {
 		doSignal(workflowId, signalName, input);
+	}
+
+	/**
+	 * Return true if the workflow execution is open.
+	 * <p>
+	 *
+	 * @param workflowId
+	 *            the workflow id that was passed to
+	 *            {@link #startWorkflow(Class, String, Object, WorkflowOptions, Tags)}
+	 * @param runId
+	 *            the runId of the execution, as returned by a call to
+	 *            {@link #startWorkflow(Class, String, Object, WorkflowOptions, Tags)}
+	 * @return true if the workflow is
+	 */
+	public boolean isWorkflowExecutionOpen(final String workflowId, final String runId) {
+		try {
+			final WorkflowExecutionInfo workflowExecution = getWorkflowExecution(workflowId, runId);
+			return workflowExecution != null
+					&& Objects.equals(workflowExecution.getExecutionStatus(), ExecutionStatus.OPEN.name());
+		} catch (final UnknownResourceException e) {
+			return false;
+		}
+	}
+
+	private WorkflowExecutionInfo getWorkflowExecution(final String workflowId, final String runId) {
+		this.LOGGER.debug("[Domain: {}] Describe workflow {} execution {}", this.domain, workflowId, runId);
+		final WorkflowExecutionDetail detail = this.swf.describeWorkflowExecution(new DescribeWorkflowExecutionRequest()
+				.withDomain(this.domain)
+				.withExecution(
+						new WorkflowExecution()
+								.withWorkflowId(workflowId)
+								.withRunId(runId)));
+		return detail.getExecutionInfo();
 	}
 
 	private void doSignal(final String workflowId, final String signalName, final Object input) {
@@ -248,17 +283,6 @@ public class Swiffer {
 			throw new IllegalStateException(
 					String.format("Impossible to terminate the workflow %s with runId %s", workflowId, runId), e);
 		}
-	}
-
-	private WorkflowExecutionInfo getWorkflowExecution(final String workflowId, final String runId) {
-		this.LOGGER.debug("[Domain: {}] Describe workflow {} execution {}", this.domain, workflowId, runId);
-		final WorkflowExecutionDetail detail = this.swf.describeWorkflowExecution(new DescribeWorkflowExecutionRequest()
-				.withDomain(this.domain)
-				.withExecution(
-						new WorkflowExecution()
-								.withWorkflowId(workflowId)
-								.withRunId(runId)));
-		return detail.getExecutionInfo();
 	}
 
 	private List<WorkflowExecutionInfo> findClosedExecutions(final String workflowId) {

@@ -43,10 +43,12 @@ public class SimpleTemplateExample {
 		final Swiffer swiffer = initializeSwiffer();
 		createAndStartWorker(swiffer);
 		createAndStartDecider(swiffer);
-		startWorkflow(swiffer);
+		final String runId = startWorkflow(swiffer);
+		System.out.println("Workflow is started: " + swiffer.isWorkflowExecutionOpen(WORKFLOW_ID, runId));
 		Tests.sleep(Duration.ofSeconds(7));
 		sendSignal(swiffer);
 		Tests.sleep(Duration.ofSeconds(3));
+		System.out.println("Workflow is started: " + swiffer.isWorkflowExecutionOpen(WORKFLOW_ID, runId));
 		stopWorkerAndDecider();
 	}
 
@@ -55,9 +57,9 @@ public class SimpleTemplateExample {
 		this.worker.stop();
 	}
 
-	private void startWorkflow(final Swiffer swiffer) {
+	private String startWorkflow(final Swiffer swiffer) {
 		final String stringToParse = "123";
-		swiffer.startWorkflow(SimpleExampleWorkflowDefinition.class, WORKFLOW_ID, stringToParse);
+		return swiffer.startWorkflow(SimpleExampleWorkflowDefinition.class, WORKFLOW_ID, stringToParse);
 	}
 
 	private void sendSignal(final Swiffer swiffer) {
