@@ -39,11 +39,12 @@ public class DomainRegistry {
 	}
 
 	public void listDomains() {
+		LOGGER.info("Checking Swiffer and AWS SWF configuration by listing all available domains");
 		final DomainInfos domainInfos = this.client.listDomains(new ListDomainsRequest()
 				.withRegistrationStatus(RegistrationStatus.REGISTERED));
 		final List<DomainInfo> domainInfos2 = domainInfos.getDomainInfos();
 		for (final DomainInfo domainInfo : domainInfos2) {
-			System.out.println(domainInfo);
+			LOGGER.debug("Domain found : '{}' ({})", domainInfo.getName(), domainInfo.getStatus());
 		}
 	}
 

@@ -28,6 +28,7 @@ import com.amazonaws.services.simpleworkflow.model.WorkflowExecutionInfo;
 import com.amazonaws.services.simpleworkflow.model.WorkflowExecutionInfos;
 import com.amazonaws.services.simpleworkflow.model.WorkflowType;
 import com.google.common.base.Preconditions;
+import com.solambda.swiffer.api.internal.registration.DomainRegistry;
 import com.solambda.swiffer.api.internal.utils.SWFUtils;
 
 public class Swiffer {
@@ -320,6 +321,19 @@ public class Swiffer {
 					String.format("Impossible to cancel the workflow %s for the runId %s", workflowId, runId), e);
 		}
 
+	}
+
+	/**
+	 * @return true if swiffer can access AWS SWF, false otherwise
+	 */
+	public boolean checkConfiguration() {
+		try {
+			new DomainRegistry(this.swf, this.domain).listDomains();
+			return true;
+		} catch (final Exception e) {
+			this.LOGGER.error("Swiffer cannot access AWS SWF", e);
+			return false;
+		}
 	}
 
 }
