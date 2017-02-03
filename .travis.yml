@@ -6,18 +6,25 @@ before_install:
   - if [ ! -z "$GPG_OWNERTRUST" ]; then echo $GPG_OWNERTRUST | base64 --decode | $GPG_EXECUTABLE --import-ownertrust; fi
 install:
   - mvn --settings .travis/settings.xml validate -DskipTests=true -Dgpg.skip -Dmaven.javadoc.skip=true -B -V
+  - chmod +x .travis/*.sh
+  - ls -al .travis
 script: mvn help:system
 deploy:
   -
+    provider: script
+    script:
+      - .travis/deploy.sh
     skip_cleanup: true
-    mvn clean deploy --settings .travis/settings.xml -DskipTests=true -B -U
     on:
+      repo: gwtd3/gwt-d3
       branch: master
       jdk: oraclejdk8
   -
     provider: script
-    script: ./deploy.sh
+    script:
+      - .travis/deploy.sh
     skip_cleanup: true
     on:
+      repo: gwtd3/gwt-d3
       tags: true
       jdk: oraclejdk8
