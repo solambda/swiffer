@@ -9,14 +9,14 @@ install:
 deploy:
   -
     provider: script
-    script: .travis/deploy.sh
+    script: ./.travis/deploy.sh
     skip_cleanup: true
     on:
       branch: master
       jdk: oraclejdk8
   -
     provider: script
-    script: .travis/deploy.sh
+    script: ./.travis/deploy.sh
     skip_cleanup: true
     on:
       tags: true
