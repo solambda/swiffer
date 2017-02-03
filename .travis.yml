@@ -9,9 +9,8 @@ install:
 script: mvn help:system
 deploy:
   -
-    provider: script
     skip_cleanup: true
-    script: ./deploy.sh
+    mvn clean deploy --settings .travis/settings.xml -DskipTests=true -B -U
     on:
       branch: master
       jdk: oraclejdk8
