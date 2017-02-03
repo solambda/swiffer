@@ -1,3 +1,4 @@
+#!/bin/sh
 echo "deploy script execution !"
 if [ ! -z "$TRAVIS_TAG" ]
 then
