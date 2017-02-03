@@ -8,15 +8,14 @@ install:
   - mvn --settings .travis/settings.xml validate -DskipTests=true -Dgpg.skip -Dmaven.javadoc.skip=true -B -V
 deploy:
   -
-    provider: script
-    script: ./.travis/deploy.sh
     skip_cleanup: true
+    script: ./deploy.sh
     on:
       branch: master
       jdk: oraclejdk8
   -
     provider: script
-    script: ./.travis/deploy.sh
+    script: ./deploy.sh
     skip_cleanup: true
     on:
       tags: true
