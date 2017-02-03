@@ -9,8 +9,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.amazonaws.services.simpleworkflow.AmazonSimpleWorkflow;
-import com.solambda.swiffer.api.internal.DeciderImpl;
 import com.solambda.swiffer.api.internal.VersionedName;
+import com.solambda.swiffer.api.internal.decisions.DeciderImpl;
 import com.solambda.swiffer.api.internal.decisions.DecisionTaskPoller;
 import com.solambda.swiffer.api.internal.decisions.WorkflowTemplate;
 import com.solambda.swiffer.api.internal.decisions.WorkflowTemplateFactory;

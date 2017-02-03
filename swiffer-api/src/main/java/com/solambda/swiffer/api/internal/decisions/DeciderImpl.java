@@ -1,15 +1,12 @@
-package com.solambda.swiffer.api.internal;
+package com.solambda.swiffer.api.internal.decisions;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.solambda.swiffer.api.Decider;
 import com.solambda.swiffer.api.Decisions;
-import com.solambda.swiffer.api.internal.decisions.DecisionExecutor;
-import com.solambda.swiffer.api.internal.decisions.DecisionExecutorImpl;
-import com.solambda.swiffer.api.internal.decisions.DecisionTaskContext;
-import com.solambda.swiffer.api.internal.decisions.WorkflowTemplate;
-import com.solambda.swiffer.api.internal.decisions.WorkflowTemplateRegistry;
+import com.solambda.swiffer.api.internal.AbstractTaskListService;
+import com.solambda.swiffer.api.internal.TaskContextPoller;
 
 public class DeciderImpl extends AbstractTaskListService<DecisionTaskContext> implements Decider {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DeciderImpl.class);

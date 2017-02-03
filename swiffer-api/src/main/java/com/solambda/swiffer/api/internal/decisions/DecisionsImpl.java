@@ -1,4 +1,4 @@
-package com.solambda.swiffer.api.internal;
+package com.solambda.swiffer.api.internal.decisions;
 
 import java.time.Duration;
 import java.util.ArrayList;

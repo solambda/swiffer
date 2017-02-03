@@ -14,7 +14,6 @@ import com.amazonaws.services.simpleworkflow.AmazonSimpleWorkflow;
 import com.google.common.base.Preconditions;
 import com.solambda.swiffer.api.internal.MethodInvoker;
 import com.solambda.swiffer.api.internal.VersionedName;
-import com.solambda.swiffer.api.internal.WorkerImpl;
 import com.solambda.swiffer.api.internal.activities.ActivityExecutionReporter;
 import com.solambda.swiffer.api.internal.activities.ActivityExecutionReporterImpl;
 import com.solambda.swiffer.api.internal.activities.ActivityExecutor;
@@ -23,6 +22,7 @@ import com.solambda.swiffer.api.internal.activities.ActivityExecutorImpl;
 import com.solambda.swiffer.api.internal.activities.ActivityExecutorRegistry;
 import com.solambda.swiffer.api.internal.activities.ActivityTaskContext;
 import com.solambda.swiffer.api.internal.activities.ActivityTaskPoller;
+import com.solambda.swiffer.api.internal.activities.WorkerImpl;
 import com.solambda.swiffer.api.internal.registration.ActivityTypeRegistry;
 
 public class WorkerBuilder {

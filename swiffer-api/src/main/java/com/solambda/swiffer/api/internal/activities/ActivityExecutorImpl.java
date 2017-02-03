@@ -27,7 +27,7 @@ public class ActivityExecutorImpl implements ActivityExecutor {
 	@Override
 	public String execute(final ActivityTaskContext context) throws ActivityTaskExecutionFailedException {
 		try {
-			LOGGER.info("Executing activity '{}', v='{}'", context.activityType().name(),
+			LOGGER.debug("Executing activity '{}', v='{}'", context.activityType().name(),
 					context.activityType().version());
 			final Object[] arguments = this.argumentsProvider.getArguments(context);
 			final Object result = this.invoker.invoke(arguments);

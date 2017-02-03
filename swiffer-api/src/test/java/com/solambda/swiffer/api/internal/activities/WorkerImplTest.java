@@ -31,7 +31,6 @@ import com.solambda.swiffer.api.Executor;
 import com.solambda.swiffer.api.Swiffer;
 import com.solambda.swiffer.api.Worker;
 import com.solambda.swiffer.api.exceptions.TaskContextPollingException;
-import com.solambda.swiffer.api.internal.WorkerImpl;
 import com.solambda.swiffer.api.internal.activities.WorkerImplTest.Definitions.FailingActivity;
 import com.solambda.swiffer.api.internal.activities.WorkerImplTest.Definitions.NoArgumentActivity;
 import com.solambda.swiffer.api.internal.activities.WorkerImplTest.Definitions.NoReturnValueActivity;
@@ -188,8 +187,8 @@ public class WorkerImplTest {
 		final RespondActivityTaskFailedRequest request = captor.getValue();
 		assertThat(request.getDetails()).isEqualTo(null);
 		assertThat(request.getReason())
-				.isEqualTo("no activity executor defined "
-						+ "for activity type {name=\"" + NO_EXECUTOR_ACTIVITY_NAME
+				.isEqualTo("no executor defined "
+						+ "for activity {name=\"" + NO_EXECUTOR_ACTIVITY_NAME
 						+ "\",version=\"1\"");
 		assertThat(request.getTaskToken()).isEqualTo(TASK_TOKEN);
 	}

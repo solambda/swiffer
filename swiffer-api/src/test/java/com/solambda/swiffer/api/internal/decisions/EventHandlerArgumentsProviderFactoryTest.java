@@ -21,7 +21,6 @@ import com.solambda.swiffer.api.Decisions;
 import com.solambda.swiffer.api.Input;
 import com.solambda.swiffer.api.Output;
 import com.solambda.swiffer.api.Reason;
-import com.solambda.swiffer.api.internal.DecisionsImpl;
 
 public class EventHandlerArgumentsProviderFactoryTest {
 	private static final EventType ANY_TYPE = null;

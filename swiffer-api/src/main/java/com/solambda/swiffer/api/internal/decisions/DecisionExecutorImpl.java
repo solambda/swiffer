@@ -10,7 +10,6 @@ import com.amazonaws.services.simpleworkflow.model.Decision;
 import com.amazonaws.services.simpleworkflow.model.RespondDecisionTaskCompletedRequest;
 import com.amazonaws.services.simpleworkflow.model.UnknownResourceException;
 import com.solambda.swiffer.api.Decisions;
-import com.solambda.swiffer.api.internal.DecisionsImpl;
 
 public class DecisionExecutorImpl implements DecisionExecutor {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DecisionExecutorImpl.class);

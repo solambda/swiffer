@@ -1,4 +1,4 @@
-package com.solambda.swiffer.api.internal;
+package com.solambda.swiffer.api.internal.activities;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -11,10 +11,10 @@ import org.slf4j.LoggerFactory;
 
 import com.solambda.swiffer.api.Worker;
 import com.solambda.swiffer.api.exceptions.ActivityTaskExecutionFailedException;
-import com.solambda.swiffer.api.internal.activities.ActivityExecutionReporter;
-import com.solambda.swiffer.api.internal.activities.ActivityExecutor;
-import com.solambda.swiffer.api.internal.activities.ActivityExecutorRegistry;
-import com.solambda.swiffer.api.internal.activities.ActivityTaskContext;
+import com.solambda.swiffer.api.internal.AbstractTaskListService;
+import com.solambda.swiffer.api.internal.Failure;
+import com.solambda.swiffer.api.internal.TaskContextPoller;
+import com.solambda.swiffer.api.internal.VersionedName;
 
 public class WorkerImpl extends AbstractTaskListService<ActivityTaskContext> implements Worker {
 

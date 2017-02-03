@@ -6,7 +6,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.solambda.swiffer.api.Decisions;
-import com.solambda.swiffer.api.internal.DecisionsImpl;
 import com.solambda.swiffer.api.internal.VersionedName;
 
 public class WorkflowTemplateImpl implements WorkflowTemplate {

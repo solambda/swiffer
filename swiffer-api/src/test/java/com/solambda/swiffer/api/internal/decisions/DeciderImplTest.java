@@ -30,7 +30,6 @@ import com.solambda.swiffer.api.Decider;
 import com.solambda.swiffer.api.OnWorkflowStarted;
 import com.solambda.swiffer.api.Swiffer;
 import com.solambda.swiffer.api.WorkflowType;
-import com.solambda.swiffer.api.internal.DeciderImpl;
 import com.solambda.swiffer.test.Tests;
 
 public class DeciderImplTest {
