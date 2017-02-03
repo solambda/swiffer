@@ -16,7 +16,7 @@ deploy:
       - .travis/deploy.sh
     skip_cleanup: true
     on:
-      repo: gwtd3/gwt-d3
+      repo: solambda/swiffer
       branch: master
       jdk: oraclejdk8
   -
@@ -25,6 +25,6 @@ deploy:
       - .travis/deploy.sh
     skip_cleanup: true
     on:
-      repo: gwtd3/gwt-d3
+      repo: solambda/swiffer
       tags: true
       jdk: oraclejdk8
