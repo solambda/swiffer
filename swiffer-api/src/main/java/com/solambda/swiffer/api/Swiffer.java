@@ -1,5 +1,6 @@
 package com.solambda.swiffer.api;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -13,6 +14,9 @@ import com.amazonaws.services.simpleworkflow.model.ChildPolicy;
 import com.amazonaws.services.simpleworkflow.model.DescribeWorkflowExecutionRequest;
 import com.amazonaws.services.simpleworkflow.model.ExecutionStatus;
 import com.amazonaws.services.simpleworkflow.model.ExecutionTimeFilter;
+import com.amazonaws.services.simpleworkflow.model.GetWorkflowExecutionHistoryRequest;
+import com.amazonaws.services.simpleworkflow.model.History;
+import com.amazonaws.services.simpleworkflow.model.HistoryEvent;
 import com.amazonaws.services.simpleworkflow.model.ListClosedWorkflowExecutionsRequest;
 import com.amazonaws.services.simpleworkflow.model.ListOpenWorkflowExecutionsRequest;
 import com.amazonaws.services.simpleworkflow.model.RequestCancelWorkflowExecutionRequest;
@@ -278,6 +282,37 @@ public class Swiffer {
 
 	public void terminateWorkflow(String workflowId, String runId, String reason){
 		doTerminate(workflowId, runId, reason, null, null);
+	}
+
+	/**
+	 * Returns workflow execution history.
+	 *
+	 * @param workflowId    ID of the workflow
+	 * @param runId         runId of the workflow
+	 * @param maxPageSize   maximum number of history events per page
+	 * @param numberOfPages number of pages
+	 * @param newerFirst    set to {@code true} to sort events from newer to older
+	 * @return list of {@link HistoryEvent}
+	 */
+	public List<HistoryEvent> getWorkflowExecutionHistory(String workflowId, String runId, int maxPageSize, int numberOfPages, boolean newerFirst) {
+		WorkflowExecution workflowExecution = new WorkflowExecution().withWorkflowId(workflowId).withRunId(runId);
+
+		List<HistoryEvent> allEvents = new ArrayList<>();
+		String nextPageToken = null;
+		int currentPage = 1;
+		do {
+			History history = swf.getWorkflowExecutionHistory(new GetWorkflowExecutionHistoryRequest()
+																	  .withDomain(domain)
+																	  .withExecution(workflowExecution)
+																	  .withReverseOrder(newerFirst)
+																	  .withMaximumPageSize(maxPageSize)
+																	  .withNextPageToken(nextPageToken));
+			allEvents.addAll(history.getEvents());
+			nextPageToken = history.getNextPageToken();
+			currentPage++;
+		} while (currentPage <= numberOfPages && nextPageToken != null);
+
+		return allEvents;
 	}
 
 	private WorkflowExecutionInfo getWorkflowExecution(final String workflowId, final String runId) {

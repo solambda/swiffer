@@ -10,8 +10,11 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.time.Duration;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Random;
 
 import org.junit.After;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.slf4j.Logger;
@@ -19,6 +22,7 @@ import org.slf4j.LoggerFactory;
 
 import com.amazonaws.services.simpleworkflow.AmazonSimpleWorkflow;
 import com.amazonaws.services.simpleworkflow.model.ChildPolicy;
+import com.amazonaws.services.simpleworkflow.model.HistoryEvent;
 import com.amazonaws.services.simpleworkflow.model.Run;
 import com.amazonaws.services.simpleworkflow.model.StartWorkflowExecutionRequest;
 import com.solambda.swiffer.test.Tests;
@@ -87,6 +91,28 @@ public class SwifferTest {
 		assertThat(request.getWorkflowType()).isEqualTo(
 				new com.amazonaws.services.simpleworkflow.model.WorkflowType().withName("test").withVersion("1"));
 
+	}
+
+	/**
+	 * Set to ignore because it takes too long to execute.
+	 */
+	@Ignore
+	@Test
+	public void getWorkflowExecutionHistory() {
+		Random random = new Random();
+		Swiffer swiffer = new Swiffer(Tests.swf(), Tests.DOMAIN);
+		startWorker(swiffer);
+		startDecider(swiffer);
+
+		String workflowId = "WF-TEST-" + random.nextInt();
+		String runId = swiffer.startWorkflow(TestWorkflow.class, workflowId, "some input",
+											 new WorkflowOptions().maxWorkflowDuration(Duration.ofMinutes(1)),
+											 null);
+		swiffer.sendSignalToWorkflow(workflowId, "test-signal", "signalInput");
+
+		List<HistoryEvent> workflowExecutionHistory = swiffer.getWorkflowExecutionHistory(workflowId, runId, 5, 1, true);
+
+		assertThat(workflowExecutionHistory).isNotNull().extracting("eventType").contains("WorkflowExecutionSignaled");
 	}
 
 	@After
