@@ -90,7 +90,7 @@ public class DeciderImplTest {
 				.withEventType(EventType.WorkflowExecutionStarted)
 				.withWorkflowExecutionStartedEventAttributes(
 						new WorkflowExecutionStartedEventAttributes()
-								.withInput("workflowInput"))
+								.withInput("\"workflowInput\""))
 				.withEventTimestamp(new Date()));
 
 		when(this.swf.pollForDecisionTask(any(PollForDecisionTaskRequest.class)))

@@ -6,11 +6,16 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.time.Duration;
 import java.util.Arrays;
 
+import org.junit.After;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.amazonaws.services.simpleworkflow.AmazonSimpleWorkflow;
 import com.amazonaws.services.simpleworkflow.model.ChildPolicy;
@@ -19,10 +24,30 @@ import com.amazonaws.services.simpleworkflow.model.StartWorkflowExecutionRequest
 import com.solambda.swiffer.test.Tests;
 
 public class SwifferTest {
+	private static final Logger LOGGER = LoggerFactory.getLogger(SwifferTest.class);
 
+	private Worker worker;
+	private Decider decider;
+
+	@Retention(RetentionPolicy.RUNTIME)
 	@WorkflowType(name = "test", version = "1")
-	public static interface TestWorkflow {
+	public static @interface TestWorkflow {
 
+	}
+
+	@ActivityType(name = "TestActivity", version = "1")
+	public interface TestActivity {
+	}
+
+	public class TestActivityExecutor {
+		@Executor(activity = TestActivity.class)
+		public void executeTestActivity(String input) {
+			LOGGER.info("Activity executed with input {} ", input);
+		}
+	}
+
+	@TestWorkflow
+	public class TestWorkflowTemplate {
 	}
 
 	@Test
@@ -52,7 +77,7 @@ public class SwifferTest {
 		assertThat(request.getChildPolicy()).isEqualTo(ChildPolicy.REQUEST_CANCEL.name());
 		assertThat(request.getDomain()).isEqualTo(Tests.DOMAIN);
 		assertThat(request.getExecutionStartToCloseTimeout()).isEqualTo(Integer.toString(10 * 24 * 3600));
-		assertThat(request.getInput()).isEqualTo("testInput");
+		assertThat(request.getInput()).isEqualTo("\"testInput\"");
 		assertThat(request.getLambdaRole()).isEqualTo(null);
 		assertThat(request.getTagList()).isEqualTo(Arrays.asList("t1", "t2"));
 		assertThat(request.getTaskList().getName()).isEqualTo("task-list-1");
@@ -62,5 +87,33 @@ public class SwifferTest {
 		assertThat(request.getWorkflowType()).isEqualTo(
 				new com.amazonaws.services.simpleworkflow.model.WorkflowType().withName("test").withVersion("1"));
 
+	}
+
+	@After
+	public void tearDown() throws Exception {
+		if (worker != null){
+			worker.stop();
+		}
+
+		if (decider != null){
+			decider.stop();
+		}
+	}
+
+	private void startWorker(Swiffer swiffer ){
+		worker = swiffer.newWorkerBuilder()
+								 .taskList("default")
+								 .identity("test-worker")
+								 .executors(new TestActivityExecutor())
+								 .build();
+		worker.start();
+	}
+
+	private void startDecider(Swiffer swiffer) {
+		decider = swiffer.newDeciderBuilder()
+							  .identity("test-decider")
+							  .workflowTemplates(new TestWorkflowTemplate())
+							  .build();
+		decider.start();
 	}
 }

@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 
 import com.solambda.swiffer.api.Decisions;
 import com.solambda.swiffer.api.internal.VersionedName;
+import com.solambda.swiffer.api.mapper.DataMapper;
 
 public class WorkflowTemplateImpl implements WorkflowTemplate {
 
@@ -14,11 +15,15 @@ public class WorkflowTemplateImpl implements WorkflowTemplate {
 
 	private VersionedName workflowType;
 	private final EventHandlerRegistry eventHandlerRegistry;
+	private final DataMapper dataMapper;
 
-	public WorkflowTemplateImpl(final VersionedName workflowType, final EventHandlerRegistry eventHandlerRegistry) {
+	public WorkflowTemplateImpl(final VersionedName workflowType,
+								final EventHandlerRegistry eventHandlerRegistry,
+								DataMapper dataMapper) {
 		super();
 		this.workflowType = workflowType;
 		this.eventHandlerRegistry = eventHandlerRegistry;
+		this.dataMapper = dataMapper;
 	}
 
 	@Override
@@ -28,7 +33,7 @@ public class WorkflowTemplateImpl implements WorkflowTemplate {
 
 	@Override
 	public Decisions decide(final DecisionTaskContext decisionContext) throws DecisionTaskExecutionException {
-		final Decisions decisions = new DecisionsImpl();
+		final Decisions decisions = new DecisionsImpl(dataMapper);
 		final List<WorkflowEvent> newEvents = decisionContext.newEvents();
 		LOGGER.debug("processing {} new events", newEvents.size());
 		for (final WorkflowEvent event : newEvents) {

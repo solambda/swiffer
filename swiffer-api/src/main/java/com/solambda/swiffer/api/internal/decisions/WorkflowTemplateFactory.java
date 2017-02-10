@@ -8,10 +8,17 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 import com.solambda.swiffer.api.WorkflowType;
 import com.solambda.swiffer.api.internal.VersionedName;
+import com.solambda.swiffer.api.mapper.DataMapper;
 
 public class WorkflowTemplateFactory {
 
 	public static final Logger LOGGER = LoggerFactory.getLogger(WorkflowTemplateFactory.class);
+
+	private final DataMapper dataMapper;
+
+	public WorkflowTemplateFactory(DataMapper dataMapper) {
+		this.dataMapper = dataMapper;
+	}
 
 	/**
 	 * @param template
@@ -24,9 +31,9 @@ public class WorkflowTemplateFactory {
 	public WorkflowTemplate createWorkflowTemplate(final Object template) {
 		final VersionedName workflowType = createWorkflowType(template);
 		LOGGER.debug("WorkflowType found: name={}, version={}", workflowType.name(), workflowType.version());
-		final EventHandlerRegistryFactory builder = new EventHandlerRegistryFactory(workflowType);
+		final EventHandlerRegistryFactory builder = new EventHandlerRegistryFactory(workflowType, dataMapper);
 		final EventHandlerRegistry eventHandlerRegistry = builder.build(template);
-		return new WorkflowTemplateImpl(workflowType, eventHandlerRegistry);
+		return new WorkflowTemplateImpl(workflowType, eventHandlerRegistry, dataMapper);
 	}
 
 	private VersionedName createWorkflowType(final Object template) {

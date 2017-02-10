@@ -30,18 +30,35 @@ import com.amazonaws.services.simpleworkflow.model.WorkflowType;
 import com.google.common.base.Preconditions;
 import com.solambda.swiffer.api.internal.registration.DomainRegistry;
 import com.solambda.swiffer.api.internal.utils.SWFUtils;
+import com.solambda.swiffer.api.mapper.DataMapper;
+import com.solambda.swiffer.api.mapper.JacksonDataMapper;
 
 public class Swiffer {
+	private static final DataMapper DEFAULT_DATA_MAPPER = new JacksonDataMapper();
 
 	private Logger LOGGER = LoggerFactory.getLogger(Swiffer.class);
 
 	private AmazonSimpleWorkflow swf;
 	private String domain;
+	private final DataMapper dataMapper;
 
+	/**
+	 * Creates new Swiffer with default data mapper {@link JacksonDataMapper}.
+	 */
 	public Swiffer(final AmazonSimpleWorkflow swf, final String domain) {
-		super();
+		this(swf, domain, DEFAULT_DATA_MAPPER);
+	}
+
+	/**
+	 * Creates new Swiffer.
+	 * @param swf interface for accessing Amazon SWF
+	 * @param domain swf domain
+	 * @param dataMapper custom {@link DataMapper} for serialization/deserialization of input and output
+	 */
+	public Swiffer(AmazonSimpleWorkflow swf, String domain, DataMapper dataMapper) {
 		this.swf = Preconditions.checkNotNull(swf, "SWF client must be specified!");
 		this.domain = Preconditions.checkNotNull(domain, "domain must be specified!");
+		this.dataMapper = Preconditions.checkNotNull(dataMapper, "DataMapper must be specified");
 	}
 
 	public static Swiffer get(final AmazonSimpleWorkflow swf, final String domain) {
@@ -49,11 +66,11 @@ public class Swiffer {
 	}
 
 	public WorkerBuilder newWorkerBuilder() {
-		return new WorkerBuilder(this.swf, this.domain);
+		return new WorkerBuilder(this.swf, this.domain, dataMapper);
 	}
 
 	public DeciderBuilder newDeciderBuilder() {
-		return new DeciderBuilder(this.swf, this.domain);
+		return new DeciderBuilder(this.swf, this.domain, dataMapper);
 	}
 
 	/**
@@ -148,8 +165,7 @@ public class Swiffer {
 	// CONVERSIONS
 
 	private String serializeInput(final Object input) {
-		// FIXME: use serializer by default, customizable
-		return input == null ? null : input.toString();
+		return dataMapper.serialize(input);
 	}
 
 	private WorkflowType toSWFWorkflowType(final Class<?> workflowTypeDefinition) {

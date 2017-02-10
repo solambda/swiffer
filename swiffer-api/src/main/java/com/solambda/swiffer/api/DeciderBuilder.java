@@ -16,6 +16,7 @@ import com.solambda.swiffer.api.internal.decisions.WorkflowTemplate;
 import com.solambda.swiffer.api.internal.decisions.WorkflowTemplateFactory;
 import com.solambda.swiffer.api.internal.decisions.WorkflowTemplateRegistry;
 import com.solambda.swiffer.api.internal.registration.WorkflowTypeRegistry;
+import com.solambda.swiffer.api.mapper.DataMapper;
 
 /**
  * A builder of {@link Decider}.
@@ -30,12 +31,14 @@ public class DeciderBuilder {
 	private List<Object> workflowTemplates;
 	private WorkflowTemplateFactory templateFactory;
 	private WorkflowTypeRegistry workflowTypeRegistry;
+	private final DataMapper dataMapper;
 
-	public DeciderBuilder(final AmazonSimpleWorkflow swf, final String domain) {
+	public DeciderBuilder(final AmazonSimpleWorkflow swf, final String domain, DataMapper dataMapper) {
 		super();
 		this.swf = swf;
 		this.domain = domain;
-		this.templateFactory = new WorkflowTemplateFactory();
+		this.dataMapper = dataMapper;
+		this.templateFactory = new WorkflowTemplateFactory(this.dataMapper);
 		this.workflowTypeRegistry = new WorkflowTypeRegistry(swf, domain);
 	}
 

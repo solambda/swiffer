@@ -7,6 +7,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.amazonaws.services.simpleworkflow.model.ActivityType;
 import com.amazonaws.services.simpleworkflow.model.CancelTimerDecisionAttributes;
 import com.amazonaws.services.simpleworkflow.model.CancelWorkflowExecutionDecisionAttributes;
@@ -20,13 +23,17 @@ import com.amazonaws.services.simpleworkflow.model.StartTimerDecisionAttributes;
 import com.google.common.base.Preconditions;
 import com.solambda.swiffer.api.ActivityOptions;
 import com.solambda.swiffer.api.Decisions;
+import com.solambda.swiffer.api.mapper.DataMapper;
 
 public class DecisionsImpl implements Decisions {
+	private static final Logger LOGGER = LoggerFactory.getLogger(DecisionsImpl.class);
 
 	private List<Decision> decisions;
+	private final DataMapper dataMapper;
 
-	public DecisionsImpl() {
-		this.decisions = new ArrayList<Decision>();
+	public DecisionsImpl(DataMapper dataMapper) {
+		this.decisions = new ArrayList<>();
+		this.dataMapper = dataMapper;
 	}
 
 	/**
@@ -54,9 +61,7 @@ public class DecisionsImpl implements Decisions {
 	 * @return
 	 */
 	private String serialize(final Object object) {
-		// TODO: user jackson serialization
-		// TODO: allow customization of the serializer
-		return object == null ? null : object.toString();
+		return dataMapper.serialize(object);
 	}
 
 	@Override
@@ -148,7 +153,7 @@ public class DecisionsImpl implements Decisions {
 
 	@Override
 	public Decisions startTimer(final String timerId, final Duration duration) {
-		return startTimer(timerId, duration);
+		return startTimer(timerId, duration, null);
 	}
 
 	@Override

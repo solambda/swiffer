@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 
 import com.solambda.swiffer.api.internal.MethodInvoker;
 import com.solambda.swiffer.api.internal.VersionedName;
+import com.solambda.swiffer.api.mapper.DataMapper;
 
 public class EventHandlerFactory {
 
@@ -15,10 +16,10 @@ public class EventHandlerFactory {
 	private EventHandlerTypeFactory eventHandlerTypeFactory;
 	private EventHandlerArgumentsProviderFactory eventHandlerArgumentsProviderFactory;
 
-	public EventHandlerFactory(final VersionedName workflowType) {
+	public EventHandlerFactory(final VersionedName workflowType, DataMapper dataMapper) {
 		super();
 		this.eventHandlerTypeFactory = new EventHandlerTypeFactory(workflowType);
-		this.eventHandlerArgumentsProviderFactory = new EventHandlerArgumentsProviderFactory();
+		this.eventHandlerArgumentsProviderFactory = new EventHandlerArgumentsProviderFactory(dataMapper);
 	}
 
 	public EventHandler createEventHandler(final Object template, final Method method) {
