@@ -276,6 +276,10 @@ public class Swiffer {
 		}
 	}
 
+	public void terminateWorkflow(String workflowId, String runId, String reason){
+		doTerminate(workflowId, runId, reason, null, null);
+	}
+
 	private WorkflowExecutionInfo getWorkflowExecution(final String workflowId, final String runId) {
 		this.LOGGER.debug("[Domain: {}] Describe workflow {} execution {}", this.domain, workflowId, runId);
 		final WorkflowExecutionDetail detail = this.swf.describeWorkflowExecution(new DescribeWorkflowExecutionRequest()
