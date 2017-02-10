@@ -21,6 +21,7 @@ import com.solambda.swiffer.api.Decisions;
 import com.solambda.swiffer.api.Input;
 import com.solambda.swiffer.api.Output;
 import com.solambda.swiffer.api.Reason;
+import com.solambda.swiffer.api.duration.DefaultDurationTransformer;
 import com.solambda.swiffer.api.mapper.DataMapper;
 import com.solambda.swiffer.api.mapper.JacksonDataMapper;
 
@@ -33,8 +34,8 @@ public class EventHandlerArgumentsProviderFactoryTest {
 	private static final String REASON = "reason";
 	private static final String DETAILS = "details";
 
+	private final Decisions decisions = new DecisionsImpl(new JacksonDataMapper(), new DefaultDurationTransformer());
     private final DataMapper dataMapper = new JacksonDataMapper();
-    private final Decisions decisions = new DecisionsImpl(dataMapper);
 
 	@ActivityType(name = "activity1", version = "1")
 	public static interface ActivityDef {

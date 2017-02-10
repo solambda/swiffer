@@ -28,6 +28,8 @@ import com.amazonaws.services.simpleworkflow.model.WorkflowExecutionInfo;
 import com.amazonaws.services.simpleworkflow.model.WorkflowExecutionInfos;
 import com.amazonaws.services.simpleworkflow.model.WorkflowType;
 import com.google.common.base.Preconditions;
+import com.solambda.swiffer.api.duration.DefaultDurationTransformer;
+import com.solambda.swiffer.api.duration.DurationTransformer;
 import com.solambda.swiffer.api.internal.registration.DomainRegistry;
 import com.solambda.swiffer.api.internal.utils.SWFUtils;
 import com.solambda.swiffer.api.mapper.DataMapper;
@@ -41,12 +43,24 @@ public class Swiffer {
 	private AmazonSimpleWorkflow swf;
 	private String domain;
 	private final DataMapper dataMapper;
+	private final DurationTransformer durationTransformer;
 
 	/**
 	 * Creates new Swiffer with default data mapper {@link JacksonDataMapper}.
 	 */
 	public Swiffer(final AmazonSimpleWorkflow swf, final String domain) {
-		this(swf, domain, DEFAULT_DATA_MAPPER);
+		this(swf, domain, DEFAULT_DATA_MAPPER, new DefaultDurationTransformer());
+	}
+
+	/**
+	 * Creates new Swiffer.
+	 *
+	 * @param swf interface for accessing Amazon SWF
+	 * @param domain swf domain
+	 * @param dataMapper custom {@link DataMapper} for serialization/deserialization of input and output
+	 */
+	public Swiffer(AmazonSimpleWorkflow swf, String domain, DataMapper dataMapper) {
+		this(swf, domain, dataMapper, new DefaultDurationTransformer());
 	}
 
 	/**
@@ -54,11 +68,13 @@ public class Swiffer {
 	 * @param swf interface for accessing Amazon SWF
 	 * @param domain swf domain
 	 * @param dataMapper custom {@link DataMapper} for serialization/deserialization of input and output
+	 * @param durationTransformer custom {@link DurationTransformer}
 	 */
-	public Swiffer(AmazonSimpleWorkflow swf, String domain, DataMapper dataMapper) {
+	public Swiffer(AmazonSimpleWorkflow swf, String domain, DataMapper dataMapper, DurationTransformer durationTransformer) {
 		this.swf = Preconditions.checkNotNull(swf, "SWF client must be specified!");
 		this.domain = Preconditions.checkNotNull(domain, "domain must be specified!");
 		this.dataMapper = Preconditions.checkNotNull(dataMapper, "DataMapper must be specified");
+		this.durationTransformer = Preconditions.checkNotNull(durationTransformer, "DurationTransformer must be specified");
 	}
 
 	public static Swiffer get(final AmazonSimpleWorkflow swf, final String domain) {
@@ -66,11 +82,11 @@ public class Swiffer {
 	}
 
 	public WorkerBuilder newWorkerBuilder() {
-		return new WorkerBuilder(this.swf, this.domain, dataMapper);
+		return new WorkerBuilder(this.swf, this.domain, this.dataMapper);
 	}
 
 	public DeciderBuilder newDeciderBuilder() {
-		return new DeciderBuilder(this.swf, this.domain, dataMapper);
+		return new DeciderBuilder(this.swf, this.domain, this.dataMapper, this.durationTransformer);
 	}
 
 	/**

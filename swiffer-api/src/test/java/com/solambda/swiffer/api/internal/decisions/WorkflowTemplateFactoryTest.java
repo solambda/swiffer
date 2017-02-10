@@ -7,11 +7,14 @@ import org.junit.Test;
 
 import com.solambda.swiffer.api.OnWorkflowStarted;
 import com.solambda.swiffer.api.WorkflowType;
+import com.solambda.swiffer.api.duration.DefaultDurationTransformer;
+import com.solambda.swiffer.api.duration.DurationTransformer;
 import com.solambda.swiffer.api.mapper.DataMapper;
 import com.solambda.swiffer.api.mapper.JacksonDataMapper;
 
 public class WorkflowTemplateFactoryTest {
 	private final DataMapper dataMapper = new JacksonDataMapper();
+	private final DurationTransformer durationTransformer = new DefaultDurationTransformer();
 
 	@WorkflowType(name = "workflowType1", version = "1")
 	@Retention(RetentionPolicy.RUNTIME)
@@ -29,7 +32,7 @@ public class WorkflowTemplateFactoryTest {
 
 	@Test
 	public void createWorkflowType_returnsACorrectVersionedName() throws Exception {
-		final WorkflowTemplateFactory factory = new WorkflowTemplateFactory(dataMapper);
+		final WorkflowTemplateFactory factory = new WorkflowTemplateFactory(dataMapper, durationTransformer);
 		// final VersionedName result = factory.createWorkflowType(new
 		// WorkflowTemplate1());
 		// assertThat(result.name()).isEqualTo("workflowType1");
@@ -38,7 +41,7 @@ public class WorkflowTemplateFactoryTest {
 
 	@Test
 	public void createWorkflowTemplate() {
-		final WorkflowTemplateFactory factory = new WorkflowTemplateFactory(dataMapper);
+		final WorkflowTemplateFactory factory = new WorkflowTemplateFactory(dataMapper, durationTransformer);
 		final WorkflowTemplate template = factory.createWorkflowTemplate(new WorkflowTemplate1());
 	}
 
