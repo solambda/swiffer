@@ -194,7 +194,7 @@ public class DecisionsImpl implements Decisions {
 	private String getTimerDuration(String timerId, Duration duration) {
 		Duration transformed;
 		if (duration == null) {
-			LOGGER.warn("Required duration for timer {} was null, user ZERO duration instead.", timerId);
+			LOGGER.warn("Required duration for timer {} was null, use ZERO duration instead.", timerId);
 			transformed = durationTransformer.transform(Duration.ZERO);
 		} else {
 			transformed = durationTransformer.transform(duration);

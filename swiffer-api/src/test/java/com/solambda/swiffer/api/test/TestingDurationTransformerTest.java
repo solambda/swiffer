@@ -12,21 +12,22 @@ public class TestingDurationTransformerTest {
 
     @Test
     public void transform() {
-        Duration originalDuration = Duration.ofDays(3).plusHours(17).plusMinutes(25);
+        Duration originalDuration = Duration.ofDays(3).plusHours(10).plusMinutes(30);
+        testingDurationTransformer.setHourDuration(Duration.ofSeconds(10));
 
         Duration result = testingDurationTransformer.transform(originalDuration);
 
-        assertThat(result).isEqualTo(Duration.ofSeconds(45));
+        assertThat(result).isEqualTo(Duration.ofSeconds(825));
     }
 
     @Test
     public void transform_days() {
         Duration originalDuration = Duration.ofDays(5);
-        testingDurationTransformer.setDayDuration(Duration.ofNanos(10));
+        testingDurationTransformer.setDayDuration(Duration.ofSeconds(10));
 
         Duration result = testingDurationTransformer.transform(originalDuration);
 
-        assertThat(result).isEqualTo(Duration.ofNanos(50));
+        assertThat(result).isEqualTo(Duration.ofSeconds(50));
     }
 
     @Test
@@ -50,14 +51,18 @@ public class TestingDurationTransformerTest {
     }
 
     @Test
-    public void transform_OnlyDays() {
-        Duration originalDuration = Duration.ofDays(3).plusHours(17).plusMinutes(25);
-        testingDurationTransformer.setDayDuration(Duration.ofNanos(10));
-        testingDurationTransformer.setHourDuration(Duration.ZERO);
-        testingDurationTransformer.setMinuteDuration(Duration.ZERO);
+    public void transform_default() {
+        Duration originalDuration = Duration.ofMinutes(15);
 
         Duration result = testingDurationTransformer.transform(originalDuration);
 
-        assertThat(result).isEqualTo(Duration.ofNanos(30));
+        assertThat(result).isEqualTo(originalDuration);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void transform_durationScaleIsLessThanSecond() {
+        testingDurationTransformer.setMinuteDuration(Duration.ofNanos(10));
+
+        testingDurationTransformer.transform(Duration.ofMinutes(15));
     }
 }

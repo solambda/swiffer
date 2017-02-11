@@ -28,8 +28,6 @@ public class SimpleTemplate {
 	}
 
 	@OnActivityCompleted(ParseInteger.class)
-	// NOTE: this is stupid: the output should be an Integer, but the library
-	// does not know how to deserialize yet !
 	public void onParseInteger(@Output Integer output, @Input final String input, final Decisions decideTo) {
 		LOGGER.info("Task correctly executed with result {}", output);
 	}

@@ -98,7 +98,7 @@ public class SwifferTest {
 	 */
 	@Ignore
 	@Test
-	public void getWorkflowExecutionHistory() {
+	public void getWorkflowExecutionHistory_paginated() {
 		Random random = new Random();
 		Swiffer swiffer = new Swiffer(Tests.swf(), Tests.DOMAIN);
 		startWorker(swiffer);
@@ -113,6 +113,26 @@ public class SwifferTest {
 		List<HistoryEvent> workflowExecutionHistory = swiffer.getWorkflowExecutionHistory(workflowId, runId, 5, 1, true);
 
 		assertThat(workflowExecutionHistory).isNotNull().extracting("eventType").contains("WorkflowExecutionSignaled");
+	}
+
+	@Ignore
+	@Test
+	public void getWorkflowExecutionHistory() {
+		Random random = new Random();
+		Swiffer swiffer = new Swiffer(Tests.swf(), Tests.DOMAIN);
+		startWorker(swiffer);
+		startDecider(swiffer);
+
+		String workflowId = "WF-TEST-2" + random.nextInt();
+		String runId = swiffer.startWorkflow(TestWorkflow.class, workflowId, "some input",
+											 new WorkflowOptions().maxWorkflowDuration(Duration.ofMinutes(1)),
+											 null);
+		swiffer.sendSignalToWorkflow(workflowId, "test-signal", "signalInput");
+
+		List<HistoryEvent> workflowExecutionHistory = swiffer.getWorkflowExecutionHistory(workflowId, runId);
+
+		assertThat(workflowExecutionHistory).hasSize(5);
+		assertThat(workflowExecutionHistory.get(4)).extracting("eventType").contains("WorkflowExecutionStarted");
 	}
 
 	@After

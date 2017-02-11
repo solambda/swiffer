@@ -285,6 +285,31 @@ public class Swiffer {
 	}
 
 	/**
+	 * Returns whole workflow execution history with newer events first.
+	 *
+	 * @param workflowId ID of the workflow
+	 * @param runId      runId of the workflow
+	 * @return list of {@link HistoryEvent}
+	 */
+	public List<HistoryEvent> getWorkflowExecutionHistory(String workflowId, String runId) {
+		WorkflowExecution workflowExecution = new WorkflowExecution().withWorkflowId(workflowId).withRunId(runId);
+
+		List<HistoryEvent> allEvents = new ArrayList<>();
+		String nextPageToken = null;
+		do {
+			History history = swf.getWorkflowExecutionHistory(new GetWorkflowExecutionHistoryRequest()
+																	  .withDomain(domain)
+																	  .withExecution(workflowExecution)
+																	  .withReverseOrder(true)
+																	  .withNextPageToken(nextPageToken));
+			allEvents.addAll(history.getEvents());
+			nextPageToken = history.getNextPageToken();
+		} while (nextPageToken != null);
+
+		return allEvents;
+	}
+
+	/**
 	 * Returns workflow execution history.
 	 *
 	 * @param workflowId    ID of the workflow

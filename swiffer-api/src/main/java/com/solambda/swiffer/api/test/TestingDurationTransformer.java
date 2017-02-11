@@ -17,10 +17,7 @@ public class TestingDurationTransformer implements DurationTransformer {
      * Minutes per hour.
      */
     static final int MINUTES_PER_HOUR = 60;
-    /**
-     * Minutes per day.
-     */
-    static final int MINUTES_PER_DAY = MINUTES_PER_HOUR * HOURS_PER_DAY;
+
     /**
      * Seconds per minute.
      */
@@ -34,17 +31,13 @@ public class TestingDurationTransformer implements DurationTransformer {
      */
     static final int SECONDS_PER_DAY = SECONDS_PER_HOUR * HOURS_PER_DAY;
 
-    private Duration minuteDuration;
-    private Duration hourDuration;
-    private Duration dayDuration;
+    private long factor;
 
     /**
-     * Constructs new {@link DurationTransformer} with expected durations for an minute, hour and day set to 1 second
+     * Constructs new {@link DurationTransformer} without any transformations.
      */
     public TestingDurationTransformer() {
-        minuteDuration = Duration.ofSeconds(1);
-        hourDuration = Duration.ofSeconds(1);
-        dayDuration = Duration.ofSeconds(1);
+        factor = 1;
     }
 
     @Override
@@ -52,47 +45,43 @@ public class TestingDurationTransformer implements DurationTransformer {
         if (originalDuration == null) {
             return null;
         }
-        long seconds = originalDuration.getSeconds();
-        long days = originalDuration.toDays();
 
-        seconds = seconds - days * SECONDS_PER_DAY;
-        long hours = seconds / SECONDS_PER_HOUR;
-
-        seconds = seconds - hours * SECONDS_PER_HOUR;
-        long minutes = seconds / SECONDS_PER_MINUTE;
-
-        seconds = seconds - minutes * SECONDS_PER_MINUTE;
-
-        return dayDuration.multipliedBy(days)
-                          .plus(hourDuration.multipliedBy(hours))
-                          .plus(minuteDuration.multipliedBy(minutes))
-                          .plusSeconds(seconds);
+        return originalDuration.dividedBy(factor);
     }
 
     /**
-     * Sets expected duration of an hour.
+     * Adjusts the target duration to a scale of provided hour duration, no less than a second.
      *
      * @param hourDuration new hour duration
      */
     public void setHourDuration(Duration hourDuration) {
-        this.hourDuration = hourDuration;
+        validateScaleDuration(hourDuration);
+        factor = SECONDS_PER_HOUR / hourDuration.getSeconds();
     }
 
     /**
-     * Sets expected duration for a day.
+     * Adjusts the target duration to a scale of provided day duration, no less than a second..
      *
      * @param dayDuration new day duration
      */
     public void setDayDuration(Duration dayDuration) {
-        this.dayDuration = dayDuration;
+        validateScaleDuration(dayDuration);
+        factor = SECONDS_PER_DAY / dayDuration.getSeconds();
     }
 
     /**
-     * Sets expected duration for a minute.
+     * Adjusts the target duration to a scale of provided minute duration, no less than a second.
      *
      * @param minuteDuration new minute duration
      */
     public void setMinuteDuration(Duration minuteDuration) {
-        this.minuteDuration = minuteDuration;
+        validateScaleDuration(minuteDuration);
+        factor = SECONDS_PER_MINUTE / minuteDuration.getSeconds();
+    }
+
+    private void validateScaleDuration(Duration duration){
+        if (duration == null || duration.getSeconds() == 0) {
+            throw new IllegalArgumentException("Expected duration scale should be at least 1 second.");
+        }
     }
 }
