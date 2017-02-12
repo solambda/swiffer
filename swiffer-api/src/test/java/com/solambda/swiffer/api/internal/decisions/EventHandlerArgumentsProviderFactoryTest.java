@@ -21,6 +21,9 @@ import com.solambda.swiffer.api.Decisions;
 import com.solambda.swiffer.api.Input;
 import com.solambda.swiffer.api.Output;
 import com.solambda.swiffer.api.Reason;
+import com.solambda.swiffer.api.duration.DefaultDurationTransformer;
+import com.solambda.swiffer.api.mapper.DataMapper;
+import com.solambda.swiffer.api.mapper.JacksonDataMapper;
 
 public class EventHandlerArgumentsProviderFactoryTest {
 	private static final EventType ANY_TYPE = null;
@@ -31,7 +34,8 @@ public class EventHandlerArgumentsProviderFactoryTest {
 	private static final String REASON = "reason";
 	private static final String DETAILS = "details";
 
-	private final Decisions decisions = new DecisionsImpl();
+	private final Decisions decisions = new DecisionsImpl(new JacksonDataMapper(), new DefaultDurationTransformer());
+    private final DataMapper dataMapper = new JacksonDataMapper();
 
 	@ActivityType(name = "activity1", version = "1")
 	public static interface ActivityDef {
@@ -100,7 +104,7 @@ public class EventHandlerArgumentsProviderFactoryTest {
 	@Test
 	public void noArgumentMethod() throws Exception {
 		// GIVEN a method
-		final EventHandlerArgumentsProviderFactory factory = new EventHandlerArgumentsProviderFactory();
+		final EventHandlerArgumentsProviderFactory factory = new EventHandlerArgumentsProviderFactory(dataMapper);
 		final Method method = getMethod("noArgumentMethod");
 		// WHEN a ArgumentsProvider is created
 		final EventHandlerArgumentsProvider provider = factory
@@ -116,7 +120,7 @@ public class EventHandlerArgumentsProviderFactoryTest {
 	@Test
 	public void parameterOfSpecificTypes() throws Exception {
 		// GIVEN a method
-		final EventHandlerArgumentsProviderFactory factory = new EventHandlerArgumentsProviderFactory();
+		final EventHandlerArgumentsProviderFactory factory = new EventHandlerArgumentsProviderFactory(dataMapper);
 		final Method method = getMethod("specificParameterTypes");
 		// WHEN a ArgumentsProvider is created
 		final EventHandlerArgumentsProvider provider = factory
@@ -131,7 +135,7 @@ public class EventHandlerArgumentsProviderFactoryTest {
 	@Test
 	public void parameterWithSpecificAnnotations() throws Exception {
 		// GIVEN a method
-		final EventHandlerArgumentsProviderFactory factory = new EventHandlerArgumentsProviderFactory();
+		final EventHandlerArgumentsProviderFactory factory = new EventHandlerArgumentsProviderFactory(dataMapper);
 		final Method method = getMethod("specificAnnotations");
 		// WHEN a ArgumentsProvider is created
 		final EventHandlerArgumentsProvider provider = factory
@@ -149,7 +153,7 @@ public class EventHandlerArgumentsProviderFactoryTest {
 	@Test
 	public void defaultParametersCannotBeMultiple() throws Exception {
 		// GIVEN a method
-		final EventHandlerArgumentsProviderFactory factory = new EventHandlerArgumentsProviderFactory();
+		final EventHandlerArgumentsProviderFactory factory = new EventHandlerArgumentsProviderFactory(dataMapper);
 		final Method method = getMethod("defaultParametersCannotBeMultiple");
 		// WHEN a ArgumentsProvider is created
 		// THEN when used
@@ -173,7 +177,7 @@ public class EventHandlerArgumentsProviderFactoryTest {
 	private void assertDefaultArgumentForEventType(final SoftAssertions softly, final EventType eventType,
 			final Object expectedArgument) {
 		// GIVEN a method
-		final EventHandlerArgumentsProviderFactory factory = new EventHandlerArgumentsProviderFactory();
+		final EventHandlerArgumentsProviderFactory factory = new EventHandlerArgumentsProviderFactory(dataMapper);
 		final Method method = getMethod("defaultParameter");
 		// WHEN a ArgumentsProvider is created
 		final EventHandlerArgumentsProvider provider = factory.createArgumentsProvider(eventType, method);
@@ -188,9 +192,9 @@ public class EventHandlerArgumentsProviderFactoryTest {
 		final WorkflowEvent event = mock(WorkflowEvent.class);
 		when(context.event()).thenReturn(event);
 		when(event.cause()).thenReturn(CAUSE);
-		when(event.control()).thenReturn(CONTROL);
-		when(event.input()).thenReturn(INPUT);
-		when(event.output()).thenReturn(OUTPUT);
+		when(event.control()).thenReturn(serialize(CONTROL));
+		when(event.input()).thenReturn(serialize(INPUT));
+		when(event.output()).thenReturn(serialize(OUTPUT));
 		when(event.reason()).thenReturn(REASON);
 		when(event.details()).thenReturn(DETAILS);
 		return context;
@@ -204,5 +208,9 @@ public class EventHandlerArgumentsProviderFactoryTest {
 		} catch (final Exception e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	private String serialize(String string) {
+		return "\"" + string + "\"";
 	}
 }

@@ -24,8 +24,10 @@ import com.solambda.swiffer.api.EventHandlerCommonParameter;
 import com.solambda.swiffer.api.Input;
 import com.solambda.swiffer.api.Output;
 import com.solambda.swiffer.api.Reason;
+import com.solambda.swiffer.api.mapper.DataMapper;
 
 public class EventHandlerArgumentsProviderFactory {
+	private final DataMapper dataMapper;
 
 	private static class InternalArgumentProvider {
 		private BiFunction<EventContext, Decisions, Object> function;
@@ -38,6 +40,10 @@ public class EventHandlerArgumentsProviderFactory {
 			this.isDefaultProvider = isDefaultProvider;
 		}
 
+	}
+
+	public EventHandlerArgumentsProviderFactory(DataMapper dataMapper) {
+		this.dataMapper = dataMapper;
 	}
 
 	public EventHandlerArgumentsProvider createArgumentsProvider(final EventType type, final Method method) {
@@ -90,7 +96,7 @@ public class EventHandlerArgumentsProviderFactory {
 	 * Return an argument provider for a parameter annotated with a swiffer
 	 * annotation, like @Input or @Marker
 	 *
-	 * @param eventHandlerType
+	 * @param eventType
 	 *            the type of the event handler
 	 * @param parameterType
 	 *            the annotated type parameter
@@ -99,11 +105,11 @@ public class EventHandlerArgumentsProviderFactory {
 	private BiFunction<EventContext, Decisions, Object> getArgumentProviderForSpecificAnnotation(
 			final EventType eventType, final AnnotatedElement parameterType) {
 		if (parameterType.isAnnotationPresent(Input.class)) {
-			return wrapInBiFunction(INPUT_PROVIDER);
+			return deserialize(INPUT_PROVIDER, parameterType);
 		} else if (parameterType.isAnnotationPresent(Output.class)) {
-			return wrapInBiFunction(OUTPUT_PROVIDER);
+			return deserialize(OUTPUT_PROVIDER, parameterType);
 		} else if (parameterType.isAnnotationPresent(Control.class)) {
-			return wrapInBiFunction(CONTROL_PROVIDER);
+			return deserialize(CONTROL_PROVIDER, parameterType);
 		} else if (parameterType.isAnnotationPresent(Reason.class)) {
 			return wrapInBiFunction(REASON_PROVIDER);
 		}
@@ -146,12 +152,12 @@ public class EventHandlerArgumentsProviderFactory {
 		// parameter type (@runtime and also @build time)
 		switch (eventType) {
 		case ActivityTaskCompleted:
-			return wrapInBiFunction(OUTPUT_PROVIDER);
+			return deserialize(OUTPUT_PROVIDER, argumentType);
 		case TimerFired:
-			return wrapInBiFunction(CONTROL_PROVIDER);
+			return deserialize(CONTROL_PROVIDER, argumentType);
 		case WorkflowExecutionSignaled:
 		case WorkflowExecutionStarted:
-			return wrapInBiFunction(INPUT_PROVIDER);
+			return deserialize(INPUT_PROVIDER, argumentType);
 		case ActivityTaskFailed:
 			return wrapInBiFunction(REASON_PROVIDER);
 
@@ -209,4 +215,16 @@ public class EventHandlerArgumentsProviderFactory {
 		}
 	}
 
+	private BiFunction<EventContext, Decisions, Object> deserialize(Function<EventContext, String> provider, AnnotatedElement parameterType) {
+		if (parameterType instanceof Parameter) {
+			return deserialize(provider, ((Parameter) parameterType).getType());
+		} else {
+			return (eventContext, decisions) -> provider.apply(eventContext);
+		}
+	}
+
+	private BiFunction<EventContext, Decisions, Object> deserialize(Function<EventContext, String> provider, Class<?> argumentType) {
+		Function<EventContext, Object> inputProvider = context -> dataMapper.deserialize(provider.apply(context), argumentType);
+		return (eventContext, decisions) -> inputProvider.apply(eventContext);
+	}
 }

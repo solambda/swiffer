@@ -10,6 +10,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.amazonaws.services.simpleworkflow.AmazonSimpleWorkflow;
 import com.google.common.base.Preconditions;
 import com.solambda.swiffer.api.internal.MethodInvoker;
@@ -24,8 +27,10 @@ import com.solambda.swiffer.api.internal.activities.ActivityTaskContext;
 import com.solambda.swiffer.api.internal.activities.ActivityTaskPoller;
 import com.solambda.swiffer.api.internal.activities.WorkerImpl;
 import com.solambda.swiffer.api.internal.registration.ActivityTypeRegistry;
+import com.solambda.swiffer.api.mapper.DataMapper;
 
 public class WorkerBuilder {
+	private static final Logger LOGGER = LoggerFactory.getLogger(WorkerBuilder.class);
 
 	private AmazonSimpleWorkflow swf;
 	private String domain;
@@ -33,12 +38,14 @@ public class WorkerBuilder {
 	private String taskList;
 	private List<Object> executors;
 	private ActivityTypeRegistry activityTypeRegistry;
+	private final DataMapper dataMapper;
 
-	public WorkerBuilder(final AmazonSimpleWorkflow swf, final String domain) {
+	public WorkerBuilder(final AmazonSimpleWorkflow swf, final String domain, DataMapper dataMapper) {
 		super();
 		this.swf = swf;
 		this.domain = domain;
 		this.activityTypeRegistry = new ActivityTypeRegistry(swf, domain);
+		this.dataMapper = dataMapper;
 	}
 
 	public Worker build() {
@@ -134,17 +141,15 @@ public class WorkerBuilder {
 	private Function<ActivityTaskContext, Object> createArgumentProvider(final AnnotatedType annotatedType) {
 		final Type type = annotatedType.getType();
 		if (type instanceof Class) {
-			// final Class<?> parameterType = (Class) type;
+			 final Class<?> parameterType = (Class) type;
 			// FIXME: handle ActivityTaskContext parameter here!
 			// FIXME: a parameter annotated with @GetState trigger state
 			// retrieval
 			// default is to get the activitytask input
-			return (c) -> {
-				// FIXME: do deserialization
-				final String input = c.input();
+			return (activityTaskContext) -> {
+				Object input = dataMapper.deserialize(activityTaskContext.input(), parameterType);
 				if (input == null) {
-					// WARN with appropriate logger: an ninput was expected byt
-					// null was received
+					LOGGER.warn("Input value was expected, but got null instead.");
 				}
 				return input;
 			};

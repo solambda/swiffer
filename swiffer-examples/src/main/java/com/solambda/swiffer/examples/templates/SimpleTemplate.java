@@ -11,6 +11,7 @@ import com.solambda.swiffer.api.OnActivityCompleted;
 import com.solambda.swiffer.api.OnSignalReceived;
 import com.solambda.swiffer.api.OnTimerFired;
 import com.solambda.swiffer.api.OnWorkflowStarted;
+import com.solambda.swiffer.api.Output;
 import com.solambda.swiffer.examples.ActivityDefinitions.ParseInteger;
 import com.solambda.swiffer.examples.WorkflowDefinitions;
 import com.solambda.swiffer.examples.WorkflowDefinitions.SimpleExampleWorkflowDefinition;
@@ -27,9 +28,7 @@ public class SimpleTemplate {
 	}
 
 	@OnActivityCompleted(ParseInteger.class)
-	// NOTE: this is stupid: the output should be an Integer, but the library
-	// does not know how to deserialize yet !
-	public void onParseInteger(final String output, @Input final String input, final Decisions decideTo) {
+	public void onParseInteger(@Output Integer output, @Input final String input, final Decisions decideTo) {
 		LOGGER.info("Task correctly executed with result {}", output);
 	}
 

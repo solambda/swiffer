@@ -6,13 +6,14 @@ import java.util.Map;
 
 import com.solambda.swiffer.api.exceptions.WorkflowTemplateException;
 import com.solambda.swiffer.api.internal.VersionedName;
+import com.solambda.swiffer.api.mapper.DataMapper;
 
 public class EventHandlerRegistryFactory {
 
 	private EventHandlerFactory factory;
 
-	public EventHandlerRegistryFactory(final VersionedName workflowType) {
-		this.factory = new EventHandlerFactory(workflowType);
+	public EventHandlerRegistryFactory(final VersionedName workflowType, DataMapper dataMapper) {
+		this.factory = new EventHandlerFactory(workflowType, dataMapper);
 	}
 
 	public EventHandlerRegistry build(final Object template) {

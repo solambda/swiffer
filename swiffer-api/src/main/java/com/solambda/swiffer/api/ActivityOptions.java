@@ -19,16 +19,16 @@ public class ActivityOptions {
 	private Integer taskPriority;
 
 	// NONE allowed
-	private String scheduleToCloseTimeout;
+	private Duration scheduleToCloseDuration;
 
 	// NONE allowed
-	private String scheduleToStartTimeout;
+	private Duration scheduleToStartDuration;
 
 	// NONE allowed
-	private String startToCloseTimeout;
+	private Duration startToCloseDuration;
 
 	// NONE allowed
-	private String heartbeatTimeout;
+	private Duration maxHeartbeatDuration;
 
 	public ActivityOptions() {
 	}
@@ -55,7 +55,7 @@ public class ActivityOptions {
 	 * nor a default task list was specified at registration time then a fault
 	 * will be returned.
 	 *
-	 * @param taskListName
+	 * @param taskList
 	 * @return
 	 */
 	public ActivityOptions taskList(final String taskList) {
@@ -89,7 +89,7 @@ public class ActivityOptions {
 	 * @return
 	 */
 	public ActivityOptions maxTotalDuration(final Duration duration) {
-		scheduleToCloseTimeout = toString(duration);
+		scheduleToCloseDuration = duration;
 		return this;
 	}
 
@@ -99,7 +99,7 @@ public class ActivityOptions {
 	 * @return
 	 */
 	public ActivityOptions maxWaitingDuration(final Duration duration) {
-		scheduleToStartTimeout = toString(duration);
+		scheduleToStartDuration = duration;
 		return this;
 	}
 
@@ -109,7 +109,7 @@ public class ActivityOptions {
 	 * @return
 	 */
 	public ActivityOptions maxExecutionDuration(final Duration duration) {
-		startToCloseTimeout = toString(duration);
+		startToCloseDuration = duration;
 		return this;
 	}
 
@@ -119,14 +119,11 @@ public class ActivityOptions {
 	 * @return
 	 */
 	public ActivityOptions maxHeartbeatDuration(final Duration duration) {
-		heartbeatTimeout = toString(duration);
+		maxHeartbeatDuration = duration;
 		return this;
 	}
 
 	// GETTERS
-	private String toString(final Duration duration) {
-		return duration == null ? "NONE" : Long.toString(duration.getSeconds());
-	}
 
 	public String control() {
 		return control;
@@ -140,20 +137,19 @@ public class ActivityOptions {
 		return taskPriority;
 	}
 
-	public String scheduleToCloseTimeout() {
-		return scheduleToCloseTimeout;
+	public Duration getScheduleToCloseDuration() {
+		return scheduleToCloseDuration;
 	}
 
-	public String scheduleToStartTimeout() {
-		return scheduleToStartTimeout;
+	public Duration getScheduleToStartDuration() {
+		return scheduleToStartDuration;
 	}
 
-	public String startToCloseTimeout() {
-		return startToCloseTimeout;
+	public Duration getStartToCloseDuration() {
+		return startToCloseDuration;
 	}
 
-	public String heartbeatTimeout() {
-		return heartbeatTimeout;
+	public Duration getMaxHeartbeatDuration() {
+		return maxHeartbeatDuration;
 	}
-
 }

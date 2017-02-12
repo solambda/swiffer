@@ -1,5 +1,6 @@
 package com.solambda.swiffer.api;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -13,6 +14,9 @@ import com.amazonaws.services.simpleworkflow.model.ChildPolicy;
 import com.amazonaws.services.simpleworkflow.model.DescribeWorkflowExecutionRequest;
 import com.amazonaws.services.simpleworkflow.model.ExecutionStatus;
 import com.amazonaws.services.simpleworkflow.model.ExecutionTimeFilter;
+import com.amazonaws.services.simpleworkflow.model.GetWorkflowExecutionHistoryRequest;
+import com.amazonaws.services.simpleworkflow.model.History;
+import com.amazonaws.services.simpleworkflow.model.HistoryEvent;
 import com.amazonaws.services.simpleworkflow.model.ListClosedWorkflowExecutionsRequest;
 import com.amazonaws.services.simpleworkflow.model.ListOpenWorkflowExecutionsRequest;
 import com.amazonaws.services.simpleworkflow.model.RequestCancelWorkflowExecutionRequest;
@@ -28,20 +32,53 @@ import com.amazonaws.services.simpleworkflow.model.WorkflowExecutionInfo;
 import com.amazonaws.services.simpleworkflow.model.WorkflowExecutionInfos;
 import com.amazonaws.services.simpleworkflow.model.WorkflowType;
 import com.google.common.base.Preconditions;
+import com.solambda.swiffer.api.duration.DefaultDurationTransformer;
+import com.solambda.swiffer.api.duration.DurationTransformer;
 import com.solambda.swiffer.api.internal.registration.DomainRegistry;
 import com.solambda.swiffer.api.internal.utils.SWFUtils;
+import com.solambda.swiffer.api.mapper.DataMapper;
+import com.solambda.swiffer.api.mapper.JacksonDataMapper;
 
 public class Swiffer {
+	private static final DataMapper DEFAULT_DATA_MAPPER = new JacksonDataMapper();
 
 	private Logger LOGGER = LoggerFactory.getLogger(Swiffer.class);
 
 	private AmazonSimpleWorkflow swf;
 	private String domain;
+	private final DataMapper dataMapper;
+	private final DurationTransformer durationTransformer;
 
+	/**
+	 * Creates new Swiffer with default data mapper {@link JacksonDataMapper}.
+	 */
 	public Swiffer(final AmazonSimpleWorkflow swf, final String domain) {
-		super();
+		this(swf, domain, DEFAULT_DATA_MAPPER, new DefaultDurationTransformer());
+	}
+
+	/**
+	 * Creates new Swiffer.
+	 *
+	 * @param swf interface for accessing Amazon SWF
+	 * @param domain swf domain
+	 * @param dataMapper custom {@link DataMapper} for serialization/deserialization of input and output
+	 */
+	public Swiffer(AmazonSimpleWorkflow swf, String domain, DataMapper dataMapper) {
+		this(swf, domain, dataMapper, new DefaultDurationTransformer());
+	}
+
+	/**
+	 * Creates new Swiffer.
+	 * @param swf interface for accessing Amazon SWF
+	 * @param domain swf domain
+	 * @param dataMapper custom {@link DataMapper} for serialization/deserialization of input and output
+	 * @param durationTransformer custom {@link DurationTransformer}
+	 */
+	public Swiffer(AmazonSimpleWorkflow swf, String domain, DataMapper dataMapper, DurationTransformer durationTransformer) {
 		this.swf = Preconditions.checkNotNull(swf, "SWF client must be specified!");
 		this.domain = Preconditions.checkNotNull(domain, "domain must be specified!");
+		this.dataMapper = Preconditions.checkNotNull(dataMapper, "DataMapper must be specified");
+		this.durationTransformer = Preconditions.checkNotNull(durationTransformer, "DurationTransformer must be specified");
 	}
 
 	public static Swiffer get(final AmazonSimpleWorkflow swf, final String domain) {
@@ -49,11 +86,11 @@ public class Swiffer {
 	}
 
 	public WorkerBuilder newWorkerBuilder() {
-		return new WorkerBuilder(this.swf, this.domain);
+		return new WorkerBuilder(this.swf, this.domain, this.dataMapper);
 	}
 
 	public DeciderBuilder newDeciderBuilder() {
-		return new DeciderBuilder(this.swf, this.domain);
+		return new DeciderBuilder(this.swf, this.domain, this.dataMapper, this.durationTransformer);
 	}
 
 	/**
@@ -148,8 +185,7 @@ public class Swiffer {
 	// CONVERSIONS
 
 	private String serializeInput(final Object input) {
-		// FIXME: use serializer by default, customizable
-		return input == null ? null : input.toString();
+		return dataMapper.serialize(input);
 	}
 
 	private WorkflowType toSWFWorkflowType(final Class<?> workflowTypeDefinition) {
@@ -242,6 +278,66 @@ public class Swiffer {
 		} catch (final UnknownResourceException e) {
 			return false;
 		}
+	}
+
+	public void terminateWorkflow(String workflowId, String runId, String reason){
+		doTerminate(workflowId, runId, reason, null, null);
+	}
+
+	/**
+	 * Returns whole workflow execution history with newer events first.
+	 *
+	 * @param workflowId ID of the workflow
+	 * @param runId      runId of the workflow
+	 * @return list of {@link HistoryEvent}
+	 */
+	public List<HistoryEvent> getWorkflowExecutionHistory(String workflowId, String runId) {
+		WorkflowExecution workflowExecution = new WorkflowExecution().withWorkflowId(workflowId).withRunId(runId);
+
+		List<HistoryEvent> allEvents = new ArrayList<>();
+		String nextPageToken = null;
+		do {
+			History history = swf.getWorkflowExecutionHistory(new GetWorkflowExecutionHistoryRequest()
+																	  .withDomain(domain)
+																	  .withExecution(workflowExecution)
+																	  .withReverseOrder(true)
+																	  .withNextPageToken(nextPageToken));
+			allEvents.addAll(history.getEvents());
+			nextPageToken = history.getNextPageToken();
+		} while (nextPageToken != null);
+
+		return allEvents;
+	}
+
+	/**
+	 * Returns workflow execution history.
+	 *
+	 * @param workflowId    ID of the workflow
+	 * @param runId         runId of the workflow
+	 * @param maxPageSize   maximum number of history events per page
+	 * @param numberOfPages number of pages
+	 * @param newerFirst    set to {@code true} to sort events from newer to older
+	 * @return list of {@link HistoryEvent}
+	 */
+	public List<HistoryEvent> getWorkflowExecutionHistory(String workflowId, String runId, int maxPageSize, int numberOfPages, boolean newerFirst) {
+		WorkflowExecution workflowExecution = new WorkflowExecution().withWorkflowId(workflowId).withRunId(runId);
+
+		List<HistoryEvent> allEvents = new ArrayList<>();
+		String nextPageToken = null;
+		int currentPage = 1;
+		do {
+			History history = swf.getWorkflowExecutionHistory(new GetWorkflowExecutionHistoryRequest()
+																	  .withDomain(domain)
+																	  .withExecution(workflowExecution)
+																	  .withReverseOrder(newerFirst)
+																	  .withMaximumPageSize(maxPageSize)
+																	  .withNextPageToken(nextPageToken));
+			allEvents.addAll(history.getEvents());
+			nextPageToken = history.getNextPageToken();
+			currentPage++;
+		} while (currentPage <= numberOfPages && nextPageToken != null);
+
+		return allEvents;
 	}
 
 	private WorkflowExecutionInfo getWorkflowExecution(final String workflowId, final String runId) {

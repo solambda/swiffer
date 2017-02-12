@@ -22,6 +22,8 @@ import com.solambda.swiffer.api.internal.context.identifier.ActivityName;
 import com.solambda.swiffer.api.internal.context.identifier.SignalName;
 import com.solambda.swiffer.api.internal.context.identifier.TimerName;
 import com.solambda.swiffer.api.internal.context.identifier.WorkflowName;
+import com.solambda.swiffer.api.mapper.DataMapper;
+import com.solambda.swiffer.api.mapper.JacksonDataMapper;
 
 public class EventHandlerRegistryFactoryTest {
 
@@ -29,6 +31,7 @@ public class EventHandlerRegistryFactoryTest {
 	private static final String TIMER1 = "timer1";
 	private static final VersionedName WORKFLOW = new VersionedName("workflow1", "1");
 	private static final VersionedName ACTIVITY1 = new VersionedName("activity1", "1");
+	private final DataMapper dataMapper = new JacksonDataMapper();
 
 	@ActivityType(name = "activity1", version = "1")
 	public static interface ActivityDef {
@@ -80,7 +83,7 @@ public class EventHandlerRegistryFactoryTest {
 
 	@Test
 	public void handlersAreRetrieved() {
-		final EventHandlerRegistryFactory factory = new EventHandlerRegistryFactory(WORKFLOW);
+		final EventHandlerRegistryFactory factory = new EventHandlerRegistryFactory(WORKFLOW, dataMapper);
 		final EventHandlerRegistry registry = factory.build(new Template1());
 		final ActivityName activityName = new ActivityName(ACTIVITY1);
 		assertThat(registry.get(new EventHandlerType(ActivityTaskCompleted, activityName))).isNotNull();
@@ -94,7 +97,7 @@ public class EventHandlerRegistryFactoryTest {
 
 	@Test
 	public void cannotHaveTwoHandlersForTheSameType() {
-		final EventHandlerRegistryFactory factory = new EventHandlerRegistryFactory(WORKFLOW);
+		final EventHandlerRegistryFactory factory = new EventHandlerRegistryFactory(WORKFLOW, dataMapper);
 		assertThatExceptionOfType(WorkflowTemplateException.class)
 				.isThrownBy(() -> factory.build(new TemplateWithTwoHandlersOfTheSameType()))
 				.withMessageContaining("more than one handler of");

@@ -121,7 +121,7 @@ public class WorkerImplTest {
 				.thenReturn(new ActivityTask()
 						.withTaskToken(TASK_TOKEN)
 						.withActivityId(ACTIVITY_ID)
-						.withInput("some input text")
+						.withInput("\"some input text\"")
 						.withActivityType(
 								new com.amazonaws.services.simpleworkflow.model.ActivityType()
 										.withName(activityName)

@@ -7,6 +7,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.amazonaws.services.simpleworkflow.model.ActivityType;
 import com.amazonaws.services.simpleworkflow.model.CancelTimerDecisionAttributes;
 import com.amazonaws.services.simpleworkflow.model.CancelWorkflowExecutionDecisionAttributes;
@@ -20,13 +23,20 @@ import com.amazonaws.services.simpleworkflow.model.StartTimerDecisionAttributes;
 import com.google.common.base.Preconditions;
 import com.solambda.swiffer.api.ActivityOptions;
 import com.solambda.swiffer.api.Decisions;
+import com.solambda.swiffer.api.duration.DurationTransformer;
+import com.solambda.swiffer.api.mapper.DataMapper;
 
 public class DecisionsImpl implements Decisions {
+	private static final Logger LOGGER = LoggerFactory.getLogger(DecisionsImpl.class);
 
 	private List<Decision> decisions;
+	private final DataMapper dataMapper;
+	private final DurationTransformer durationTransformer;
 
-	public DecisionsImpl() {
-		this.decisions = new ArrayList<Decision>();
+	public DecisionsImpl(DataMapper dataMapper, DurationTransformer durationTransformer) {
+		this.decisions = new ArrayList<>();
+		this.dataMapper = dataMapper;
+		this.durationTransformer = durationTransformer;
 	}
 
 	/**
@@ -54,9 +64,7 @@ public class DecisionsImpl implements Decisions {
 	 * @return
 	 */
 	private String serialize(final Object object) {
-		// TODO: user jackson serialization
-		// TODO: allow customization of the serializer
-		return object == null ? null : object.toString();
+		return dataMapper.serialize(object);
 	}
 
 	@Override
@@ -91,12 +99,12 @@ public class DecisionsImpl implements Decisions {
 		if (options != null) {
 			attributes = attributes
 					.withControl(options.control())
-					.withHeartbeatTimeout(options.heartbeatTimeout())
-					.withScheduleToCloseTimeout(options.scheduleToCloseTimeout())
-					.withScheduleToStartTimeout(options.scheduleToStartTimeout())
-					.withStartToCloseTimeout(options.startToCloseTimeout())
 					.withTaskList(options.taskList())
-					.withTaskPriority(nullSafeToString(options.taskPriority()));
+					.withTaskPriority(nullSafeToString(options.taskPriority()))
+					.withHeartbeatTimeout(getActivityTimeout(options.getMaxHeartbeatDuration()))
+					.withScheduleToCloseTimeout(getActivityTimeout(options.getScheduleToCloseDuration()))
+					.withScheduleToStartTimeout(getActivityTimeout(options.getScheduleToStartDuration()))
+					.withStartToCloseTimeout(getActivityTimeout(options.getStartToCloseDuration()));
 		}
 		newDecision(DecisionType.ScheduleActivityTask)
 				.withScheduleActivityTaskDecisionAttributes(attributes);
@@ -148,15 +156,16 @@ public class DecisionsImpl implements Decisions {
 
 	@Override
 	public Decisions startTimer(final String timerId, final Duration duration) {
-		return startTimer(timerId, duration);
+		return startTimer(timerId, duration, null);
 	}
 
 	@Override
 	public Decisions startTimer(final String timerId, final Duration duration, final Object control) {
+
 		newDecision(DecisionType.StartTimer)
 				.withStartTimerDecisionAttributes(new StartTimerDecisionAttributes()
 						.withTimerId(timerId)
-						.withStartToFireTimeout(Long.toString(duration.getSeconds()))
+						.withStartToFireTimeout(getTimerDuration(timerId, duration))
 						.withControl(serialize(control)));
 		return this;
 	}
@@ -182,4 +191,23 @@ public class DecisionsImpl implements Decisions {
 		return "Decisions=" + this.decisions + "";
 	}
 
+	private String getTimerDuration(String timerId, Duration duration) {
+		Duration transformed;
+		if (duration == null) {
+			LOGGER.warn("Required duration for timer {} was null, use ZERO duration instead.", timerId);
+			transformed = durationTransformer.transform(Duration.ZERO);
+		} else {
+			transformed = durationTransformer.transform(duration);
+		}
+
+		return Long.toString(transformed.getSeconds());
+	}
+
+	private String getActivityTimeout(Duration duration) {
+		if (duration == null) {
+			return "NONE";
+		}
+		Duration transformed = durationTransformer.transform(duration);
+		return Long.toString(transformed.getSeconds());
+	}
 }

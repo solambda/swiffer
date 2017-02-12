@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.amazonaws.services.simpleworkflow.AmazonSimpleWorkflow;
+import com.solambda.swiffer.api.duration.DurationTransformer;
 import com.solambda.swiffer.api.internal.VersionedName;
 import com.solambda.swiffer.api.internal.decisions.DeciderImpl;
 import com.solambda.swiffer.api.internal.decisions.DecisionTaskPoller;
@@ -16,6 +17,7 @@ import com.solambda.swiffer.api.internal.decisions.WorkflowTemplate;
 import com.solambda.swiffer.api.internal.decisions.WorkflowTemplateFactory;
 import com.solambda.swiffer.api.internal.decisions.WorkflowTemplateRegistry;
 import com.solambda.swiffer.api.internal.registration.WorkflowTypeRegistry;
+import com.solambda.swiffer.api.mapper.DataMapper;
 
 /**
  * A builder of {@link Decider}.
@@ -30,12 +32,16 @@ public class DeciderBuilder {
 	private List<Object> workflowTemplates;
 	private WorkflowTemplateFactory templateFactory;
 	private WorkflowTypeRegistry workflowTypeRegistry;
+	private final DataMapper dataMapper;
+	private final DurationTransformer durationTransformer;
 
-	public DeciderBuilder(final AmazonSimpleWorkflow swf, final String domain) {
+	public DeciderBuilder(final AmazonSimpleWorkflow swf, final String domain, DataMapper dataMapper, DurationTransformer durationTransformer) {
 		super();
 		this.swf = swf;
 		this.domain = domain;
-		this.templateFactory = new WorkflowTemplateFactory();
+		this.dataMapper = dataMapper;
+		this.durationTransformer = durationTransformer;
+		this.templateFactory = new WorkflowTemplateFactory(this.dataMapper, this.durationTransformer);
 		this.workflowTypeRegistry = new WorkflowTypeRegistry(swf, domain);
 	}
 
