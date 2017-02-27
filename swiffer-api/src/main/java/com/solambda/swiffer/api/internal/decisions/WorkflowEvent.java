@@ -1139,6 +1139,9 @@ public class WorkflowEvent implements Comparable<WorkflowEvent> {
 			sb.append(value);
 			sb.append(",");
 		}
+		else {
+			sb.append(",");
+		}
 	}
 
 	/**
