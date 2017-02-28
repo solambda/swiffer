@@ -142,10 +142,11 @@ public class DecisionsImpl implements Decisions {
 	}
 
 	// TODO
-	private Decisions failWorfklow(final String reason, final String details) {
+	@Override
+	public Decisions failWorkflow(final String reason, final String details) {
 		newDecision(DecisionType.FailWorkflowExecution)
 				.withFailWorkflowExecutionDecisionAttributes(new FailWorkflowExecutionDecisionAttributes()
-						.withReason(details)
+						.withReason(reason)
 						.withDetails(details));
 		return this;
 	}

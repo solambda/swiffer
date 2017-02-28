@@ -123,4 +123,13 @@ public interface Decisions {
 	 * @return this decisions object
 	 */
 	Decisions cancelTimer(String timerId);
+
+	/**
+	 * Add a "fail workflow execution" decision.
+	 *
+	 * @param reason  The reason for the workflow failure
+	 * @param details the details of workflow failure
+	 * @return this decision object
+	 */
+	Decisions failWorkflow(String reason, String details);
 }
