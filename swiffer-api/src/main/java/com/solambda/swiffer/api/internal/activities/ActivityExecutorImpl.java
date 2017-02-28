@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 import com.solambda.swiffer.api.exceptions.ActivityTaskExecutionFailedException;
 import com.solambda.swiffer.api.internal.MethodInvoker;
+import com.solambda.swiffer.api.mapper.DataMapper;
 
 public class ActivityExecutorImpl implements ActivityExecutor {
 
@@ -15,13 +16,16 @@ public class ActivityExecutorImpl implements ActivityExecutor {
 
 	private MethodInvoker invoker;
 	private ActivityExecutorArgumentsProvider argumentsProvider;
+	private final DataMapper dataMapper;
 
 	public ActivityExecutorImpl(final MethodInvoker invoker,
-			final ActivityExecutorArgumentsProvider argumentsProvider) {
+								final ActivityExecutorArgumentsProvider argumentsProvider,
+								DataMapper dataMapper) {
 		super();
 		Preconditions.checkNotNull(invoker, "MethodInvoker should not be null");
 		this.argumentsProvider = argumentsProvider;
 		this.invoker = invoker;
+		this.dataMapper = dataMapper;
 	}
 
 	@Override
@@ -31,10 +35,7 @@ public class ActivityExecutorImpl implements ActivityExecutor {
 					context.activityType().version());
 			final Object[] arguments = this.argumentsProvider.getArguments(context);
 			final Object result = this.invoker.invoke(arguments);
-			if (result == null) {
-				return null;
-			}
-			return result.toString();
+			return dataMapper.serialize(result);
 		} catch (final InvocationTargetException e) {
 			throw new ActivityTaskExecutionFailedException(context, e.getTargetException());
 		}

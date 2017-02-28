@@ -221,7 +221,7 @@ public class WorkerImplTest {
 		verify(this.swf).respondActivityTaskCompleted(captor.capture());
 		final RespondActivityTaskCompletedRequest request = captor.getValue();
 
-		assertThat(request.getResult()).isEqualTo("OK");
+		assertThat(request.getResult()).isEqualTo("\"OK\"");
 		assertThat(request.getTaskToken()).isEqualTo(TASK_TOKEN);
 	}
 
@@ -239,7 +239,7 @@ public class WorkerImplTest {
 		verify(this.swf).respondActivityTaskCompleted(captor.capture());
 		final RespondActivityTaskCompletedRequest request = captor.getValue();
 
-		assertThat(request.getResult()).isEqualTo("OK");
+		assertThat(request.getResult()).isEqualTo("\"OK\"");
 		assertThat(request.getTaskToken()).isEqualTo(TASK_TOKEN);
 	}
 
@@ -300,7 +300,7 @@ public class WorkerImplTest {
 		verify(this.swf).respondActivityTaskCompleted(captor.capture());
 		final RespondActivityTaskCompletedRequest request = captor.getValue();
 
-		assertThat(request.getResult()).isEqualTo("SOME INPUT TEXT");
+		assertThat(request.getResult()).isEqualTo("\"SOME INPUT TEXT\"");
 		assertThat(request.getTaskToken()).isEqualTo(TASK_TOKEN);
 	}
 
