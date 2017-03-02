@@ -106,7 +106,7 @@ public class WorkerBuilder {
 		final MethodInvoker invoker = new MethodInvoker(executorClassInstance, publicMethod);
 		final ActivityExecutorArgumentsProvider argumentsProvider = createArgumentsProvider(
 				publicMethod);
-		final ActivityExecutor value = new ActivityExecutorImpl(invoker, argumentsProvider);
+		final ActivityExecutor value = new ActivityExecutorImpl(invoker, argumentsProvider, dataMapper);
 		registry.put(key, value);
 	}
 
