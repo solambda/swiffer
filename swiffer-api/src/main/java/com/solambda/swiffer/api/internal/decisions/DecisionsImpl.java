@@ -121,12 +121,12 @@ public class DecisionsImpl implements Decisions {
 	}
 
 	@Override
-	public Decisions completeWorfklow() {
-		return completeWorfklow(null);
+	public Decisions completeWorkflow() {
+		return completeWorkflow(null);
 	}
 
 	@Override
-	public Decisions completeWorfklow(final Object result) {
+	public Decisions completeWorkflow(final Object result) {
 		newDecision(DecisionType.CompleteWorkflowExecution)
 				.withCompleteWorkflowExecutionDecisionAttributes(
 						new CompleteWorkflowExecutionDecisionAttributes()
@@ -135,7 +135,7 @@ public class DecisionsImpl implements Decisions {
 	}
 
 	// TODO
-	private void cancelWorfklow(final String details) {
+	private void cancelWorkflow(final String details) {
 		newDecision(DecisionType.CancelWorkflowExecution)
 				.withCancelWorkflowExecutionDecisionAttributes(new CancelWorkflowExecutionDecisionAttributes()
 						.withDetails(details));
@@ -179,13 +179,19 @@ public class DecisionsImpl implements Decisions {
 		return this;
 	}
 
-	// TODO
-	public void createMarker(final String markerName, final String details) {
-		newDecision(DecisionType.RecordMarker)
-				.withRecordMarkerDecisionAttributes(new RecordMarkerDecisionAttributes()
-						.withMarkerName(markerName)
-						.withDetails(details));
-	}
+	@Override
+    public Decisions recordMarker(String markerName, Object details) {
+        newDecision(DecisionType.RecordMarker)
+                .withRecordMarkerDecisionAttributes(new RecordMarkerDecisionAttributes()
+                                                            .withMarkerName(markerName)
+                                                            .withDetails(serialize(details)));
+        return this;
+    }
+
+    @Override
+    public Decisions recordMarker(String markerName) {
+        return recordMarker(markerName, null);
+    }
 
 	@Override
 	public String toString() {

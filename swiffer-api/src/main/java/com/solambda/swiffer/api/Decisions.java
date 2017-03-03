@@ -77,7 +77,7 @@ public interface Decisions {
 	 *
 	 * @return this decision object
 	 */
-	Decisions completeWorfklow();
+	Decisions completeWorkflow();
 
 	/**
 	 * Add a "complete workflow execution" decision.
@@ -86,7 +86,7 @@ public interface Decisions {
 	 *            The result of the workflow execution
 	 * @return this decision object
 	 */
-	Decisions completeWorfklow(Object result);
+	Decisions completeWorkflow(Object result);
 
 	/**
 	 * Add a "start timer" decision.
@@ -132,4 +132,21 @@ public interface Decisions {
 	 * @return this decision object
 	 */
 	Decisions failWorkflow(String reason, String details);
+
+    /**
+     * Add a "record marker" decision.
+     *
+     * @param markerName marker name
+     * @param details    an optional object for recorded marker
+     * @return this decision object
+     */
+    Decisions recordMarker(String markerName, Object details);
+
+    /**
+     * Add a "record marker" decision.
+     *
+     * @param markerName marker name
+     * @return this decision object
+     */
+    Decisions recordMarker(String markerName);
 }

@@ -22,15 +22,23 @@ import java.util.concurrent.TimeoutException;
 
 import org.assertj.core.data.Offset;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import com.amazonaws.services.simpleworkflow.AmazonSimpleWorkflow;
 import com.amazonaws.services.simpleworkflow.model.DecisionTask;
 import com.google.common.base.Stopwatch;
 import com.solambda.swiffer.api.exceptions.TaskContextPollingException;
+import com.solambda.swiffer.api.mapper.DataMapper;
 
+@RunWith(MockitoJUnitRunner.class)
 public class DecisionTaskContextPollerTest {
 
 	private static final String TOKEN = "token";
+
+	@Mock
+	private DataMapper dataMapper;
 
 	@Test
 	public void polling_shouldReturnADecisionTaskContext() throws Exception {
@@ -38,7 +46,7 @@ public class DecisionTaskContextPollerTest {
 		final AmazonSimpleWorkflow swf = mock(AmazonSimpleWorkflow.class);
 		final DecisionTask task = new DecisionTask().withTaskToken(TOKEN);
 		when(swf.pollForDecisionTask(any())).thenReturn(task);
-		final DecisionTaskPoller poller = new DecisionTaskPoller(swf, "domain", "DecisionTaskList", "decisionpoller");
+		final DecisionTaskPoller poller = new DecisionTaskPoller(swf, "domain", "DecisionTaskList", "decisionpoller", dataMapper);
 		// WHEN start polling
 		final DecisionTaskContext taskContext = poller.poll();
 		// THEN
@@ -51,7 +59,7 @@ public class DecisionTaskContextPollerTest {
 		final AmazonSimpleWorkflow swf = mock(AmazonSimpleWorkflow.class);
 		final String expectedMessage = "exception for testing";
 		when(swf.pollForDecisionTask(any())).then(failWith(new Exception(expectedMessage)));
-		final DecisionTaskPoller poller = new DecisionTaskPoller(swf, "domain", "DecisionTaskList", "activit");
+		final DecisionTaskPoller poller = new DecisionTaskPoller(swf, "domain", "DecisionTaskList", "activit", dataMapper);
 		// WHEN start polling THEN correct exception is thrown
 		assertThatExceptionOfType(TaskContextPollingException.class)
 				.isThrownBy(() -> poller.poll())
@@ -68,7 +76,7 @@ public class DecisionTaskContextPollerTest {
 		final int expectedPollingDuration = 500;
 		when(swf.pollForDecisionTask(any()))
 				.then(returnAfterDelay(task, Duration.ofMillis(expectedPollingDuration)));
-		final DecisionTaskPoller poller = new DecisionTaskPoller(swf, "domain", "DecisionTaskList", "decisionpoller");
+		final DecisionTaskPoller poller = new DecisionTaskPoller(swf, "domain", "DecisionTaskList", "decisionpoller", dataMapper);
 		// WHEN start polling
 		final Stopwatch watch = Stopwatch.createStarted();
 		final Future<DecisionTaskContext> pollingFuture = Executors.newSingleThreadExecutor()
@@ -88,7 +96,7 @@ public class DecisionTaskContextPollerTest {
 		final int expectedPollingDuration = 5000;
 		when(swf.pollForDecisionTask(any()))
 				.then(returnAfterDelay(task, Duration.ofMillis(expectedPollingDuration)));
-		final DecisionTaskPoller poller = new DecisionTaskPoller(swf, "domain", "DecisionTaskList", "decisionpoller");
+		final DecisionTaskPoller poller = new DecisionTaskPoller(swf, "domain", "DecisionTaskList", "decisionpoller", dataMapper);
 		final Future<DecisionTaskContext> pollingFuture = Executors.newSingleThreadExecutor()
 				.submit(() -> poller.poll());
 		// WHEN stop polling

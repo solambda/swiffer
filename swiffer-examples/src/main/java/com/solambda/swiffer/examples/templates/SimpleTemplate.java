@@ -41,7 +41,7 @@ public class SimpleTemplate {
 	@OnSignalReceived(WorkflowDefinitions.SIGNAL_NAME)
 	public void signalReceived(final String input, final Decisions decideTo) {
 		LOGGER.info("Signal received with input  {}", input);
-		decideTo.completeWorfklow(input);
+		decideTo.completeWorkflow(input);
 	}
 
 }

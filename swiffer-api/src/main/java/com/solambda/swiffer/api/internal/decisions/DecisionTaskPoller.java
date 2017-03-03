@@ -12,14 +12,17 @@ import com.amazonaws.services.simpleworkflow.model.HistoryEvent;
 import com.amazonaws.services.simpleworkflow.model.PollForDecisionTaskRequest;
 import com.amazonaws.services.simpleworkflow.model.TaskList;
 import com.solambda.swiffer.api.internal.AbstractTaskContextPoller;
+import com.solambda.swiffer.api.mapper.DataMapper;
 
 public class DecisionTaskPoller extends AbstractTaskContextPoller<DecisionTaskContext> {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(DecisionTaskPoller.class);
+	private final DataMapper dataMapper;
 
 	public DecisionTaskPoller(final AmazonSimpleWorkflow swf, final String domain, final String taskList,
-			final String identity) {
+			final String identity, DataMapper dataMapper) {
 		super(swf, domain, taskList, identity);
+		this.dataMapper = dataMapper;
 	}
 
 	@Override
@@ -36,7 +39,7 @@ public class DecisionTaskPoller extends AbstractTaskContextPoller<DecisionTaskCo
 		}
 		LOGGER.debug("[{}:{}] DecisionTask received from '{}':{}", this.domain, this.identity, this.taskList,
 				decisionTask);
-		return new DecisionTaskContextImpl(this.swf, this.domain, decisionTask);
+		return new DecisionTaskContextImpl(this.swf, this.domain, decisionTask, dataMapper);
 	}
 
 	private DecisionTask pollForDecisionTask(HistoryMode mode) {

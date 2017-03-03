@@ -1,6 +1,7 @@
 package com.solambda.swiffer.api.internal.decisions;
 
 import java.util.List;
+import java.util.Optional;
 
 import com.solambda.swiffer.api.internal.VersionedName;
 import com.solambda.swiffer.api.internal.context.ActivityTaskCompletedContext;
@@ -14,10 +15,10 @@ import com.solambda.swiffer.api.internal.context.TimerFiredContext;
 import com.solambda.swiffer.api.internal.context.WorkflowCancelRequestedContext;
 import com.solambda.swiffer.api.internal.context.WorkflowStartedContext;
 import com.solambda.swiffer.api.internal.context.WorkflowTerminatedContext;
+import com.solambda.swiffer.api.internal.context.identifier.ActivityName;
 import com.solambda.swiffer.api.internal.context.identifier.ContextName;
 import com.solambda.swiffer.api.internal.context.identifier.MarkerName;
 import com.solambda.swiffer.api.internal.context.identifier.SignalName;
-import com.solambda.swiffer.api.internal.context.identifier.ActivityName;
 import com.solambda.swiffer.api.internal.context.identifier.TimerName;
 import com.solambda.swiffer.api.internal.context.identifier.WorkflowName;
 import com.solambda.swiffer.api.internal.events.EventCategory;
@@ -154,4 +155,13 @@ public class EventContextImpl implements
 		return this.decisionContext.workflowType();
 	}
 
+	@Override
+	public boolean hasMarker(String markerName) {
+		return decisionContext.hasMarker(markerName);
+	}
+
+	@Override
+	public <T> Optional<T> getMarkerDetails(String markerName, Class<T> type) {
+		return decisionContext.getMarkerDetails(markerName, type);
+	}
 }

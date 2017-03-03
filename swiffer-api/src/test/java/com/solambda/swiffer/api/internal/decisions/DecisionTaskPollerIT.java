@@ -140,7 +140,7 @@ public class DecisionTaskPollerIT {
             assertThat(history.events()).hasSize(expectedHistorySize);
             assertThat(history.events()).filteredOn(completedDummyTask).hasSize(DUMMY_EVENTS_NUMBER);
 
-            decideTo.completeWorfklow();
+            decideTo.completeWorkflow();
             wfCompleted = true;
         }
     }
