@@ -50,7 +50,7 @@ public class DeciderBuilder {
 	 */
 	public Decider build() {
 		final String taskList = this.taskList == null ? "default" : this.taskList;
-		final DecisionTaskPoller poller = new DecisionTaskPoller(this.swf, this.domain, taskList, this.identity);
+		final DecisionTaskPoller poller = new DecisionTaskPoller(this.swf, this.domain, taskList, this.identity, dataMapper);
 		final WorkflowTemplateRegistry registry = createWorkflowTemplateRegistry();
 		return new DeciderImpl(poller, registry);
 	}

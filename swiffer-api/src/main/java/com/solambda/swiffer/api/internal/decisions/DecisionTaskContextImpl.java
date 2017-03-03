@@ -1,6 +1,9 @@
 package com.solambda.swiffer.api.internal.decisions;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import com.amazonaws.services.simpleworkflow.AmazonSimpleWorkflow;
@@ -9,6 +12,7 @@ import com.amazonaws.services.simpleworkflow.model.HistoryEvent;
 import com.amazonaws.services.simpleworkflow.model.WorkflowType;
 import com.google.common.collect.Lists;
 import com.solambda.swiffer.api.internal.VersionedName;
+import com.solambda.swiffer.api.mapper.DataMapper;
 
 public class DecisionTaskContextImpl implements DecisionTaskContext {
 
@@ -16,13 +20,16 @@ public class DecisionTaskContextImpl implements DecisionTaskContext {
 	private DecisionTask decisionTask;
 	private WorkflowHistory history;
 	private String domain;
+    private final DataMapper dataMapper;
 
-	public DecisionTaskContextImpl(final AmazonSimpleWorkflow swf, final String domain,
-			final DecisionTask decisionTask) {
-		super();
+    public DecisionTaskContextImpl(final AmazonSimpleWorkflow swf, final String domain,
+                                   final DecisionTask decisionTask,
+                                   DataMapper dataMapper) {
+        super();
 		this.swf = swf;
 		this.decisionTask = decisionTask;
 		this.domain = domain;
+		this.dataMapper = dataMapper;
 	}
 
 	@Override
@@ -59,10 +66,31 @@ public class DecisionTaskContextImpl implements DecisionTaskContext {
 		return new VersionedName(workflowType.getName(), workflowType.getVersion());
 	}
 
+    @Override
+    public boolean hasMarker(String markerName) {
+        return decisionTask.getEvents().stream().anyMatch(isMarkerRecordedEvent(markerName));
+    }
+
+	@Override
+    public <T> Optional<T> getMarkerDetails(String markerName, Class<T> type) {
+        return decisionTask.getEvents().stream()
+                           .filter(isMarkerRecordedEvent(markerName))
+                           .findFirst()
+                           .map(deserialize(type));
+	}
+
 	@Override
 	public String toString() {
 		return "DecisionTaskContextImpl [domain=" + this.domain
 				+ ", workflowType=" + workflowType() + "]";
 	}
 
+    private static Predicate<HistoryEvent> isMarkerRecordedEvent(String markerName) {
+        return event -> event.getMarkerRecordedEventAttributes() != null
+                        && event.getMarkerRecordedEventAttributes().getMarkerName().equals(markerName);
+    }
+
+    private <T> Function<HistoryEvent, T> deserialize(Class<T> type) {
+        return event -> dataMapper.deserialize(event.getMarkerRecordedEventAttributes().getDetails(), type);
+    }
 }

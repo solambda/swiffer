@@ -11,11 +11,14 @@ import com.amazonaws.services.simpleworkflow.model.EventType;
 import com.solambda.swiffer.api.ActivityType;
 import com.solambda.swiffer.api.OnActivityCompleted;
 import com.solambda.swiffer.api.OnActivityFailed;
+import com.solambda.swiffer.api.OnMarkerRecorded;
+import com.solambda.swiffer.api.OnRecordMarkerFailed;
 import com.solambda.swiffer.api.OnSignalReceived;
 import com.solambda.swiffer.api.OnTimerFired;
 import com.solambda.swiffer.api.OnWorkflowStarted;
 import com.solambda.swiffer.api.internal.VersionedName;
 import com.solambda.swiffer.api.internal.context.identifier.ActivityName;
+import com.solambda.swiffer.api.internal.context.identifier.MarkerName;
 import com.solambda.swiffer.api.internal.context.identifier.SignalName;
 import com.solambda.swiffer.api.internal.context.identifier.TimerName;
 import com.solambda.swiffer.api.internal.context.identifier.WorkflowName;
@@ -23,6 +26,8 @@ import com.solambda.swiffer.api.internal.context.identifier.WorkflowName;
 public class EventHandlerTypeFactoryTest {
 	private static final String SIGNAL1 = "signal1";
 	private static final String TIMER1 = "timer1";
+	private static final String MARKER1 = "marker1";
+
 	private static final VersionedName WORKFLOW_TYPE = new VersionedName("workflow1", "1");
 
 	@ActivityType(name = "activity1", version = "1")
@@ -62,6 +67,12 @@ public class EventHandlerTypeFactoryTest {
 		public void failWithDoubleAnnotations() {
 
 		}
+
+        @OnMarkerRecorded(MARKER1)
+        public void onMarkerRecorded(){}
+
+        @OnRecordMarkerFailed(MARKER1)
+        public void onRecordMarkerFailed(){}
 
 		@SuppressWarnings("unused")
 		public void notAnnotatedMethod() {
@@ -139,4 +150,23 @@ public class EventHandlerTypeFactoryTest {
 				.isEqualTo(new EventHandlerType(EventType.TimerFired, new TimerName(TIMER1)));
 	}
 
+    @Test
+    public void markerRecorded() throws Exception {
+        EventHandlerTypeFactory factory = createFactory();
+        Method method = Template1.class.getMethod("onMarkerRecorded");
+
+        EventHandlerType type = factory.create(method);
+
+        assertThat(type).isEqualTo(new EventHandlerType(EventType.MarkerRecorded, new MarkerName(MARKER1)));
+    }
+
+    @Test
+    public void recordMarkerFailed() throws Exception {
+        EventHandlerTypeFactory factory = createFactory();
+        Method method = Template1.class.getMethod("onRecordMarkerFailed");
+
+        EventHandlerType type = factory.create(method);
+
+        assertThat(type).isEqualTo(new EventHandlerType(EventType.RecordMarkerFailed, new MarkerName(MARKER1)));
+    }
 }

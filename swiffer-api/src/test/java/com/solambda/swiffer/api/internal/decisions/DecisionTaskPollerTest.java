@@ -12,19 +12,25 @@ import java.util.stream.Collectors;
 import java.util.stream.LongStream;
 
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import com.amazonaws.services.simpleworkflow.AmazonSimpleWorkflow;
 import com.amazonaws.services.simpleworkflow.model.DecisionTask;
 import com.amazonaws.services.simpleworkflow.model.HistoryEvent;
 import com.amazonaws.services.simpleworkflow.model.PollForDecisionTaskRequest;
 import com.amazonaws.services.simpleworkflow.model.TaskList;
+import com.solambda.swiffer.api.mapper.DataMapper;
 
-
+@RunWith(MockitoJUnitRunner.class)
 public class DecisionTaskPollerTest {
 
     private static final String DOMAIN = "domain";
     private static final String TASK_LIST = "task-list";
     private static final String DECISIDER = "decision-poller";
+    @Mock
+    private DataMapper dataMapper;
 
     @Test
     public void pollForTask() throws Exception {
@@ -48,7 +54,7 @@ public class DecisionTaskPollerTest {
         when(swf.pollForDecisionTask(eq(firstRequest))).thenReturn(firstPage);
         when(swf.pollForDecisionTask(eq(secondRequest))).thenReturn(secondPage);
 
-        DecisionTaskPoller poller = new DecisionTaskPoller(swf, DOMAIN, TASK_LIST, DECISIDER);
+        DecisionTaskPoller poller = new DecisionTaskPoller(swf, DOMAIN, TASK_LIST, DECISIDER, dataMapper);
 
         DecisionTaskContext context = poller.poll();
 
@@ -59,7 +65,7 @@ public class DecisionTaskPollerTest {
         assertThat(context.history().events()).extracting(WorkflowEvent::id).containsExactlyElementsOf(expectedId);
     }
 
-    private List<HistoryEvent> generateRandomHistoryEvents(int start, int end){
+    private List<HistoryEvent> generateRandomHistoryEvents(int start, int end) {
         return LongStream.rangeClosed(start, end).mapToObj(value -> {
             HistoryEvent historyEvent = mock(HistoryEvent.class);
             when(historyEvent.getEventId()).thenReturn(value);

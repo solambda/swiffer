@@ -11,12 +11,15 @@ import com.google.common.base.Preconditions;
 import com.solambda.swiffer.api.ActivityType;
 import com.solambda.swiffer.api.OnActivityCompleted;
 import com.solambda.swiffer.api.OnActivityFailed;
+import com.solambda.swiffer.api.OnMarkerRecorded;
+import com.solambda.swiffer.api.OnRecordMarkerFailed;
 import com.solambda.swiffer.api.OnSignalReceived;
 import com.solambda.swiffer.api.OnTimerFired;
 import com.solambda.swiffer.api.OnWorkflowStarted;
 import com.solambda.swiffer.api.internal.VersionedName;
 import com.solambda.swiffer.api.internal.context.identifier.ActivityName;
 import com.solambda.swiffer.api.internal.context.identifier.ContextName;
+import com.solambda.swiffer.api.internal.context.identifier.MarkerName;
 import com.solambda.swiffer.api.internal.context.identifier.SignalName;
 import com.solambda.swiffer.api.internal.context.identifier.TimerName;
 import com.solambda.swiffer.api.internal.context.identifier.WorkflowName;
@@ -30,6 +33,8 @@ public class EventHandlerTypeFactory {
 		EVENT_HANDLER_ANNOTATION_TO_EVENT_TYPE.put(OnWorkflowStarted.class, EventType.WorkflowExecutionStarted);
 		EVENT_HANDLER_ANNOTATION_TO_EVENT_TYPE.put(OnSignalReceived.class, EventType.WorkflowExecutionSignaled);
 		EVENT_HANDLER_ANNOTATION_TO_EVENT_TYPE.put(OnTimerFired.class, EventType.TimerFired);
+		EVENT_HANDLER_ANNOTATION_TO_EVENT_TYPE.put(OnMarkerRecorded.class, EventType.MarkerRecorded);
+		EVENT_HANDLER_ANNOTATION_TO_EVENT_TYPE.put(OnRecordMarkerFailed.class, EventType.RecordMarkerFailed);
 	}
 
 	private static interface ContextNameProvider<A extends Annotation> extends Function<A, ContextName> {
@@ -43,6 +48,8 @@ public class EventHandlerTypeFactory {
 		map.put(OnWorkflowStarted.class, (ContextNameProvider<OnWorkflowStarted>) this::toContextName);
 		map.put(OnSignalReceived.class, (ContextNameProvider<OnSignalReceived>) this::toContextName);
 		map.put(OnTimerFired.class, (ContextNameProvider<OnTimerFired>) this::toContextName);
+		map.put(OnMarkerRecorded.class, (ContextNameProvider<OnMarkerRecorded>) this::toContextName);
+		map.put(OnRecordMarkerFailed.class, (ContextNameProvider<OnRecordMarkerFailed>) this::toContextName);
 	}
 
 	private VersionedName workflowType;
@@ -134,4 +141,11 @@ public class EventHandlerTypeFactory {
 		return new TimerName(annotation.value());
 	}
 
+	private ContextName toContextName(OnMarkerRecorded annotation) {
+		return new MarkerName(annotation.value());
+	}
+
+	private ContextName toContextName(OnRecordMarkerFailed annotation) {
+		return new MarkerName(annotation.value());
+	}
 }
