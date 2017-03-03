@@ -34,7 +34,7 @@ public class EventHandlerRegistryFactoryTest {
 
 	private static final String SIGNAL1 = "signal1";
 	private static final String TIMER1 = "timer1";
-	private static final String MARKER1 = "timer1";
+	private static final String MARKER1 = "marker1";
 	private static final VersionedName WORKFLOW = new VersionedName("workflow1", "1");
 	private static final VersionedName ACTIVITY1 = new VersionedName("activity1", "1");
 	private final DataMapper dataMapper = new JacksonDataMapper();

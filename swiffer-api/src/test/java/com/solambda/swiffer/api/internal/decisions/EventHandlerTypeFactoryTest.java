@@ -26,7 +26,7 @@ import com.solambda.swiffer.api.internal.context.identifier.WorkflowName;
 public class EventHandlerTypeFactoryTest {
 	private static final String SIGNAL1 = "signal1";
 	private static final String TIMER1 = "timer1";
-	private static final String MARKER1 = "timer1";
+	private static final String MARKER1 = "marker1";
 
 	private static final VersionedName WORKFLOW_TYPE = new VersionedName("workflow1", "1");
 
