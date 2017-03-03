@@ -22,6 +22,7 @@ import com.solambda.swiffer.api.Control;
 import com.solambda.swiffer.api.Decisions;
 import com.solambda.swiffer.api.EventHandlerCommonParameter;
 import com.solambda.swiffer.api.Input;
+import com.solambda.swiffer.api.Marker;
 import com.solambda.swiffer.api.Output;
 import com.solambda.swiffer.api.Reason;
 import com.solambda.swiffer.api.mapper.DataMapper;
@@ -112,8 +113,10 @@ public class EventHandlerArgumentsProviderFactory {
 			return deserialize(CONTROL_PROVIDER, parameterType);
 		} else if (parameterType.isAnnotationPresent(Reason.class)) {
 			return wrapInBiFunction(REASON_PROVIDER);
+		} else if (parameterType.isAnnotationPresent(Marker.class)) {
+			return wrapInBiFunction(markerDetailsProvider(parameterType));
 		}
-		// TODO: handle @Marker
+
 		// TODO: handle other annotations like @Input, @Output etc...
 		// TODO: check the validity of the annotation against the event type (
 		// for instance, @Input is illegal on a TimerFired event)
@@ -226,5 +229,11 @@ public class EventHandlerArgumentsProviderFactory {
 	private BiFunction<EventContext, Decisions, Object> deserialize(Function<EventContext, String> provider, Class<?> argumentType) {
 		Function<EventContext, Object> inputProvider = context -> dataMapper.deserialize(provider.apply(context), argumentType);
 		return (eventContext, decisions) -> inputProvider.apply(eventContext);
+	}
+
+	private Function<EventContext, Object> markerDetailsProvider(AnnotatedElement parameterType) {
+		String markerName = parameterType.getAnnotation(Marker.class).value();
+		return eventContext -> eventContext.getMarkerDetails(markerName, ((Parameter) parameterType).getType())
+										   .orElse(null);
 	}
 }

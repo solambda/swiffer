@@ -2,6 +2,8 @@ package com.solambda.swiffer.api.internal.decisions;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -9,6 +11,7 @@ import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 import java.lang.reflect.Method;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import org.assertj.core.api.SoftAssertions;
@@ -19,6 +22,7 @@ import com.solambda.swiffer.api.ActivityType;
 import com.solambda.swiffer.api.Control;
 import com.solambda.swiffer.api.Decisions;
 import com.solambda.swiffer.api.Input;
+import com.solambda.swiffer.api.Marker;
 import com.solambda.swiffer.api.Output;
 import com.solambda.swiffer.api.Reason;
 import com.solambda.swiffer.api.duration.DefaultDurationTransformer;
@@ -33,6 +37,10 @@ public class EventHandlerArgumentsProviderFactoryTest {
 	private static final String OUTPUT = "output";
 	private static final String REASON = "reason";
 	private static final String DETAILS = "details";
+    private static final String MARKER_DETAILS = "markerDetails";
+
+	private static final String MARKER_NAME = "marker";
+    private static final String NO_DETAILS_MARKER_NAME = "markerNoDetails";
 
 	private final Decisions decisions = new DecisionsImpl(new JacksonDataMapper(), new DefaultDurationTransformer());
     private final DataMapper dataMapper = new JacksonDataMapper();
@@ -70,7 +78,7 @@ public class EventHandlerArgumentsProviderFactoryTest {
 		}
 
 		/**
-		 * used to assert the default paramters cannot be multiple
+		 * used to assert the default parameters cannot be multiple
 		 *
 		 */
 		public void defaultParametersCannotBeMultiple(final String input, final String output) {
@@ -78,10 +86,12 @@ public class EventHandlerArgumentsProviderFactoryTest {
 		}
 
 		public void specificAnnotations(
-				final @Input String input,
-				final @Output String output,
-				final @Reason String reason,
-				final @Control String control) {
+                final @Input String input,
+                final @Output String output,
+                final @Reason String reason,
+                final @Control String control,
+                @Marker(MARKER_NAME) String marker,
+                @Marker(NO_DETAILS_MARKER_NAME) String noDetailsMarker) {
 
 		}
 
@@ -147,7 +157,10 @@ public class EventHandlerArgumentsProviderFactoryTest {
 		verify(context.event(), times(1)).output();
 		verify(context.event(), times(1)).reason();
 		verify(context.event(), times(1)).control();
-		assertThat(arguments).containsExactly(INPUT, OUTPUT, REASON, CONTROL);
+        verify(context).getMarkerDetails(MARKER_NAME, String.class);
+        verify(context).getMarkerDetails(NO_DETAILS_MARKER_NAME, String.class);
+
+		assertThat(arguments).containsExactly(INPUT, OUTPUT, REASON, CONTROL, MARKER_DETAILS, null);
 	}
 
 	@Test
@@ -188,15 +201,19 @@ public class EventHandlerArgumentsProviderFactoryTest {
 	}
 
 	private EventContext createMockedContext() {
-		final EventContext context = mock(EventContext.class);
 		final WorkflowEvent event = mock(WorkflowEvent.class);
-		when(context.event()).thenReturn(event);
 		when(event.cause()).thenReturn(CAUSE);
 		when(event.control()).thenReturn(serialize(CONTROL));
 		when(event.input()).thenReturn(serialize(INPUT));
 		when(event.output()).thenReturn(serialize(OUTPUT));
 		when(event.reason()).thenReturn(REASON);
 		when(event.details()).thenReturn(DETAILS);
+
+        final EventContext context = mock(EventContext.class);
+        when(context.event()).thenReturn(event);
+        when(context.getMarkerDetails(MARKER_NAME, String.class)).thenReturn(Optional.of(MARKER_DETAILS));
+        when(context.getMarkerDetails(eq(NO_DETAILS_MARKER_NAME), any())).thenReturn(Optional.empty());
+
 		return context;
 	}
 
