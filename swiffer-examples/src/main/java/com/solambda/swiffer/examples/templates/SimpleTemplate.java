@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import com.solambda.swiffer.api.Decisions;
 import com.solambda.swiffer.api.Input;
+import com.solambda.swiffer.api.Marker;
 import com.solambda.swiffer.api.OnActivityCompleted;
 import com.solambda.swiffer.api.OnMarkerRecorded;
 import com.solambda.swiffer.api.OnSignalReceived;
@@ -48,8 +49,10 @@ public class SimpleTemplate {
 	}
 
 	@OnSignalReceived(WorkflowDefinitions.SIGNAL_NAME)
-	public void signalReceived(final String input, final Decisions decideTo) {
+	public void signalReceived(final String input, final Decisions decideTo, @Marker(MARKER_NAME) LocalDateTime details) {
 		LOGGER.info("Signal received with input  {}", input);
+        LOGGER.info("Get recorded marker from annotation  {}", details);
+
 		decideTo.completeWorkflow(input);
 	}
 
