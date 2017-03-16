@@ -8,4 +8,7 @@ public class ActivityDefinitions {
 	public static interface ParseInteger {
 	}
 
+	@ActivityType(name = "FailingActivity", version = "1")
+	public @interface FailingActivity {
+	}
 }

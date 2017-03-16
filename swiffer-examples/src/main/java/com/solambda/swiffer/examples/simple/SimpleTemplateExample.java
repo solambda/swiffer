@@ -9,6 +9,8 @@ import com.amazonaws.services.simpleworkflow.AmazonSimpleWorkflowClient;
 import com.solambda.swiffer.api.Decider;
 import com.solambda.swiffer.api.Swiffer;
 import com.solambda.swiffer.api.Worker;
+import com.solambda.swiffer.api.retry.ExponentialRetryPolicy;
+import com.solambda.swiffer.api.retry.RetryPolicy;
 import com.solambda.swiffer.examples.ActivityImplementations;
 import com.solambda.swiffer.examples.Domains;
 import com.solambda.swiffer.examples.WorkflowDefinitions;
@@ -35,7 +37,7 @@ public class SimpleTemplateExample {
 	private static final String WORKFLOW_ID = "workflowid";
 	private Worker worker;
 	private Decider decider;
-
+	private final RetryPolicy globalRetryPolicy = new ExponentialRetryPolicy(Duration.ofSeconds(3), Duration.ofSeconds(60));
 	public SimpleTemplateExample() {
 	}
 
@@ -70,6 +72,7 @@ public class SimpleTemplateExample {
 		this.decider = swiffer.newDeciderBuilder()
 				.identity(this.getClass().getSimpleName() + "-decider")
 				.workflowTemplates(new SimpleTemplate())
+				.globalRetryPolicy(globalRetryPolicy)
 				.build();
 		this.decider.start();
 	}
