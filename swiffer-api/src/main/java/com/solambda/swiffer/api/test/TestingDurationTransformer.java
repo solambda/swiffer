@@ -79,6 +79,13 @@ public class TestingDurationTransformer implements DurationTransformer {
         factor = SECONDS_PER_MINUTE / minuteDuration.getSeconds();
     }
 
+    /**
+     * Resets adjustments to the duration.
+     */
+    public void reset() {
+        factor = 1;
+    }
+
     private void validateScaleDuration(Duration duration){
         if (duration == null || duration.getSeconds() == 0) {
             throw new IllegalArgumentException("Expected duration scale should be at least 1 second.");
