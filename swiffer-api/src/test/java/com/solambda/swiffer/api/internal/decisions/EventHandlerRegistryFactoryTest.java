@@ -9,6 +9,7 @@ import static com.amazonaws.services.simpleworkflow.model.EventType.WorkflowExec
 import static com.amazonaws.services.simpleworkflow.model.EventType.WorkflowExecutionStarted;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.Mockito.mock;
 
 import org.junit.Test;
 
@@ -29,6 +30,7 @@ import com.solambda.swiffer.api.internal.context.identifier.TimerName;
 import com.solambda.swiffer.api.internal.context.identifier.WorkflowName;
 import com.solambda.swiffer.api.mapper.DataMapper;
 import com.solambda.swiffer.api.mapper.JacksonDataMapper;
+import com.solambda.swiffer.api.retry.RetryPolicy;
 
 public class EventHandlerRegistryFactoryTest {
 
@@ -38,6 +40,7 @@ public class EventHandlerRegistryFactoryTest {
 	private static final VersionedName WORKFLOW = new VersionedName("workflow1", "1");
 	private static final VersionedName ACTIVITY1 = new VersionedName("activity1", "1");
 	private final DataMapper dataMapper = new JacksonDataMapper();
+	private final RetryPolicy retryPolicy = mock(RetryPolicy.class);
 
 	@ActivityType(name = "activity1", version = "1")
 	public static interface ActivityDef {
@@ -94,7 +97,7 @@ public class EventHandlerRegistryFactoryTest {
 
 	@Test
 	public void handlersAreRetrieved() {
-		final EventHandlerRegistryFactory factory = new EventHandlerRegistryFactory(WORKFLOW, dataMapper);
+		final EventHandlerRegistryFactory factory = new EventHandlerRegistryFactory(WORKFLOW, dataMapper, retryPolicy);
 		final EventHandlerRegistry registry = factory.build(new Template1());
 		final ActivityName activityName = new ActivityName(ACTIVITY1);
 		assertThat(registry.get(new EventHandlerType(ActivityTaskCompleted, activityName))).isNotNull();
@@ -110,7 +113,7 @@ public class EventHandlerRegistryFactoryTest {
 
 	@Test
 	public void cannotHaveTwoHandlersForTheSameType() {
-		final EventHandlerRegistryFactory factory = new EventHandlerRegistryFactory(WORKFLOW, dataMapper);
+		final EventHandlerRegistryFactory factory = new EventHandlerRegistryFactory(WORKFLOW, dataMapper, retryPolicy);
 		assertThatExceptionOfType(WorkflowTemplateException.class)
 				.isThrownBy(() -> factory.build(new TemplateWithTwoHandlersOfTheSameType()))
 				.withMessageContaining("more than one handler of");

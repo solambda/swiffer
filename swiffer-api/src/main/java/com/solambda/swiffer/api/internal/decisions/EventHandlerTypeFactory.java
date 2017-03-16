@@ -23,6 +23,7 @@ import com.solambda.swiffer.api.internal.context.identifier.MarkerName;
 import com.solambda.swiffer.api.internal.context.identifier.SignalName;
 import com.solambda.swiffer.api.internal.context.identifier.TimerName;
 import com.solambda.swiffer.api.internal.context.identifier.WorkflowName;
+import com.solambda.swiffer.api.retry.RetryControl;
 
 public class EventHandlerTypeFactory {
 
@@ -138,7 +139,8 @@ public class EventHandlerTypeFactory {
 	}
 
 	private ContextName toContextName(final OnTimerFired annotation) {
-		return new TimerName(annotation.value());
+		String timerId = checkTimerId(annotation.value());
+		return new TimerName(timerId);
 	}
 
 	private ContextName toContextName(OnMarkerRecorded annotation) {
@@ -147,5 +149,19 @@ public class EventHandlerTypeFactory {
 
 	private ContextName toContextName(OnRecordMarkerFailed annotation) {
 		return new MarkerName(annotation.value());
+	}
+
+	/**
+	 * Ensure custom handler can not be specified for internal timer.
+	 *
+	 * @param timerId timer ID
+	 * @return timer ID if acceptable
+	 * @throws IllegalArgumentException if selected timer name is reserved for internal use
+	 */
+	private static String checkTimerId(String timerId) {
+		Preconditions.checkNotNull(timerId);
+		Preconditions.checkArgument(!timerId.startsWith(RetryControl.RETRY_TIMER), "This is reserved timer ID");
+
+		return timerId;
 	}
 }

@@ -22,6 +22,7 @@ import com.solambda.swiffer.api.internal.context.identifier.MarkerName;
 import com.solambda.swiffer.api.internal.context.identifier.SignalName;
 import com.solambda.swiffer.api.internal.context.identifier.TimerName;
 import com.solambda.swiffer.api.internal.context.identifier.WorkflowName;
+import com.solambda.swiffer.api.retry.RetryControl;
 
 public class EventHandlerTypeFactoryTest {
 	private static final String SIGNAL1 = "signal1";
@@ -78,6 +79,11 @@ public class EventHandlerTypeFactoryTest {
 		public void notAnnotatedMethod() {
 
 		}
+
+        @OnTimerFired(RetryControl.RETRY_TIMER + "some_other_value")
+        public void onRetryTimerFired(){
+
+        }
 	}
 
 	@Test
@@ -168,5 +174,18 @@ public class EventHandlerTypeFactoryTest {
         EventHandlerType type = factory.create(method);
 
         assertThat(type).isEqualTo(new EventHandlerType(EventType.RecordMarkerFailed, new MarkerName(MARKER1)));
+    }
+
+    /**
+     * Test case: user can not specify timer with reserved ID.
+     */
+    @Test
+    public void testTimerId() throws Exception {
+        EventHandlerTypeFactory factory = createFactory();
+        Method method = Template1.class.getMethod("onRetryTimerFired");
+
+        assertThatExceptionOfType(IllegalArgumentException.class)
+                .isThrownBy(() -> factory.create(method))
+                .withMessageContaining("This is reserved timer ID");
     }
 }

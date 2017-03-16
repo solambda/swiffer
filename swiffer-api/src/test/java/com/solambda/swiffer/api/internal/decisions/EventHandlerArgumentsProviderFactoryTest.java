@@ -38,6 +38,7 @@ public class EventHandlerArgumentsProviderFactoryTest {
 	private static final String REASON = "reason";
 	private static final String DETAILS = "details";
     private static final String MARKER_DETAILS = "markerDetails";
+	private static final Long INITIAL_EVENT_ID = 5L;
 
 	private static final String MARKER_NAME = "marker";
     private static final String NO_DETAILS_MARKER_NAME = "markerNoDetails";
@@ -180,7 +181,8 @@ public class EventHandlerArgumentsProviderFactoryTest {
 	public void defaultParameter_dependsOnTheEventHandlerType() throws Exception {
 		final SoftAssertions softly = new SoftAssertions();
 		assertDefaultArgumentForEventType(softly, EventType.ActivityTaskCompleted, OUTPUT);
-		assertDefaultArgumentForEventType(softly, EventType.ActivityTaskFailed, REASON);
+		assertDefaultArgumentForEventType(softly, EventType.ActivityTaskFailed, INITIAL_EVENT_ID);
+		assertDefaultArgumentForEventType(softly, EventType.ActivityTaskTimedOut, INITIAL_EVENT_ID);
 		assertDefaultArgumentForEventType(softly, EventType.WorkflowExecutionStarted, INPUT);
 		assertDefaultArgumentForEventType(softly, EventType.WorkflowExecutionSignaled, INPUT);
 		assertDefaultArgumentForEventType(softly, EventType.TimerFired, CONTROL);
@@ -208,6 +210,7 @@ public class EventHandlerArgumentsProviderFactoryTest {
 		when(event.output()).thenReturn(serialize(OUTPUT));
 		when(event.reason()).thenReturn(REASON);
 		when(event.details()).thenReturn(DETAILS);
+		when(event.initialEventId()).thenReturn(INITIAL_EVENT_ID);
 
         final EventContext context = mock(EventContext.class);
         when(context.event()).thenReturn(event);

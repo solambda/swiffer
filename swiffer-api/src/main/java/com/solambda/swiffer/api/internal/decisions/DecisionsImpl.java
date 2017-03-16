@@ -10,6 +10,7 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.amazonaws.services.simpleworkflow.model.ActivityTaskScheduledEventAttributes;
 import com.amazonaws.services.simpleworkflow.model.ActivityType;
 import com.amazonaws.services.simpleworkflow.model.CancelTimerDecisionAttributes;
 import com.amazonaws.services.simpleworkflow.model.CancelWorkflowExecutionDecisionAttributes;
@@ -25,6 +26,8 @@ import com.solambda.swiffer.api.ActivityOptions;
 import com.solambda.swiffer.api.Decisions;
 import com.solambda.swiffer.api.duration.DurationTransformer;
 import com.solambda.swiffer.api.mapper.DataMapper;
+import com.solambda.swiffer.api.retry.RetryControl;
+import com.solambda.swiffer.api.retry.RetryPolicy;
 
 public class DecisionsImpl implements Decisions {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DecisionsImpl.class);
@@ -89,9 +92,43 @@ public class DecisionsImpl implements Decisions {
 		return doScheduleActivityTask(activityType, null, null, options);
 	}
 
-	private Decisions doScheduleActivityTask(final Class<?> activityTypeClass, final String activityId,
-			final Object input,
-			final ActivityOptions options) {
+    @Override
+    public Decisions retryActivity(Long scheduledEventId, Class<?> activityClass, DecisionTaskContext context, RetryPolicy retryPolicy) {
+        String activityName = toActivityType(activityClass).getName();
+        return retryActivity(scheduledEventId, activityName, context, retryPolicy);
+    }
+
+    @Override
+    public Decisions retryActivity(Long scheduledEventId, String activityName, DecisionTaskContext context, RetryPolicy retryPolicy) {
+        String timerId = RetryControl.getTimerId(activityName);
+        RetryControl control = new RetryControl(scheduledEventId, activityName);
+        int retries = context.getMarkerDetails(control.getMarkerName(), Integer.class).orElse(0);
+
+        retryPolicy.durationToNextTry(++retries).ifPresent(duration -> startTimer(timerId, duration, control));
+        return this;
+    }
+
+    @Override
+    public Decisions scheduleActivityTask(ActivityTaskScheduledEventAttributes source) {
+        ScheduleActivityTaskDecisionAttributes attributes = new ScheduleActivityTaskDecisionAttributes()
+                .withActivityType(source.getActivityType())
+                .withActivityId(UUID.randomUUID().toString())
+                .withInput(source.getInput())
+                .withControl(source.getControl())
+                .withTaskList(source.getTaskList())
+                .withTaskPriority(source.getTaskPriority())
+                .withHeartbeatTimeout(source.getHeartbeatTimeout())
+                .withScheduleToCloseTimeout(source.getScheduleToCloseTimeout())
+                .withScheduleToStartTimeout(source.getScheduleToStartTimeout())
+                .withStartToCloseTimeout(source.getStartToCloseTimeout());
+
+        newDecision(DecisionType.ScheduleActivityTask).withScheduleActivityTaskDecisionAttributes(attributes);
+        return this;
+    }
+
+    private Decisions doScheduleActivityTask(final Class<?> activityTypeClass, final String activityId,
+            final Object input,
+            final ActivityOptions options) {
 		ScheduleActivityTaskDecisionAttributes attributes = new ScheduleActivityTaskDecisionAttributes()
 				.withActivityType(toActivityType(activityTypeClass))
 				.withActivityId(activityId == null ? UUID.randomUUID().toString() : activityId)
