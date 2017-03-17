@@ -16,6 +16,7 @@ import com.solambda.swiffer.api.OnTimerFired;
 import com.solambda.swiffer.api.OnWorkflowStarted;
 import com.solambda.swiffer.api.Output;
 import com.solambda.swiffer.api.internal.decisions.DecisionTaskContext;
+import com.solambda.swiffer.examples.ActivityDefinitions.FailingActivity;
 import com.solambda.swiffer.examples.ActivityDefinitions.ParseInteger;
 import com.solambda.swiffer.examples.WorkflowDefinitions;
 import com.solambda.swiffer.examples.WorkflowDefinitions.SimpleExampleWorkflowDefinition;
@@ -36,6 +37,7 @@ public class SimpleTemplate {
 	public void onParseInteger(@Output Integer output, @Input final String input, DecisionTaskContext context, final Decisions decideTo) {
 		LOGGER.info("Task correctly executed with result {}", output);
         LOGGER.info("Get recorded marker details {}", context.getMarkerDetails(MARKER_NAME, LocalDateTime.class));
+        decideTo.scheduleActivityTask(FailingActivity.class, "input");
     }
 
 	@OnTimerFired(TIMER_ID)

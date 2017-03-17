@@ -5,9 +5,11 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.amazonaws.services.simpleworkflow.model.EventType;
 import com.solambda.swiffer.api.Decisions;
 import com.solambda.swiffer.api.duration.DurationTransformer;
 import com.solambda.swiffer.api.internal.VersionedName;
+import com.solambda.swiffer.api.internal.events.HasTimerId;
 import com.solambda.swiffer.api.mapper.DataMapper;
 
 public class WorkflowTemplateImpl implements WorkflowTemplate {
@@ -23,8 +25,7 @@ public class WorkflowTemplateImpl implements WorkflowTemplate {
 								final EventHandlerRegistry eventHandlerRegistry,
 								DataMapper dataMapper,
 								DurationTransformer durationTransformer) {
-		super();
-		this.workflowType = workflowType;
+        this.workflowType = workflowType;
 		this.eventHandlerRegistry = eventHandlerRegistry;
 		this.dataMapper = dataMapper;
 		this.durationTransformer = durationTransformer;
@@ -54,8 +55,8 @@ public class WorkflowTemplateImpl implements WorkflowTemplate {
 
 	private void processEventHandler(final EventHandler eventHandler, final EventContext eventContext,
 			final Decisions decisions) throws DecisionTaskExecutionException {
-		if (eventHandler == null) {
-			doDefaultEventHandler(eventContext);
+ 		if (eventHandler == null) {
+			doDefaultEventHandler(eventContext, decisions);
 		} else {
 			try {
 				eventHandler.handleEvent(eventContext, decisions);
@@ -72,10 +73,28 @@ public class WorkflowTemplateImpl implements WorkflowTemplate {
 		}
 	}
 
-	private void doDefaultEventHandler(final EventContext eventContext) {
-		// do
-		LOGGER.debug("no event handler defined for {}", eventContext.event());
-	}
+	private void doDefaultEventHandler(final EventContext eventContext, Decisions decisions) throws DecisionTaskExecutionException {
+        EventType type = eventContext.event().type();
+        EventHandler eventHandler = null;
+        switch (type) {
+            case ActivityTaskFailed:
+                eventHandler = eventHandlerRegistry.getDefaultFailedActivityHandler();
+                break;
+            case ActivityTaskTimedOut:
+                eventHandler = eventHandlerRegistry.getDefaultTimedOutActivityHandler();
+                break;
+            case TimerFired:
+                String timerId = ((HasTimerId) eventContext).timerId();
+                eventHandler = eventHandlerRegistry.getDefaultRetryTimerFiredHandler(timerId);
+                break;
+        }
+        if (eventHandler != null) {
+            eventHandler.handleEvent(eventContext, decisions);
+        } else {
+            // do
+            LOGGER.debug("no event handler defined for {}", eventContext.event());
+        }
+    }
 
 	@Override
 	public String toString() {

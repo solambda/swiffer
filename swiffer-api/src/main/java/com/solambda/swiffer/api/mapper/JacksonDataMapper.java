@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 
 /**
  * Default implementation of {@link DataMapper} which uses Jackson
@@ -18,6 +19,7 @@ public class JacksonDataMapper implements DataMapper {
      */
     public JacksonDataMapper() {
         mapper.findAndRegisterModules();
+        mapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
     }
 
     @Override

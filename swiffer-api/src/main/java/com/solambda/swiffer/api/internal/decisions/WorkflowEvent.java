@@ -19,6 +19,7 @@ import static com.solambda.swiffer.api.internal.events.WorkflowEventState.TIMEOU
 
 import java.time.Instant;
 
+import com.amazonaws.services.simpleworkflow.model.ActivityTaskScheduledEventAttributes;
 import com.amazonaws.services.simpleworkflow.model.ActivityType;
 import com.amazonaws.services.simpleworkflow.model.EventType;
 import com.amazonaws.services.simpleworkflow.model.HistoryEvent;
@@ -1101,6 +1102,10 @@ public class WorkflowEvent implements Comparable<WorkflowEvent> {
 		default:
 			throw new IllegalArgumentException("Unknown EventType " + type());
 		}
+	}
+
+	public ActivityTaskScheduledEventAttributes getActivityTaskScheduledEventAttributes(){
+		return this.event.getActivityTaskScheduledEventAttributes();
 	}
 
 	@Override

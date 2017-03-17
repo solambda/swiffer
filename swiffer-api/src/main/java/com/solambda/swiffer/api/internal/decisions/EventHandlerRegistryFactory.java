@@ -7,19 +7,26 @@ import java.util.Map;
 import com.solambda.swiffer.api.exceptions.WorkflowTemplateException;
 import com.solambda.swiffer.api.internal.VersionedName;
 import com.solambda.swiffer.api.mapper.DataMapper;
+import com.solambda.swiffer.api.retry.RetryPolicy;
 
 public class EventHandlerRegistryFactory {
 
-	private EventHandlerFactory factory;
+	private final EventHandlerFactory factory;
 
-	public EventHandlerRegistryFactory(final VersionedName workflowType, DataMapper dataMapper) {
-		this.factory = new EventHandlerFactory(workflowType, dataMapper);
+	public EventHandlerRegistryFactory(final VersionedName workflowType, DataMapper dataMapper, RetryPolicy retryPolicy) {
+		this.factory = new EventHandlerFactory(workflowType, dataMapper, retryPolicy);
 	}
 
 	public EventHandlerRegistry build(final Object template) {
 		final Map<EventHandlerType, EventHandler> registry = new HashMap<>();
 		fillRegistryByIntrospection(registry, template);
-		return new EventHandlerRegistry(registry);
+
+        EventHandlerRegistry eventHandlerRegistry = new EventHandlerRegistry(registry);
+        eventHandlerRegistry.setDefaultFailedActivityHandler(factory.createFailedActivityHandler());
+        eventHandlerRegistry.setDefaultTimedOutActivityHandler(factory.createTimedOutActivityHandler());
+        eventHandlerRegistry.setDefaultRetryTimerFiredHandler(factory.createRetryTimerFiredHandler());
+
+        return eventHandlerRegistry;
 	}
 
 	private void fillRegistryByIntrospection(final Map<EventHandlerType, EventHandler> registry,

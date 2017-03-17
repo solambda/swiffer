@@ -18,6 +18,7 @@ import com.solambda.swiffer.api.internal.decisions.WorkflowTemplateFactory;
 import com.solambda.swiffer.api.internal.decisions.WorkflowTemplateRegistry;
 import com.solambda.swiffer.api.internal.registration.WorkflowTypeRegistry;
 import com.solambda.swiffer.api.mapper.DataMapper;
+import com.solambda.swiffer.api.retry.RetryPolicy;
 
 /**
  * A builder of {@link Decider}.
@@ -25,15 +26,16 @@ import com.solambda.swiffer.api.mapper.DataMapper;
 public class DeciderBuilder {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DeciderBuilder.class);
 
-	private AmazonSimpleWorkflow swf;
-	private String domain;
+	private final AmazonSimpleWorkflow swf;
+	private final String domain;
+	private final WorkflowTypeRegistry workflowTypeRegistry;
+	private final DataMapper dataMapper;
+	private final DurationTransformer durationTransformer;
+
 	private String identity;
 	private String taskList;
 	private List<Object> workflowTemplates;
-	private WorkflowTemplateFactory templateFactory;
-	private WorkflowTypeRegistry workflowTypeRegistry;
-	private final DataMapper dataMapper;
-	private final DurationTransformer durationTransformer;
+    private RetryPolicy globalRetryPolicy;
 
 	public DeciderBuilder(final AmazonSimpleWorkflow swf, final String domain, DataMapper dataMapper, DurationTransformer durationTransformer) {
 		super();
@@ -41,7 +43,7 @@ public class DeciderBuilder {
 		this.domain = domain;
 		this.dataMapper = dataMapper;
 		this.durationTransformer = durationTransformer;
-		this.templateFactory = new WorkflowTemplateFactory(this.dataMapper, this.durationTransformer);
+
 		this.workflowTypeRegistry = new WorkflowTypeRegistry(swf, domain);
 	}
 
@@ -53,21 +55,6 @@ public class DeciderBuilder {
 		final DecisionTaskPoller poller = new DecisionTaskPoller(this.swf, this.domain, taskList, this.identity, dataMapper);
 		final WorkflowTemplateRegistry registry = createWorkflowTemplateRegistry();
 		return new DeciderImpl(poller, registry);
-	}
-
-	private WorkflowTemplateRegistry createWorkflowTemplateRegistry() {
-		final Map<VersionedName, WorkflowTemplate> registry = new HashMap<>();
-		for (final Object workflowTemplate : this.workflowTemplates) {
-			final WorkflowTemplate template = this.templateFactory.createWorkflowTemplate(workflowTemplate);
-			ensureWorkflowTypeRegistration(workflowTemplate);
-			registry.put(template.getWorkflowType(), template);
-		}
-		return new WorkflowTemplateRegistry(registry);
-	}
-
-	private void ensureWorkflowTypeRegistration(final Object workflowTemplate) {
-		final WorkflowType workflowType = WorkflowTemplateFactory.findWorkflowTypeAnnotation(workflowTemplate);
-		this.workflowTypeRegistry.registerWorkflowOrCheckConfiguration(workflowType);
 	}
 
 	/**
@@ -104,4 +91,37 @@ public class DeciderBuilder {
 		this.workflowTemplates = Arrays.asList(workflowTemplates);
 		return this;
 	}
+
+    /**
+     * Sets global retry policy for failed or timed out Activities.
+     * If not specified then default retry policy will be used.
+     * <p>
+     * The default retry policy retries Activities with exponentially increasing time between attempts from 5 seconds to 1 hour.
+     * The number of retries in unlimited.
+     * </p>
+     *
+     * @param globalRetryPolicy the global retry policy
+     * @return this builder
+     */
+    public DeciderBuilder globalRetryPolicy(RetryPolicy globalRetryPolicy) {
+        this.globalRetryPolicy = globalRetryPolicy;
+        return this;
+    }
+
+    private WorkflowTemplateRegistry createWorkflowTemplateRegistry() {
+        WorkflowTemplateFactory templateFactory = new WorkflowTemplateFactory(this.dataMapper, this.durationTransformer, globalRetryPolicy);
+
+        final Map<VersionedName, WorkflowTemplate> registry = new HashMap<>();
+        for (final Object workflowTemplate : this.workflowTemplates) {
+            final WorkflowTemplate template = templateFactory.createWorkflowTemplate(workflowTemplate);
+            ensureWorkflowTypeRegistration(workflowTemplate);
+            registry.put(template.getWorkflowType(), template);
+        }
+        return new WorkflowTemplateRegistry(registry);
+    }
+
+    private void ensureWorkflowTypeRegistration(final Object workflowTemplate) {
+        final WorkflowType workflowType = WorkflowTemplateFactory.findWorkflowTypeAnnotation(workflowTemplate);
+        this.workflowTypeRegistry.registerWorkflowOrCheckConfiguration(workflowType);
+    }
 }

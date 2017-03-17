@@ -3,6 +3,7 @@ package com.solambda.swiffer.api.internal.decisions;
 import static com.solambda.swiffer.api.internal.decisions.ArgumentProviders.CONTROL_PROVIDER;
 import static com.solambda.swiffer.api.internal.decisions.ArgumentProviders.EVENT_CONTEXT_PROVIDER;
 import static com.solambda.swiffer.api.internal.decisions.ArgumentProviders.EVENT_PROVIDER;
+import static com.solambda.swiffer.api.internal.decisions.ArgumentProviders.INITIAL_EVENT_ID_PROVIDER;
 import static com.solambda.swiffer.api.internal.decisions.ArgumentProviders.INPUT_PROVIDER;
 import static com.solambda.swiffer.api.internal.decisions.ArgumentProviders.OUTPUT_PROVIDER;
 import static com.solambda.swiffer.api.internal.decisions.ArgumentProviders.REASON_PROVIDER;
@@ -161,11 +162,11 @@ public class EventHandlerArgumentsProviderFactory {
 		case WorkflowExecutionSignaled:
 		case WorkflowExecutionStarted:
 			return deserialize(INPUT_PROVIDER, argumentType);
+		case ActivityTaskTimedOut:
 		case ActivityTaskFailed:
-			return wrapInBiFunction(REASON_PROVIDER);
+			return wrapInBiFunction(INITIAL_EVENT_ID_PROVIDER);
 
 		case TimerCanceled:
-		case ActivityTaskTimedOut:
 		case ActivityTaskCancelRequested:
 		case ActivityTaskCanceled:
 		case ActivityTaskScheduled:

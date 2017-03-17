@@ -2,6 +2,10 @@ package com.solambda.swiffer.api;
 
 import java.time.Duration;
 
+import com.amazonaws.services.simpleworkflow.model.ActivityTaskScheduledEventAttributes;
+import com.solambda.swiffer.api.internal.decisions.DecisionTaskContext;
+import com.solambda.swiffer.api.retry.RetryPolicy;
+
 /**
  * A convenient builder of decisions.
  * <p>
@@ -149,4 +153,35 @@ public interface Decisions {
      * @return this decision object
      */
     Decisions recordMarker(String markerName);
+
+    /**
+     * Automatically retries failed activity {@code activityType} with specified {@code retryPolicy}.
+     *
+     * @param scheduledEventId id of the ActivityTaskScheduled event that was recorded when activity task that failed was scheduled
+     * @param activityType     the class of activity that needs to be retried
+     * @param context          the {@link DecisionTaskContext}
+     * @param retryPolicy      one of the {@link RetryPolicy} which should be used to retry the activity
+     * @return this {@link Decisions} object
+     */
+    Decisions retryActivity(Long scheduledEventId, Class<?> activityType, DecisionTaskContext context, RetryPolicy retryPolicy);
+
+    /**
+     * Automatically retries failed activity {@code activityName} with specified {@code retryPolicy}.
+     *
+     * @param scheduledEventId id of the ActivityTaskScheduled event that was recorded when activity task that failed was scheduled
+     * @param activityName     the name of the activity that needs to be retried
+     * @param context          the {@link DecisionTaskContext}
+     * @param retryPolicy      one of the {@link RetryPolicy} which should be used to retry the activity
+     * @return this {@link Decisions} object
+     */
+    Decisions retryActivity(Long scheduledEventId, String activityName, DecisionTaskContext context, RetryPolicy retryPolicy);
+
+    /**
+     * Add a "schedule activity task" decision based on the previously scheduled activity.
+     * The Id of the new activity will be replaced with the new one, all other parameters will remain.
+     *
+     * @param attributes the attributes of previously scheduled activity
+     * @return this {@link Decisions} object
+     */
+    Decisions scheduleActivityTask(ActivityTaskScheduledEventAttributes attributes);
 }

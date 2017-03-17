@@ -10,6 +10,7 @@ import com.solambda.swiffer.api.WorkflowType;
 import com.solambda.swiffer.api.duration.DurationTransformer;
 import com.solambda.swiffer.api.internal.VersionedName;
 import com.solambda.swiffer.api.mapper.DataMapper;
+import com.solambda.swiffer.api.retry.RetryPolicy;
 
 public class WorkflowTemplateFactory {
 
@@ -17,10 +18,12 @@ public class WorkflowTemplateFactory {
 
 	private final DataMapper dataMapper;
 	private final DurationTransformer durationTransformer;
+	private final RetryPolicy globalRetryPolicy;
 
-	public WorkflowTemplateFactory(DataMapper dataMapper, DurationTransformer durationTransformer) {
+	public WorkflowTemplateFactory(DataMapper dataMapper, DurationTransformer durationTransformer, RetryPolicy globalRetryPolicy) {
 		this.dataMapper = dataMapper;
 		this.durationTransformer = durationTransformer;
+        this.globalRetryPolicy = globalRetryPolicy;
 	}
 
 	/**
@@ -34,8 +37,9 @@ public class WorkflowTemplateFactory {
 	public WorkflowTemplate createWorkflowTemplate(final Object template) {
 		final VersionedName workflowType = createWorkflowType(template);
 		LOGGER.debug("WorkflowType found: name={}, version={}", workflowType.name(), workflowType.version());
-		final EventHandlerRegistryFactory builder = new EventHandlerRegistryFactory(workflowType, dataMapper);
+		final EventHandlerRegistryFactory builder = new EventHandlerRegistryFactory(workflowType, dataMapper, globalRetryPolicy);
 		final EventHandlerRegistry eventHandlerRegistry = builder.build(template);
+
 		return new WorkflowTemplateImpl(workflowType, eventHandlerRegistry, dataMapper, durationTransformer);
 	}
 
