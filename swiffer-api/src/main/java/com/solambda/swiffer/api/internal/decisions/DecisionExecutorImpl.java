@@ -8,7 +8,6 @@ import org.slf4j.LoggerFactory;
 import com.amazonaws.services.simpleworkflow.AmazonSimpleWorkflow;
 import com.amazonaws.services.simpleworkflow.model.Decision;
 import com.amazonaws.services.simpleworkflow.model.RespondDecisionTaskCompletedRequest;
-import com.amazonaws.services.simpleworkflow.model.UnknownResourceException;
 import com.solambda.swiffer.api.Decisions;
 
 public class DecisionExecutorImpl implements DecisionExecutor {
@@ -23,17 +22,13 @@ public class DecisionExecutorImpl implements DecisionExecutor {
 
 	@Override
 	public void apply(final DecisionTaskContext context, final Decisions decisions) {
-		try {
-			final Collection<Decision> decisionList = ((DecisionsImpl) decisions).get();
-			LOGGER.debug("Responding SWF with {} decisions: {}", decisionList.size(), decisions);
-			this.swf.respondDecisionTaskCompleted(new RespondDecisionTaskCompletedRequest()
-					.withDecisions(decisionList)
-					// FIXME: why and how to get it ? (appart from externally ?)
-					// .withExecutionContext(executionContext)
-					.withTaskToken(context.taskToken()));
-		} catch (final UnknownResourceException e) {
-			throw new IllegalStateException(String.format("Cannot apply decisions for context %s", context), e);
-		}
+		final Collection<Decision> decisionList = ((DecisionsImpl) decisions).get();
+		LOGGER.debug("Responding SWF with {} decisions: {}", decisionList.size(), decisions);
+		this.swf.respondDecisionTaskCompleted(new RespondDecisionTaskCompletedRequest()
+													  .withDecisions(decisionList)
+													  // FIXME: why and how to get it ? (appart from externally ?)
+													  // .withExecutionContext(executionContext)
+													  .withTaskToken(context.taskToken()));
 	}
 
 }

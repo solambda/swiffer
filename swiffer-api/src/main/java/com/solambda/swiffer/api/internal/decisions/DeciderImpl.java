@@ -3,6 +3,7 @@ package com.solambda.swiffer.api.internal.decisions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.amazonaws.services.simpleworkflow.model.UnknownResourceException;
 import com.solambda.swiffer.api.Decider;
 import com.solambda.swiffer.api.Decisions;
 import com.solambda.swiffer.api.internal.AbstractTaskListService;
@@ -46,10 +47,13 @@ public class DeciderImpl extends AbstractTaskListService<DecisionTaskContext> im
 	}
 
 	private void execute(final DecisionTaskContext context,
-			final WorkflowTemplate template) {
+						 final WorkflowTemplate template) {
 		try {
 			final Decisions decisions = template.decide(context);
 			this.executor.apply(context, decisions);
+		} catch (UnknownResourceException ex) {
+			//TODO: add more sophisticated error handling?
+			LOGGER.error("Cannot make decisions based on the context  " + context, ex);
 		} catch (final Exception e) {
 			// how to recover from that ?
 			// use a marker for failure, and externally relaunch ?
