@@ -43,7 +43,7 @@ public abstract class AbstractTaskContextPoller<T extends TaskContext> implement
 		}
 		try {
 			this.currentPollingOperation = this.executor.submit(() -> pollForTask());
-			return this.currentPollingOperation.get(70, TimeUnit.SECONDS);
+			return this.currentPollingOperation.get(80, TimeUnit.SECONDS);
 		} catch (final CancellationException e1) {
 			// was requested to stop
 			this.LOGGER.info("Cancelling the polling operation, the poller was requested to stop.");
@@ -55,10 +55,9 @@ public abstract class AbstractTaskContextPoller<T extends TaskContext> implement
 					this.domain, this.identity, this.taskList);
 			throw new TaskContextPollingException(message, e1.getCause());
 		} catch (final TimeoutException e) {
-			throw new IllegalStateException(
-					String.format("[%s:%s] Polling tasklist %s error ! Should never timeout after 70 seconds !",
-							this.domain, this.identity, this.taskList),
-					e);
+			this.LOGGER.error("[{}:{}] Polling tasklist {} timeout !",
+					this.domain, this.identity, this.taskList, e);
+			return null;
 		} finally {
 			this.currentPollingOperation = null;
 		}
