@@ -11,6 +11,10 @@ public class WorkflowName implements ContextName {
 		this.type = type;
 	}
 
+	public WorkflowName(String name, String version) {
+		type = new VersionedName(name, version);
+	}
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;

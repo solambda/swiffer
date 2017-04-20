@@ -8,14 +8,7 @@ import java.util.function.Function;
 
 import com.amazonaws.services.simpleworkflow.model.EventType;
 import com.google.common.base.Preconditions;
-import com.solambda.swiffer.api.ActivityType;
-import com.solambda.swiffer.api.OnActivityCompleted;
-import com.solambda.swiffer.api.OnActivityFailed;
-import com.solambda.swiffer.api.OnMarkerRecorded;
-import com.solambda.swiffer.api.OnRecordMarkerFailed;
-import com.solambda.swiffer.api.OnSignalReceived;
-import com.solambda.swiffer.api.OnTimerFired;
-import com.solambda.swiffer.api.OnWorkflowStarted;
+import com.solambda.swiffer.api.*;
 import com.solambda.swiffer.api.internal.VersionedName;
 import com.solambda.swiffer.api.internal.context.identifier.ActivityName;
 import com.solambda.swiffer.api.internal.context.identifier.ContextName;
@@ -36,6 +29,14 @@ public class EventHandlerTypeFactory {
 		EVENT_HANDLER_ANNOTATION_TO_EVENT_TYPE.put(OnTimerFired.class, EventType.TimerFired);
 		EVENT_HANDLER_ANNOTATION_TO_EVENT_TYPE.put(OnMarkerRecorded.class, EventType.MarkerRecorded);
 		EVENT_HANDLER_ANNOTATION_TO_EVENT_TYPE.put(OnRecordMarkerFailed.class, EventType.RecordMarkerFailed);
+		EVENT_HANDLER_ANNOTATION_TO_EVENT_TYPE.put(OnChildWorkflowCanceled.class, EventType.ChildWorkflowExecutionCanceled);
+		EVENT_HANDLER_ANNOTATION_TO_EVENT_TYPE.put(OnChildWorkflowCompleted.class, EventType.ChildWorkflowExecutionCompleted);
+		EVENT_HANDLER_ANNOTATION_TO_EVENT_TYPE.put(OnChildWorkflowFailed.class, EventType.ChildWorkflowExecutionFailed);
+		EVENT_HANDLER_ANNOTATION_TO_EVENT_TYPE.put(OnChildWorkflowTerminated.class, EventType.ChildWorkflowExecutionTerminated);
+		EVENT_HANDLER_ANNOTATION_TO_EVENT_TYPE.put(OnChildWorkflowTimedOut.class, EventType.ChildWorkflowExecutionTimedOut);
+		EVENT_HANDLER_ANNOTATION_TO_EVENT_TYPE.put(OnChildWorkflowStarted.class, EventType.ChildWorkflowExecutionStarted);
+		EVENT_HANDLER_ANNOTATION_TO_EVENT_TYPE.put(OnStartChildWorkflowFailed.class, EventType.StartChildWorkflowExecutionFailed);
+		EVENT_HANDLER_ANNOTATION_TO_EVENT_TYPE.put(OnWorkflowCancelRequested.class, EventType.WorkflowExecutionCancelRequested);
 	}
 
 	private static interface ContextNameProvider<A extends Annotation> extends Function<A, ContextName> {
@@ -51,6 +52,14 @@ public class EventHandlerTypeFactory {
 		map.put(OnTimerFired.class, (ContextNameProvider<OnTimerFired>) this::toContextName);
 		map.put(OnMarkerRecorded.class, (ContextNameProvider<OnMarkerRecorded>) this::toContextName);
 		map.put(OnRecordMarkerFailed.class, (ContextNameProvider<OnRecordMarkerFailed>) this::toContextName);
+		map.put(OnChildWorkflowCanceled.class, (ContextNameProvider<OnChildWorkflowCanceled>) this::toContextName);
+		map.put(OnChildWorkflowCompleted.class, (ContextNameProvider<OnChildWorkflowCompleted>) this::toContextName);
+		map.put(OnChildWorkflowFailed.class, (ContextNameProvider<OnChildWorkflowFailed>) this::toContextName);
+		map.put(OnChildWorkflowTerminated.class, (ContextNameProvider<OnChildWorkflowTerminated>) this::toContextName);
+		map.put(OnChildWorkflowTimedOut.class, (ContextNameProvider<OnChildWorkflowTimedOut>) this::toContextName);
+		map.put(OnChildWorkflowStarted.class, (ContextNameProvider<OnChildWorkflowStarted>) this::toContextName);
+		map.put(OnStartChildWorkflowFailed.class, (ContextNameProvider<OnStartChildWorkflowFailed>) this::toContextName);
+		map.put(OnWorkflowCancelRequested.class, (ContextNameProvider<OnWorkflowCancelRequested>) this::toContextName);
 	}
 
 	private VersionedName workflowType;
@@ -149,6 +158,43 @@ public class EventHandlerTypeFactory {
 
 	private ContextName toContextName(OnRecordMarkerFailed annotation) {
 		return new MarkerName(annotation.value());
+	}
+
+	private ContextName toContextName(OnWorkflowCancelRequested annotation) {
+		return new WorkflowName(workflowType);
+	}
+
+	private ContextName toContextName(OnChildWorkflowCanceled annotation) {
+		return toChildWorkflowName(annotation.value());
+	}
+
+	private ContextName toContextName(OnChildWorkflowCompleted annotation) {
+		return toChildWorkflowName(annotation.value());
+	}
+
+	private ContextName toContextName(OnChildWorkflowFailed annotation) {
+		return toChildWorkflowName(annotation.value());
+	}
+
+	private ContextName toContextName(OnChildWorkflowTerminated annotation) {
+		return toChildWorkflowName(annotation.value());
+	}
+
+	private ContextName toContextName(OnChildWorkflowTimedOut annotation) {
+		return toChildWorkflowName(annotation.value());
+	}
+
+	private ContextName toContextName(OnChildWorkflowStarted annotation) {
+		return toChildWorkflowName(annotation.value());
+	}
+
+	private ContextName toContextName(OnStartChildWorkflowFailed annotation) {
+		return toChildWorkflowName(annotation.value());
+	}
+
+	private ContextName toChildWorkflowName(Class<?> annotation) {
+		WorkflowType childWorkflow = annotation.getAnnotation(WorkflowType.class);
+		return new WorkflowName(childWorkflow.name(), childWorkflow.version());
 	}
 
 	/**

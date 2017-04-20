@@ -4,11 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import java.lang.reflect.Method;
 import java.util.Optional;
@@ -186,6 +182,15 @@ public class EventHandlerArgumentsProviderFactoryTest {
 		assertDefaultArgumentForEventType(softly, EventType.WorkflowExecutionStarted, INPUT);
 		assertDefaultArgumentForEventType(softly, EventType.WorkflowExecutionSignaled, INPUT);
 		assertDefaultArgumentForEventType(softly, EventType.TimerFired, CONTROL);
+
+		assertDefaultArgumentForEventType(softly, EventType.ChildWorkflowExecutionCanceled, DETAILS);
+		assertDefaultArgumentForEventType(softly, EventType.ChildWorkflowExecutionCompleted, OUTPUT);
+		assertDefaultArgumentForEventType(softly, EventType.ChildWorkflowExecutionFailed, REASON);
+		assertDefaultArgumentForEventType(softly, EventType.ChildWorkflowExecutionStarted, INITIAL_EVENT_ID);
+		assertDefaultArgumentForEventType(softly, EventType.ChildWorkflowExecutionTerminated, INITIAL_EVENT_ID);
+		assertDefaultArgumentForEventType(softly, EventType.ChildWorkflowExecutionTimedOut, INITIAL_EVENT_ID);
+		assertDefaultArgumentForEventType(softly, EventType.StartChildWorkflowExecutionFailed, CAUSE);
+		assertDefaultArgumentForEventType(softly, EventType.WorkflowExecutionCancelRequested, CAUSE);
 		softly.assertAll();
 	}
 

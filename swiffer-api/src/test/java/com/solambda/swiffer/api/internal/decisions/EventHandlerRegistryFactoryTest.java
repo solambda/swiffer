@@ -1,26 +1,16 @@
 package com.solambda.swiffer.api.internal.decisions;
 
-import static com.amazonaws.services.simpleworkflow.model.EventType.ActivityTaskCompleted;
-import static com.amazonaws.services.simpleworkflow.model.EventType.ActivityTaskFailed;
-import static com.amazonaws.services.simpleworkflow.model.EventType.MarkerRecorded;
-import static com.amazonaws.services.simpleworkflow.model.EventType.RecordMarkerFailed;
-import static com.amazonaws.services.simpleworkflow.model.EventType.TimerFired;
-import static com.amazonaws.services.simpleworkflow.model.EventType.WorkflowExecutionSignaled;
-import static com.amazonaws.services.simpleworkflow.model.EventType.WorkflowExecutionStarted;
+import static com.amazonaws.services.simpleworkflow.model.EventType.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.mock;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+
 import org.junit.Test;
 
-import com.solambda.swiffer.api.ActivityType;
-import com.solambda.swiffer.api.OnActivityCompleted;
-import com.solambda.swiffer.api.OnActivityFailed;
-import com.solambda.swiffer.api.OnMarkerRecorded;
-import com.solambda.swiffer.api.OnRecordMarkerFailed;
-import com.solambda.swiffer.api.OnSignalReceived;
-import com.solambda.swiffer.api.OnTimerFired;
-import com.solambda.swiffer.api.OnWorkflowStarted;
+import com.solambda.swiffer.api.*;
 import com.solambda.swiffer.api.exceptions.WorkflowTemplateException;
 import com.solambda.swiffer.api.internal.VersionedName;
 import com.solambda.swiffer.api.internal.context.identifier.ActivityName;
@@ -39,6 +29,8 @@ public class EventHandlerRegistryFactoryTest {
 	private static final String MARKER1 = "marker1";
 	private static final VersionedName WORKFLOW = new VersionedName("workflow1", "1");
 	private static final VersionedName ACTIVITY1 = new VersionedName("activity1", "1");
+	private static final String CHILD_WORKFLOW_NAME = "child";
+	private static final String CHILD_WORKFLOW_VERSION = "20";
 	private final DataMapper dataMapper = new JacksonDataMapper();
 	private final RetryPolicy retryPolicy = mock(RetryPolicy.class);
 
@@ -75,10 +67,34 @@ public class EventHandlerRegistryFactoryTest {
 		}
 
 		@OnMarkerRecorded(MARKER1)
-		public void onMarkerRecorded(){}
+		public void onMarkerRecorded() {}
 
 		@OnRecordMarkerFailed(MARKER1)
-		public void onRecordMarkerFailed(){}
+		public void onRecordMarkerFailed() {}
+
+		@OnChildWorkflowCanceled(ChildWorkflow.class)
+		public void onChildWorkflowCanceled() {}
+
+		@OnChildWorkflowCompleted(ChildWorkflow.class)
+		public void onChildWorkflowCompleted() {}
+
+		@OnChildWorkflowFailed(ChildWorkflow.class)
+		public void onChildWorkflowFailed() {}
+
+		@OnChildWorkflowStarted(ChildWorkflow.class)
+		public void onChildWorkflowStarted() {}
+
+		@OnChildWorkflowTerminated(ChildWorkflow.class)
+		public void onChildWorkflowTerminated() {}
+
+		@OnChildWorkflowTimedOut(ChildWorkflow.class)
+		public void onChildWorkflowTimedOut() {}
+
+		@OnStartChildWorkflowFailed(ChildWorkflow.class)
+		public void onStartChildWorkflowFailed() {}
+
+		@OnWorkflowCancelRequested
+		public void onWorkflowCancelRequested() {}
 	}
 
 	private static class TemplateWithTwoHandlersOfTheSameType {
@@ -95,6 +111,13 @@ public class EventHandlerRegistryFactoryTest {
 
 	}
 
+	@Retention(RetentionPolicy.RUNTIME)
+	@WorkflowType(name = CHILD_WORKFLOW_NAME, version = CHILD_WORKFLOW_VERSION)
+	public @interface ChildWorkflow {}
+
+	@ChildWorkflow
+	private static class ChildWorkflowTemplate {}
+
 	@Test
 	public void handlersAreRetrieved() {
 		final EventHandlerRegistryFactory factory = new EventHandlerRegistryFactory(WORKFLOW, dataMapper, retryPolicy);
@@ -109,6 +132,17 @@ public class EventHandlerRegistryFactoryTest {
 		assertThat(registry.get(new EventHandlerType(WorkflowExecutionSignaled, signalName))).isNotNull();
 		final WorkflowName workflowName = new WorkflowName(WORKFLOW);
 		assertThat(registry.get(new EventHandlerType(WorkflowExecutionStarted, workflowName))).isNotNull();
+
+		WorkflowName childWorkflow = new WorkflowName(CHILD_WORKFLOW_NAME, CHILD_WORKFLOW_VERSION);
+		assertThat(registry.get(new EventHandlerType(ChildWorkflowExecutionCanceled, childWorkflow))).isNotNull();
+		assertThat(registry.get(new EventHandlerType(ChildWorkflowExecutionCompleted, childWorkflow))).isNotNull();
+		assertThat(registry.get(new EventHandlerType(ChildWorkflowExecutionFailed, childWorkflow))).isNotNull();
+		assertThat(registry.get(new EventHandlerType(ChildWorkflowExecutionStarted, childWorkflow))).isNotNull();
+		assertThat(registry.get(new EventHandlerType(ChildWorkflowExecutionTerminated, childWorkflow))).isNotNull();
+		assertThat(registry.get(new EventHandlerType(ChildWorkflowExecutionTimedOut, childWorkflow))).isNotNull();
+		assertThat(registry.get(new EventHandlerType(StartChildWorkflowExecutionFailed, childWorkflow))).isNotNull();
+
+		assertThat(registry.get(new EventHandlerType(WorkflowExecutionCancelRequested, workflowName))).isNotNull();
 	}
 
 	@Test
