@@ -35,6 +35,7 @@ public class EventHandlerArgumentsProviderFactoryTest {
 	private static final String DETAILS = "details";
     private static final String MARKER_DETAILS = "markerDetails";
 	private static final Long INITIAL_EVENT_ID = 5L;
+	private static final String RUN_ID = "22OSeHwaQlI9DvOdRmlQpTZgtytsM7g73NUnoR5+aaSXc=";
 
 	private static final String MARKER_NAME = "marker";
     private static final String NO_DETAILS_MARKER_NAME = "markerNoDetails";
@@ -186,7 +187,7 @@ public class EventHandlerArgumentsProviderFactoryTest {
 		assertDefaultArgumentForEventType(softly, EventType.ChildWorkflowExecutionCanceled, DETAILS);
 		assertDefaultArgumentForEventType(softly, EventType.ChildWorkflowExecutionCompleted, OUTPUT);
 		assertDefaultArgumentForEventType(softly, EventType.ChildWorkflowExecutionFailed, REASON);
-		assertDefaultArgumentForEventType(softly, EventType.ChildWorkflowExecutionStarted, INITIAL_EVENT_ID);
+		assertDefaultArgumentForEventType(softly, EventType.ChildWorkflowExecutionStarted, RUN_ID);
 		assertDefaultArgumentForEventType(softly, EventType.ChildWorkflowExecutionTerminated, INITIAL_EVENT_ID);
 		assertDefaultArgumentForEventType(softly, EventType.ChildWorkflowExecutionTimedOut, INITIAL_EVENT_ID);
 		assertDefaultArgumentForEventType(softly, EventType.StartChildWorkflowExecutionFailed, CAUSE);
@@ -216,6 +217,7 @@ public class EventHandlerArgumentsProviderFactoryTest {
 		when(event.reason()).thenReturn(REASON);
 		when(event.details()).thenReturn(DETAILS);
 		when(event.initialEventId()).thenReturn(INITIAL_EVENT_ID);
+		when(event.runId()).thenReturn(RUN_ID);
 
         final EventContext context = mock(EventContext.class);
         when(context.event()).thenReturn(event);
