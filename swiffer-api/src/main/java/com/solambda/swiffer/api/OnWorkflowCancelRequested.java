@@ -16,7 +16,7 @@ import com.amazonaws.services.simpleworkflow.model.WorkflowExecutionCancelReques
  * The annotated method may have the following parameters:
  * <ul>
  * <li>any parameter that is common to all event handlers
- * <li>the default parameter is {@code cause}: cause for requested workflow cancellation (optional)
+ * <li>the default parameter is {@link String} {@code cause}: cause for requested workflow cancellation (optional)
  * </ul>
  *
  * @see EventHandlerCommonParameter

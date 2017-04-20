@@ -21,6 +21,7 @@ public class ArgumentProviders {
 	public static final Function<EventContext, Object> SIGNAL_NAME_PROVIDER = c -> c.event().signalName();
 	public static final Function<EventContext, Object> TIMER_ID_PROVIDER = c -> c.event().timerId();
 	public static final Function<EventContext, Object> INITIAL_EVENT_ID_PROVIDER = c -> c.event().initialEventId();
+	public static final Function<EventContext, Object> RUN_ID_PROVIDER = c -> c.event().runId();
 
 	public static Function<EventContext, Object> ensureArgumentAndThen(final Class<?> clazz,
 			final Function<EventContext, Object> then) {

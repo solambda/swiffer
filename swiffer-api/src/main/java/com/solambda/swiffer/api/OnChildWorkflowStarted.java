@@ -16,9 +16,7 @@ import com.amazonaws.services.simpleworkflow.model.EventType;
  * The annotated method may have the following parameters:
  * <ul>
  * <li>any parameter that is common to all event handlers
- * <li>the default parameter is {@code initiatedEventId}: The ID of the {@code StartChildWorkflowExecutionInitiated} event
- * corresponding to the {@code StartChildWorkflowExecution} decision to
- * start this child workflow execution.
+ * <li>the default parameter is {@link String} {@code runId}: A system-generated unique identifier for the child workflow execution.
  * </ul>
  *
  * @see EventHandlerCommonParameter

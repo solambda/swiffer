@@ -16,7 +16,7 @@ import com.amazonaws.services.simpleworkflow.model.EventType;
  * The annotated method may have the following parameters:
  * <ul>
  * <li>any parameter that is common to all event handlers
- * <li>the default parameter is {@code details}: the details provided for workflow cancellation (if any).
+ * <li>the default parameter is {@link String} {@code details}: the details provided for workflow cancellation (if any).
  * </ul>
  *
  * @see EventHandlerCommonParameter
