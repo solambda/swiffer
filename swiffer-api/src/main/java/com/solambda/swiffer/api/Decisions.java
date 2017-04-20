@@ -184,4 +184,61 @@ public interface Decisions {
      * @return this {@link Decisions} object
      */
     Decisions scheduleActivityTask(ActivityTaskScheduledEventAttributes attributes);
+
+	/**
+	 * Adds a "Cancel Workflow Execution" decision.
+	 *
+	 * @param details details of the cancellation, optional
+	 * @return this {@link Decisions} object
+	 */
+	Decisions cancelWorkflow(String details);
+
+	/**
+	 * Adds a "Start Child Workflow Execution" decision.
+	 *
+	 * @param workflowType {@link WorkflowType} child workflow type, required
+	 * @param workflowId   child workflow ID, required
+	 * @return this {@link Decisions} object
+	 */
+	Decisions startChildWorkflow(Class<?> workflowType, String workflowId);
+
+	/**
+	 * Adds a "Start Child Workflow Execution" decision.
+	 *
+	 * @param workflowType {@link WorkflowType} child workflow type, required
+	 * @param workflowId   child workflow ID, required
+	 * @param input        the input for the workflow execution, optional
+	 * @return this {@link Decisions} object
+	 */
+	Decisions startChildWorkflow(Class<?> workflowType, String workflowId, Object input);
+
+	/**
+	 * Adds a "Start Child Workflow Execution" decision.
+	 *
+	 * @param workflowType {@link WorkflowType} child workflow type, required
+	 * @param workflowId   child workflow ID, required
+	 * @param input        the input for the workflow execution, optional
+	 * @param options      {@link WorkflowOptions} with additional parameters for child workflow execution, optional
+	 * @return this {@link Decisions} object
+	 */
+	Decisions startChildWorkflow(Class<?> workflowType, String workflowId, Object input, WorkflowOptions options);
+
+	/**
+	 * Adds a "Request Cancel External Workflow Execution" decision.
+	 *
+	 * @param workflowId ID of workflow to cancel, required
+	 * @param runId      run ID of workflow to cancel, required
+	 * @return this {@link Decisions} object
+	 */
+	Decisions requestCancelExternalWorkflow(String workflowId, String runId);
+
+	/**
+	 * Adds a "Request Cancel External Workflow Execution" decision.
+	 *
+	 * @param workflowId ID of workflow to cancel, required
+	 * @param runId      run ID of workflow to cancel, required
+	 * @param control    data attached to the event that can be used by the decider in subsequent workflow tasks, optional
+	 * @return this {@link Decisions} object
+	 */
+	Decisions requestCancelExternalWorkflow(String workflowId, String runId, Object control);
 }

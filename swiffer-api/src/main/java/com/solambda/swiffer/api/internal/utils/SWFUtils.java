@@ -1,5 +1,6 @@
 package com.solambda.swiffer.api.internal.utils;
 
+import com.amazonaws.services.simpleworkflow.model.WorkflowType;
 import com.google.common.base.Preconditions;
 
 public class SWFUtils {
@@ -55,5 +56,28 @@ public class SWFUtils {
 				"must not contain a : (colon), / (slash), | (vertical bar), or any control characters (\\u0000-\\u001f | \\u007f - \\u009f).");
 		Preconditions.checkArgument(!version.contains("arn"), "must not contain the literal string 'arn'");
 		return version;
+	}
+
+	/**
+	 * Converts class with {@link com.solambda.swiffer.api.WorkflowType} annotation to the {@link WorkflowType}
+	 *
+	 * @param workflowType class, annotated with {@link com.solambda.swiffer.api.WorkflowType}
+	 * @return {@link WorkflowType} used by amazon's SWF
+	 */
+	public static WorkflowType toSWFWorkflowType(Class<?> workflowType) {
+		com.solambda.swiffer.api.WorkflowType annotation = workflowType.getAnnotation(com.solambda.swiffer.api.WorkflowType.class);
+		return new WorkflowType().withName(annotation.name()).withVersion(annotation.version());
+	}
+
+	/**
+	 * Returns a default value if the object passed is {@code null}.
+	 *
+	 * @param <T>          the type of the object
+	 * @param object       the {@code Object} to test, may be {@code null}
+	 * @param defaultValue the default value to return, may be {@code null}
+	 * @return {@code object} if it is not {@code null}, defaultValue otherwise
+	 */
+	public static <T> T defaultIfNull(T object, T defaultValue) {
+		return object != null ? object : defaultValue;
 	}
 }

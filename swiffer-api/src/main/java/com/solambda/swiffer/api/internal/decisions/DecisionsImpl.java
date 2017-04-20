@@ -10,21 +10,13 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.amazonaws.services.simpleworkflow.model.ActivityTaskScheduledEventAttributes;
-import com.amazonaws.services.simpleworkflow.model.ActivityType;
-import com.amazonaws.services.simpleworkflow.model.CancelTimerDecisionAttributes;
-import com.amazonaws.services.simpleworkflow.model.CancelWorkflowExecutionDecisionAttributes;
-import com.amazonaws.services.simpleworkflow.model.CompleteWorkflowExecutionDecisionAttributes;
-import com.amazonaws.services.simpleworkflow.model.Decision;
-import com.amazonaws.services.simpleworkflow.model.DecisionType;
-import com.amazonaws.services.simpleworkflow.model.FailWorkflowExecutionDecisionAttributes;
-import com.amazonaws.services.simpleworkflow.model.RecordMarkerDecisionAttributes;
-import com.amazonaws.services.simpleworkflow.model.ScheduleActivityTaskDecisionAttributes;
-import com.amazonaws.services.simpleworkflow.model.StartTimerDecisionAttributes;
+import com.amazonaws.services.simpleworkflow.model.*;
 import com.google.common.base.Preconditions;
 import com.solambda.swiffer.api.ActivityOptions;
 import com.solambda.swiffer.api.Decisions;
+import com.solambda.swiffer.api.WorkflowOptions;
 import com.solambda.swiffer.api.duration.DurationTransformer;
+import com.solambda.swiffer.api.internal.utils.SWFUtils;
 import com.solambda.swiffer.api.mapper.DataMapper;
 import com.solambda.swiffer.api.retry.RetryControl;
 import com.solambda.swiffer.api.retry.RetryPolicy;
@@ -171,14 +163,14 @@ public class DecisionsImpl implements Decisions {
 		return this;
 	}
 
-	// TODO
-	private void cancelWorkflow(final String details) {
+	@Override
+	public Decisions cancelWorkflow(final String details) {
 		newDecision(DecisionType.CancelWorkflowExecution)
 				.withCancelWorkflowExecutionDecisionAttributes(new CancelWorkflowExecutionDecisionAttributes()
-						.withDetails(details));
+																	   .withDetails(details));
+		return this;
 	}
 
-	// TODO
 	@Override
 	public Decisions failWorkflow(final String reason, final String details) {
 		newDecision(DecisionType.FailWorkflowExecution)
@@ -186,10 +178,6 @@ public class DecisionsImpl implements Decisions {
 						.withReason(reason)
 						.withDetails(details));
 		return this;
-	}
-
-	private String nullSafeToString(final Object object) {
-		return object == null ? null : object.toString();
 	}
 
 	@Override
@@ -231,8 +219,64 @@ public class DecisionsImpl implements Decisions {
     }
 
 	@Override
+	public Decisions startChildWorkflow(Class<?> workflowType, String workflowId) {
+		return startChildWorkflow(workflowType, workflowId, null, null);
+	}
+
+	@Override
+	public Decisions startChildWorkflow(Class<?> workflowType, String workflowId, Object input) {
+		return startChildWorkflow(workflowType, workflowId, input, null);
+	}
+
+	@Override
+	public Decisions startChildWorkflow(Class<?> workflowType, String workflowId, Object input, WorkflowOptions options) {
+		SWFUtils.checkId(workflowId);
+		Preconditions.checkNotNull(workflowType, "Workflow Type is required");
+
+		WorkflowOptions params = SWFUtils.defaultIfNull(options, new WorkflowOptions());
+
+		StartChildWorkflowExecutionDecisionAttributes attributes = new StartChildWorkflowExecutionDecisionAttributes()
+				.withWorkflowType(SWFUtils.toSWFWorkflowType(workflowType))
+				.withWorkflowId(workflowId)
+				.withInput(serialize(input))
+				.withExecutionStartToCloseTimeout(params.getMaxExecutionDuration())
+				.withTaskList(params.getTaskList())
+				.withTaskPriority(params.getTaskPriority())
+				.withTaskStartToCloseTimeout(params.getMaxDecisionTaskDuration());
+		if (params.getChildTerminationPolicy() != null){
+			attributes.setChildPolicy(params.getChildTerminationPolicy());
+		}
+
+
+		newDecision(DecisionType.StartChildWorkflowExecution).withStartChildWorkflowExecutionDecisionAttributes(attributes);
+		return this;
+	}
+
+	@Override
+	public Decisions requestCancelExternalWorkflow(String workflowId, String runId) {
+		return requestCancelExternalWorkflow(workflowId, runId, null);
+	}
+
+	@Override
+	public Decisions requestCancelExternalWorkflow(String workflowId, String runId, Object control) {
+		SWFUtils.checkId(workflowId);
+		Preconditions.checkNotNull(runId, "Workflow Run ID is required");
+
+		newDecision(DecisionType.RequestCancelExternalWorkflowExecution)
+				.withRequestCancelExternalWorkflowExecutionDecisionAttributes(new RequestCancelExternalWorkflowExecutionDecisionAttributes()
+																					  .withWorkflowId(workflowId)
+																					  .withRunId(runId)
+																					  .withControl(serialize(control)));
+		return this;
+	}
+
+	@Override
 	public String toString() {
 		return "Decisions=" + this.decisions + "";
+	}
+
+	private String nullSafeToString(final Object object) {
+		return object == null ? null : object.toString();
 	}
 
 	private String getTimerDuration(String timerId, Duration duration) {
