@@ -10,26 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.amazonaws.services.simpleworkflow.AmazonSimpleWorkflow;
-import com.amazonaws.services.simpleworkflow.model.ChildPolicy;
-import com.amazonaws.services.simpleworkflow.model.DescribeWorkflowExecutionRequest;
-import com.amazonaws.services.simpleworkflow.model.ExecutionStatus;
-import com.amazonaws.services.simpleworkflow.model.ExecutionTimeFilter;
-import com.amazonaws.services.simpleworkflow.model.GetWorkflowExecutionHistoryRequest;
-import com.amazonaws.services.simpleworkflow.model.History;
-import com.amazonaws.services.simpleworkflow.model.HistoryEvent;
-import com.amazonaws.services.simpleworkflow.model.ListClosedWorkflowExecutionsRequest;
-import com.amazonaws.services.simpleworkflow.model.ListOpenWorkflowExecutionsRequest;
-import com.amazonaws.services.simpleworkflow.model.RequestCancelWorkflowExecutionRequest;
-import com.amazonaws.services.simpleworkflow.model.SignalWorkflowExecutionRequest;
-import com.amazonaws.services.simpleworkflow.model.StartWorkflowExecutionRequest;
-import com.amazonaws.services.simpleworkflow.model.TerminateWorkflowExecutionRequest;
-import com.amazonaws.services.simpleworkflow.model.UnknownResourceException;
-import com.amazonaws.services.simpleworkflow.model.WorkflowExecution;
-import com.amazonaws.services.simpleworkflow.model.WorkflowExecutionAlreadyStartedException;
-import com.amazonaws.services.simpleworkflow.model.WorkflowExecutionDetail;
-import com.amazonaws.services.simpleworkflow.model.WorkflowExecutionFilter;
-import com.amazonaws.services.simpleworkflow.model.WorkflowExecutionInfo;
-import com.amazonaws.services.simpleworkflow.model.WorkflowExecutionInfos;
+import com.amazonaws.services.simpleworkflow.model.*;
 import com.amazonaws.services.simpleworkflow.model.WorkflowType;
 import com.google.common.base.Preconditions;
 import com.solambda.swiffer.api.duration.DefaultDurationTransformer;
@@ -338,6 +319,19 @@ public class Swiffer {
 		} while (currentPage <= numberOfPages && nextPageToken != null);
 
 		return allEvents;
+	}
+
+	/**
+	 * Sends request to cancel specified workflow.
+	 *
+	 * @param workflowId workflow ID
+	 * @param runId      workflow run ID
+	 */
+	public void cancelWorkflow(String workflowId, String runId) {
+		Preconditions.checkNotNull(workflowId, "Workflow ID must be specified.");
+		Preconditions.checkNotNull(runId, "Workflow run ID must be specified.");
+
+		doCancel(workflowId, runId);
 	}
 
 	private WorkflowExecutionInfo getWorkflowExecution(final String workflowId, final String runId) {
