@@ -7,7 +7,7 @@ import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-import com.amazonaws.services.simpleworkflow.model.ChildWorkflowExecutionTimedOutEventAttributes;
+import com.amazonaws.services.simpleworkflow.model.ChildWorkflowExecutionTerminatedEventAttributes;
 import com.amazonaws.services.simpleworkflow.model.EventType;
 
 /**
@@ -22,7 +22,7 @@ import com.amazonaws.services.simpleworkflow.model.EventType;
  * </ul>
  *
  * @see EventHandlerCommonParameter
- * @see ChildWorkflowExecutionTimedOutEventAttributes
+ * @see ChildWorkflowExecutionTerminatedEventAttributes
  */
 @Documented
 @Retention(RUNTIME)

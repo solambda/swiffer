@@ -7,7 +7,7 @@ import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-import com.amazonaws.services.simpleworkflow.model.CancelWorkflowExecutionFailedEventAttributes;
+import com.amazonaws.services.simpleworkflow.model.ChildWorkflowExecutionFailedEventAttributes;
 import com.amazonaws.services.simpleworkflow.model.EventType;
 
 /**
@@ -20,7 +20,7 @@ import com.amazonaws.services.simpleworkflow.model.EventType;
  * </ul>
  *
  * @see EventHandlerCommonParameter
- * @see CancelWorkflowExecutionFailedEventAttributes
+ * @see ChildWorkflowExecutionFailedEventAttributes
  */
 @Documented
 @Retention(RUNTIME)

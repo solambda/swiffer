@@ -175,4 +175,19 @@ public class EventContextImpl implements
 	public String getExternalWorkflowRunId() {
 		return event.getExternalWorkflowRunId();
 	}
+
+	@Override
+	public String childWorkflowId() {
+		return event.childWorkflowId();
+	}
+
+	@Override
+	public String childWorkflowRunId() {
+		return event.childWorkflowRunId();
+	}
+
+	@Override
+	public String workflowId() {
+		return decisionContext.workflowId();
+	}
 }

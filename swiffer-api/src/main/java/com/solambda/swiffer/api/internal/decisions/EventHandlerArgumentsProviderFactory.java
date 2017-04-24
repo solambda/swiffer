@@ -165,7 +165,7 @@ public class EventHandlerArgumentsProviderFactory {
 			case ChildWorkflowExecutionFailed:
 				return wrapInBiFunction(REASON_PROVIDER);
 			case ChildWorkflowExecutionStarted:
-				return wrapInBiFunction(RUN_ID_PROVIDER);
+				return wrapInBiFunction(CHILD_RUN_ID_PROVIDER);
 			case ChildWorkflowExecutionTerminated:
 				return wrapInBiFunction(INITIAL_EVENT_ID_PROVIDER);
 			case ChildWorkflowExecutionTimedOut:

@@ -66,7 +66,12 @@ public class DecisionTaskContextImpl implements DecisionTaskContext {
 		return new VersionedName(workflowType.getName(), workflowType.getVersion());
 	}
 
-    @Override
+	@Override
+	public String workflowId() {
+		return decisionTask.getWorkflowExecution().getWorkflowId();
+	}
+
+	@Override
     public boolean hasMarker(String markerName) {
         return decisionTask.getEvents().stream().anyMatch(isMarkerRecordedEvent(markerName));
     }

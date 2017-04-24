@@ -1161,12 +1161,141 @@ public class WorkflowEvent implements Comparable<WorkflowEvent> {
 		}
 	}
 
-	public String runId() {
+	public String childWorkflowId() {
 		switch (type()) {
+			case ChildWorkflowExecutionCanceled:
+				return historyEvent().getChildWorkflowExecutionCanceledEventAttributes().getWorkflowExecution().getWorkflowId();
+			case ChildWorkflowExecutionCompleted:
+				return historyEvent().getChildWorkflowExecutionCompletedEventAttributes().getWorkflowExecution().getWorkflowId();
+			case ChildWorkflowExecutionFailed:
+				return historyEvent().getChildWorkflowExecutionFailedEventAttributes().getWorkflowExecution().getWorkflowId();
+			case ChildWorkflowExecutionStarted:
+				return historyEvent().getChildWorkflowExecutionStartedEventAttributes().getWorkflowExecution().getWorkflowId();
+			case ChildWorkflowExecutionTerminated:
+				return historyEvent().getChildWorkflowExecutionTerminatedEventAttributes().getWorkflowExecution().getWorkflowId();
+			case ChildWorkflowExecutionTimedOut:
+				return historyEvent().getChildWorkflowExecutionTimedOutEventAttributes().getWorkflowExecution().getWorkflowId();
+			case StartChildWorkflowExecutionInitiated:
+				return historyEvent().getStartChildWorkflowExecutionInitiatedEventAttributes().getWorkflowId();
+			case StartChildWorkflowExecutionFailed:
+				return historyEvent().getStartChildWorkflowExecutionFailedEventAttributes().getWorkflowId();
+			case ActivityTaskScheduled:
+			case CompleteWorkflowExecutionFailed:
+			case FailWorkflowExecutionFailed:
+			case CancelWorkflowExecutionFailed:
+			case ContinueAsNewWorkflowExecutionFailed:
+			case WorkflowExecutionCancelRequested:
+			case RequestCancelActivityTaskFailed:
+			case StartTimerFailed:
+			case ActivityTaskCancelRequested:
+			case ActivityTaskCanceled:
+			case ActivityTaskCompleted:
+			case ActivityTaskFailed:
+			case ActivityTaskStarted:
+			case ActivityTaskTimedOut:
+			case CancelTimerFailed:
+			case DecisionTaskCompleted:
+			case DecisionTaskScheduled:
+			case DecisionTaskStarted:
+			case DecisionTaskTimedOut:
+			case ExternalWorkflowExecutionCancelRequested:
+			case ExternalWorkflowExecutionSignaled:
+			case LambdaFunctionCompleted:
+			case LambdaFunctionFailed:
+			case LambdaFunctionScheduled:
+			case LambdaFunctionStarted:
+			case LambdaFunctionTimedOut:
+			case MarkerRecorded:
+			case RecordMarkerFailed:
+			case RequestCancelExternalWorkflowExecutionFailed:
+			case RequestCancelExternalWorkflowExecutionInitiated:
+			case ScheduleActivityTaskFailed:
+			case ScheduleLambdaFunctionFailed:
+			case SignalExternalWorkflowExecutionFailed:
+			case SignalExternalWorkflowExecutionInitiated:
+			case StartLambdaFunctionFailed:
+			case TimerCanceled:
+			case TimerFired:
+			case TimerStarted:
+			case WorkflowExecutionCanceled:
+			case WorkflowExecutionCompleted:
+			case WorkflowExecutionContinuedAsNew:
+			case WorkflowExecutionFailed:
+			case WorkflowExecutionSignaled:
+			case WorkflowExecutionStarted:
+			case WorkflowExecutionTerminated:
+			case WorkflowExecutionTimedOut:
+				return null;
+			default:
+				throw new IllegalArgumentException("Unknown EventType " + type());
+		}
+	}
+
+	public String childWorkflowRunId() {
+		switch (type()) {
+			case ChildWorkflowExecutionCanceled:
+				return historyEvent().getChildWorkflowExecutionCanceledEventAttributes().getWorkflowExecution().getRunId();
+			case ChildWorkflowExecutionCompleted:
+				return historyEvent().getChildWorkflowExecutionCompletedEventAttributes().getWorkflowExecution().getRunId();
+			case ChildWorkflowExecutionFailed:
+				return historyEvent().getChildWorkflowExecutionFailedEventAttributes().getWorkflowExecution().getRunId();
 			case ChildWorkflowExecutionStarted:
 				return historyEvent().getChildWorkflowExecutionStartedEventAttributes().getWorkflowExecution().getRunId();
-			default:
+			case ChildWorkflowExecutionTerminated:
+				return historyEvent().getChildWorkflowExecutionTerminatedEventAttributes().getWorkflowExecution().getRunId();
+			case ChildWorkflowExecutionTimedOut:
+				return historyEvent().getChildWorkflowExecutionTimedOutEventAttributes().getWorkflowExecution().getRunId();
+			case ActivityTaskScheduled:
+			case CompleteWorkflowExecutionFailed:
+			case FailWorkflowExecutionFailed:
+			case CancelWorkflowExecutionFailed:
+			case ContinueAsNewWorkflowExecutionFailed:
+			case WorkflowExecutionCancelRequested:
+			case RequestCancelActivityTaskFailed:
+			case StartTimerFailed:
+			case ActivityTaskCancelRequested:
+			case ActivityTaskCanceled:
+			case ActivityTaskCompleted:
+			case ActivityTaskFailed:
+			case ActivityTaskStarted:
+			case ActivityTaskTimedOut:
+			case CancelTimerFailed:
+			case DecisionTaskCompleted:
+			case DecisionTaskScheduled:
+			case DecisionTaskStarted:
+			case DecisionTaskTimedOut:
+			case ExternalWorkflowExecutionCancelRequested:
+			case ExternalWorkflowExecutionSignaled:
+			case LambdaFunctionCompleted:
+			case LambdaFunctionFailed:
+			case LambdaFunctionScheduled:
+			case LambdaFunctionStarted:
+			case LambdaFunctionTimedOut:
+			case MarkerRecorded:
+			case RecordMarkerFailed:
+			case RequestCancelExternalWorkflowExecutionFailed:
+			case RequestCancelExternalWorkflowExecutionInitiated:
+			case ScheduleActivityTaskFailed:
+			case ScheduleLambdaFunctionFailed:
+			case SignalExternalWorkflowExecutionFailed:
+			case SignalExternalWorkflowExecutionInitiated:
+			case StartChildWorkflowExecutionInitiated:
+			case StartChildWorkflowExecutionFailed:
+			case StartLambdaFunctionFailed:
+			case TimerCanceled:
+			case TimerFired:
+			case TimerStarted:
+			case WorkflowExecutionCanceled:
+			case WorkflowExecutionCompleted:
+			case WorkflowExecutionContinuedAsNew:
+			case WorkflowExecutionFailed:
+			case WorkflowExecutionSignaled:
+			case WorkflowExecutionStarted:
+			case WorkflowExecutionTerminated:
+			case WorkflowExecutionTimedOut:
 				return null;
+			default:
+				throw new IllegalArgumentException("Unknown EventType " + type());
 		}
 	}
 

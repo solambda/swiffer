@@ -20,6 +20,11 @@ public interface DecisionTaskContext extends TaskContext {
 	VersionedName workflowType();
 
 	/**
+	 * @return the ID of workflow which is being executed
+	 */
+	String workflowId();
+
+	/**
 	 * @return the new {@link WorkflowEvent}s received since the last
 	 *         decision-making, sorted by ascending {@link WorkflowEvent#id()}s
 	 *         (most recent last)
