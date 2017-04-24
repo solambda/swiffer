@@ -3,6 +3,7 @@ package com.solambda.swiffer.api;
 import java.time.Duration;
 
 import com.amazonaws.services.simpleworkflow.model.ActivityTaskScheduledEventAttributes;
+import com.solambda.swiffer.api.internal.context.ActivityTaskFailedContext;
 import com.solambda.swiffer.api.internal.decisions.DecisionTaskContext;
 import com.solambda.swiffer.api.retry.RetryPolicy;
 
@@ -153,6 +154,15 @@ public interface Decisions {
      * @return this decision object
      */
     Decisions recordMarker(String markerName);
+
+	/**
+	 * Automatically retries failed activity specified by {@link ActivityTaskFailedContext} with default retry policy.
+	 *
+	 * @param scheduledEventId id of the ActivityTaskScheduled event that was recorded when activity task that failed was scheduled
+	 * @param context          the context of the failed activity task
+	 * @return this {@link Decisions} object
+	 */
+	Decisions retryActivity(Long scheduledEventId, ActivityTaskFailedContext context);
 
     /**
      * Automatically retries failed activity {@code activityType} with specified {@code retryPolicy}.

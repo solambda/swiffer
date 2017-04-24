@@ -16,6 +16,7 @@ import com.solambda.swiffer.api.ActivityOptions;
 import com.solambda.swiffer.api.Decisions;
 import com.solambda.swiffer.api.WorkflowOptions;
 import com.solambda.swiffer.api.duration.DurationTransformer;
+import com.solambda.swiffer.api.internal.context.ActivityTaskFailedContext;
 import com.solambda.swiffer.api.internal.utils.SWFUtils;
 import com.solambda.swiffer.api.mapper.DataMapper;
 import com.solambda.swiffer.api.retry.RetryControl;
@@ -27,11 +28,13 @@ public class DecisionsImpl implements Decisions {
 	private List<Decision> decisions;
 	private final DataMapper dataMapper;
 	private final DurationTransformer durationTransformer;
+	private final RetryPolicy globalRetryPolicy;
 
-	public DecisionsImpl(DataMapper dataMapper, DurationTransformer durationTransformer) {
+	public DecisionsImpl(DataMapper dataMapper, DurationTransformer durationTransformer, RetryPolicy globalRetryPolicy) {
 		this.decisions = new ArrayList<>();
 		this.dataMapper = dataMapper;
 		this.durationTransformer = durationTransformer;
+		this.globalRetryPolicy = globalRetryPolicy;
 	}
 
 	/**
@@ -82,6 +85,12 @@ public class DecisionsImpl implements Decisions {
 	@Override
 	public Decisions scheduleActivityTask(final Class<?> activityType, final ActivityOptions options) {
 		return doScheduleActivityTask(activityType, null, null, options);
+	}
+
+	@Override
+	public Decisions retryActivity(Long scheduledEventId, ActivityTaskFailedContext context) {
+		String activityName = context.activityType().name();
+		return retryActivity(scheduledEventId, activityName, context, globalRetryPolicy);
 	}
 
     @Override

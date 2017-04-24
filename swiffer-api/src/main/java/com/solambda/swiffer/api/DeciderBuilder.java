@@ -1,5 +1,6 @@
 package com.solambda.swiffer.api;
 
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -18,6 +19,7 @@ import com.solambda.swiffer.api.internal.decisions.WorkflowTemplateFactory;
 import com.solambda.swiffer.api.internal.decisions.WorkflowTemplateRegistry;
 import com.solambda.swiffer.api.internal.registration.WorkflowTypeRegistry;
 import com.solambda.swiffer.api.mapper.DataMapper;
+import com.solambda.swiffer.api.retry.ExponentialRetryPolicy;
 import com.solambda.swiffer.api.retry.RetryPolicy;
 
 /**
@@ -25,6 +27,11 @@ import com.solambda.swiffer.api.retry.RetryPolicy;
  */
 public class DeciderBuilder {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DeciderBuilder.class);
+
+	/**
+	 * Default global retry policy.
+	 */
+	private static final RetryPolicy DEFAULT_RETRY_POLICY = new ExponentialRetryPolicy(Duration.ofSeconds(5), Duration.ofHours(1));
 
 	private final AmazonSimpleWorkflow swf;
 	private final String domain;
@@ -43,6 +50,7 @@ public class DeciderBuilder {
 		this.domain = domain;
 		this.dataMapper = dataMapper;
 		this.durationTransformer = durationTransformer;
+		this.globalRetryPolicy = DEFAULT_RETRY_POLICY;
 
 		this.workflowTypeRegistry = new WorkflowTypeRegistry(swf, domain);
 	}
@@ -92,18 +100,19 @@ public class DeciderBuilder {
 		return this;
 	}
 
-    /**
-     * Sets global retry policy for failed or timed out Activities.
-     * If not specified then default retry policy will be used.
-     * <p>
-     * The default retry policy retries Activities with exponentially increasing time between attempts from 5 seconds to 1 hour.
-     * The number of retries in unlimited.
-     * </p>
-     *
-     * @param globalRetryPolicy the global retry policy
-     * @return this builder
-     */
-    public DeciderBuilder globalRetryPolicy(RetryPolicy globalRetryPolicy) {
+	/**
+	 * Sets global retry policy for failed or timed out Activities.
+	 * If not specified then default retry policy will be used.
+	 * <p>
+	 * The default retry policy retries Activities with exponentially increasing time between attempts from 5 seconds to 1 hour.
+	 * The number of retries in unlimited.
+	 * </p>
+	 *
+	 * @param globalRetryPolicy the global retry policy
+	 * @return this builder
+	 * @see #DEFAULT_RETRY_POLICY
+	 */
+	public DeciderBuilder globalRetryPolicy(RetryPolicy globalRetryPolicy) {
         this.globalRetryPolicy = globalRetryPolicy;
         return this;
     }

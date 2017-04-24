@@ -40,7 +40,7 @@ public class WorkflowTemplateFactory {
 		final EventHandlerRegistryFactory builder = new EventHandlerRegistryFactory(workflowType, dataMapper, globalRetryPolicy);
 		final EventHandlerRegistry eventHandlerRegistry = builder.build(template);
 
-		return new WorkflowTemplateImpl(workflowType, eventHandlerRegistry, dataMapper, durationTransformer);
+		return new WorkflowTemplateImpl(workflowType, eventHandlerRegistry, dataMapper, durationTransformer, globalRetryPolicy);
 	}
 
 	private VersionedName createWorkflowType(final Object template) {

@@ -24,6 +24,8 @@ import com.solambda.swiffer.api.ActivityType;
 import com.solambda.swiffer.api.Decisions;
 import com.solambda.swiffer.api.WorkflowOptions;
 import com.solambda.swiffer.api.duration.DurationTransformer;
+import com.solambda.swiffer.api.internal.VersionedName;
+import com.solambda.swiffer.api.internal.context.ActivityTaskFailedContext;
 import com.solambda.swiffer.api.mapper.DataMapper;
 import com.solambda.swiffer.api.retry.RetryControl;
 import com.solambda.swiffer.api.retry.RetryPolicy;
@@ -34,7 +36,8 @@ import com.solambda.swiffer.api.retry.RetryPolicy;
 public class DecisionsImplTest {
     private final DataMapper dataMapper = mock(DataMapper.class);
     private final DurationTransformer durationTransformer = mock(DurationTransformer.class);
-    private final DecisionsImpl decisions = new DecisionsImpl(dataMapper, durationTransformer);
+    private final RetryPolicy globalRetryPolicy = mock(RetryPolicy.class);
+    private final DecisionsImpl decisions = new DecisionsImpl(dataMapper, durationTransformer, globalRetryPolicy);
 
     private static final WorkflowType CHILD_WORKFLOW_TYPE = new WorkflowType().withName("child").withVersion("1");
     /**
@@ -147,6 +150,35 @@ public class DecisionsImplTest {
         spy.retryActivity(scheduledEventId, "act", context, retryPolicy);
 
         verify(spy, never()).startTimer(any(), any(), any());
+    }
+
+    @Test
+    public void retryActivity_FromContext() {
+        String activityName = "activity";
+        String expectedTimerId = RetryControl.RETRY_TIMER + activityName;
+
+        Duration nextDuration = Duration.ofSeconds(10);
+        when(globalRetryPolicy.durationToNextTry(6)).thenReturn(Optional.of(nextDuration));
+
+        VersionedName activityType = mock(VersionedName.class);
+        when(activityType.name()).thenReturn(activityName);
+
+        ActivityTaskFailedContext context = mock(ActivityTaskFailedContext.class);
+        when(context.activityType()).thenReturn(activityType);
+        when(context.getMarkerDetails(anyString(), any())).thenReturn(Optional.of(5));
+
+        when(durationTransformer.transform(nextDuration)).thenReturn(nextDuration);
+
+        Decisions spy = spy(decisions);
+        Long scheduledEventId = 777L;
+        spy.retryActivity(scheduledEventId, context);
+
+        verify(globalRetryPolicy).durationToNextTry(6);
+
+        ArgumentCaptor<RetryControl> controlArgumentCaptor = ArgumentCaptor.forClass(RetryControl.class);
+        verify(spy).startTimer(eq(expectedTimerId), eq(nextDuration), controlArgumentCaptor.capture());
+        RetryControl retryTimerControl = controlArgumentCaptor.getValue();
+        assertThat(retryTimerControl.getScheduledEventId()).isEqualTo(scheduledEventId);
     }
 
     @Test

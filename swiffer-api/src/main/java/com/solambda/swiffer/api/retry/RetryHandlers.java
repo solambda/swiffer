@@ -1,11 +1,10 @@
 package com.solambda.swiffer.api.retry;
 
-import java.time.Duration;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.amazonaws.services.simpleworkflow.model.ActivityTaskScheduledEventAttributes;
+import com.google.common.base.Preconditions;
 import com.solambda.swiffer.api.Control;
 import com.solambda.swiffer.api.Decisions;
 import com.solambda.swiffer.api.internal.context.ActivityTaskFailedContext;
@@ -22,21 +21,16 @@ public final class RetryHandlers {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RetryHandlers.class);
 
-    /**
-     * Default global retry policy.
-     */
-    private static final RetryPolicy DEFAULT_RETRY_POLICY = new ExponentialRetryPolicy(Duration.ofSeconds(5), Duration.ofHours(1));
-
     private final RetryPolicy retryPolicy;
 
     /**
      * Creates new {@link RetryHandlers} class with specified retry policy.
-     * If no retry policy is specified then default will be used.
      *
      * @param retryPolicy global retry policy for failed and timed out activities which doesn't have handlers
      */
     public RetryHandlers(RetryPolicy retryPolicy) {
-        this.retryPolicy = retryPolicy == null ? DEFAULT_RETRY_POLICY : retryPolicy;
+        Preconditions.checkNotNull(retryPolicy, "Retry policy must be specified.");
+        this.retryPolicy = retryPolicy;
     }
 
     /**

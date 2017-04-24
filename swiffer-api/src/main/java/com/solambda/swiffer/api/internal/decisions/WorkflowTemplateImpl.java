@@ -11,6 +11,7 @@ import com.solambda.swiffer.api.duration.DurationTransformer;
 import com.solambda.swiffer.api.internal.VersionedName;
 import com.solambda.swiffer.api.internal.events.HasTimerId;
 import com.solambda.swiffer.api.mapper.DataMapper;
+import com.solambda.swiffer.api.retry.RetryPolicy;
 
 public class WorkflowTemplateImpl implements WorkflowTemplate {
 
@@ -20,15 +21,18 @@ public class WorkflowTemplateImpl implements WorkflowTemplate {
 	private final EventHandlerRegistry eventHandlerRegistry;
 	private final DataMapper dataMapper;
 	private final DurationTransformer durationTransformer;
+	private final RetryPolicy globalRetryPolicy;
 
 	public WorkflowTemplateImpl(final VersionedName workflowType,
 								final EventHandlerRegistry eventHandlerRegistry,
 								DataMapper dataMapper,
-								DurationTransformer durationTransformer) {
+								DurationTransformer durationTransformer,
+								RetryPolicy globalRetryPolicy) {
         this.workflowType = workflowType;
 		this.eventHandlerRegistry = eventHandlerRegistry;
 		this.dataMapper = dataMapper;
 		this.durationTransformer = durationTransformer;
+		this.globalRetryPolicy = globalRetryPolicy;
 	}
 
 	@Override
@@ -38,7 +42,7 @@ public class WorkflowTemplateImpl implements WorkflowTemplate {
 
 	@Override
 	public Decisions decide(final DecisionTaskContext decisionContext) throws DecisionTaskExecutionException {
-		final Decisions decisions = new DecisionsImpl(dataMapper, durationTransformer);
+		final Decisions decisions = new DecisionsImpl(dataMapper, durationTransformer, globalRetryPolicy);
 		final List<WorkflowEvent> newEvents = decisionContext.newEvents();
 		LOGGER.debug("processing {} new events", newEvents.size());
 		for (final WorkflowEvent event : newEvents) {
