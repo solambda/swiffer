@@ -27,6 +27,7 @@ public class EventHandlerFactoryTest {
 
     private VersionedName workflowType = mock(VersionedName.class);
     private DataMapper dataMapper = mock(DataMapper.class);
+    private RetryPolicy retryPolicy = mock(RetryPolicy.class);
 
     private final Method onFailureMethod = getOnFailureMethod();
     private final Method onTimeoutMethod = getOnTimeoutMethod();
@@ -35,7 +36,7 @@ public class EventHandlerFactoryTest {
 
     @Test
     public void createFailedActivityHandler() throws Exception {
-        EventHandlerFactory eventHandlerFactory = spy(new EventHandlerFactory(workflowType, dataMapper, null));
+        EventHandlerFactory eventHandlerFactory = spy(new EventHandlerFactory(workflowType, dataMapper, retryPolicy));
         EventHandler handler = eventHandlerFactory.createFailedActivityHandler();
 
         verify(eventHandlerFactory).createEventHandler(any(RetryHandlers.class), eq(EventHandlerFactory.FAILED_ACTIVITY), eq(onFailureMethod));
@@ -44,7 +45,7 @@ public class EventHandlerFactoryTest {
 
     @Test
     public void createTimedOutActivityHandler() throws Exception {
-        EventHandlerFactory eventHandlerFactory = spy(new EventHandlerFactory(workflowType, dataMapper, null));
+        EventHandlerFactory eventHandlerFactory = spy(new EventHandlerFactory(workflowType, dataMapper, retryPolicy));
         EventHandler handler = eventHandlerFactory.createTimedOutActivityHandler();
 
         verify(eventHandlerFactory).createEventHandler(any(RetryHandlers.class), eq(EventHandlerFactory.TIMED_OUT_ACTIVITY), eq(onTimeoutMethod));
@@ -53,7 +54,7 @@ public class EventHandlerFactoryTest {
 
     @Test
     public void createRetryTimerFiredHandler() throws Exception {
-        EventHandlerFactory eventHandlerFactory = spy(new EventHandlerFactory(workflowType, dataMapper, null));
+        EventHandlerFactory eventHandlerFactory = spy(new EventHandlerFactory(workflowType, dataMapper, retryPolicy));
         EventHandler handler = eventHandlerFactory.createRetryTimerFiredHandler();
 
         verify(eventHandlerFactory).createEventHandler(any(RetryHandlers.class), eq(EventHandlerFactory.RETRY_TIMER_FIRED), eq(onRetryTimerFiredMethod));

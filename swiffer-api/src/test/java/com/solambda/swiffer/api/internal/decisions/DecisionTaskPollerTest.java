@@ -36,8 +36,6 @@ public class DecisionTaskPollerTest {
     public void pollForTask() throws Exception {
         AmazonSimpleWorkflow swf = mock(AmazonSimpleWorkflow.class);
         String nextPageToken = "nextPage";
-        HistoryEvent first = mock(HistoryEvent.class);
-        when(first.getEventId()).thenReturn(1L);
         List<HistoryEvent> firstPageEvents = generateRandomHistoryEvents(11, 1010);
         List<HistoryEvent> secondPageEvents = generateRandomHistoryEvents(1, 10);
 

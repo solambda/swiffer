@@ -3,18 +3,9 @@ package com.solambda.swiffer.api.internal.decisions;
 import java.util.List;
 import java.util.Optional;
 
+import com.amazonaws.services.simpleworkflow.model.WorkflowType;
 import com.solambda.swiffer.api.internal.VersionedName;
-import com.solambda.swiffer.api.internal.context.ActivityTaskCompletedContext;
-import com.solambda.swiffer.api.internal.context.ActivityTaskFailedContext;
-import com.solambda.swiffer.api.internal.context.ActivityTaskScheduleFailedContext;
-import com.solambda.swiffer.api.internal.context.ActivityTaskTimedOutContext;
-import com.solambda.swiffer.api.internal.context.MarkerRecordedContext;
-import com.solambda.swiffer.api.internal.context.SignalReceivedContext;
-import com.solambda.swiffer.api.internal.context.TimerCanceledContext;
-import com.solambda.swiffer.api.internal.context.TimerFiredContext;
-import com.solambda.swiffer.api.internal.context.WorkflowCancelRequestedContext;
-import com.solambda.swiffer.api.internal.context.WorkflowStartedContext;
-import com.solambda.swiffer.api.internal.context.WorkflowTerminatedContext;
+import com.solambda.swiffer.api.internal.context.*;
 import com.solambda.swiffer.api.internal.context.identifier.ActivityName;
 import com.solambda.swiffer.api.internal.context.identifier.ContextName;
 import com.solambda.swiffer.api.internal.context.identifier.MarkerName;
@@ -35,7 +26,9 @@ public class EventContextImpl implements
 		ActivityTaskTimedOutContext,
 		TimerFiredContext,
 		TimerCanceledContext,
-		MarkerRecordedContext {
+		MarkerRecordedContext,
+		ChildWorkflowContext,
+		ExternalWorkflowContext {
 
 	private DecisionTaskContext decisionContext;
 
@@ -65,23 +58,25 @@ public class EventContextImpl implements
 	@Override
 	public ContextName name() {
 		switch (category()) {
-		case ACTIVITY:
-			return new ActivityName(activityType());
-		case SIGNAL:
-			return new SignalName(signalName());
-		case MARKER:
-			return new MarkerName(markerName());
-		case TIMER:
-			return new TimerName(timerId());
-		case DECISION:
-		case WORKFLOW_EXECUTION:
-			return new WorkflowName(workflowType());
-		case LAMBDA://
-		case SIGNAL_EXTERNAL_WORKFLOW:// signal + wfType(hard) ?
-		case CANCEL_EXTERNAL_WORKFLOW:// wfId ?
-		case CHILD_WORKFLOW:// should use child workflow type
-		default:
-			throw new IllegalArgumentException("cannot handle category id for " + category());
+			case ACTIVITY:
+				return new ActivityName(activityType());
+			case SIGNAL:
+				return new SignalName(signalName());
+			case MARKER:
+				return new MarkerName(markerName());
+			case TIMER:
+				return new TimerName(timerId());
+			case DECISION:
+			case WORKFLOW_EXECUTION:
+				return new WorkflowName(workflowType());
+			case CANCEL_EXTERNAL_WORKFLOW:
+				return new WorkflowName(workflowType());
+			case CHILD_WORKFLOW:
+				return childWorkflowName();
+			case LAMBDA://
+			case SIGNAL_EXTERNAL_WORKFLOW:// signal + wfType(hard) ?
+			default:
+				throw new IllegalArgumentException("cannot handle category id for " + category());
 		}
 	}
 
@@ -163,5 +158,36 @@ public class EventContextImpl implements
 	@Override
 	public <T> Optional<T> getMarkerDetails(String markerName, Class<T> type) {
 		return decisionContext.getMarkerDetails(markerName, type);
+	}
+
+	@Override
+	public WorkflowName childWorkflowName(){
+		WorkflowType workflowType = event.childWorkflowType();
+		return new WorkflowName(workflowType.getName(), workflowType.getVersion());
+	}
+
+	@Override
+	public String getExternalWorkflowId() {
+		return event.getExternalWorkflowId();
+	}
+
+	@Override
+	public String getExternalWorkflowRunId() {
+		return event.getExternalWorkflowRunId();
+	}
+
+	@Override
+	public String childWorkflowId() {
+		return event.childWorkflowId();
+	}
+
+	@Override
+	public String childWorkflowRunId() {
+		return event.childWorkflowRunId();
+	}
+
+	@Override
+	public String workflowId() {
+		return decisionContext.workflowId();
 	}
 }

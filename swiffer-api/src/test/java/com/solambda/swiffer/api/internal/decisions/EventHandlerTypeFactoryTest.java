@@ -3,19 +3,14 @@ package com.solambda.swiffer.api.internal.decisions;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.Method;
 
 import org.junit.Test;
 
 import com.amazonaws.services.simpleworkflow.model.EventType;
-import com.solambda.swiffer.api.ActivityType;
-import com.solambda.swiffer.api.OnActivityCompleted;
-import com.solambda.swiffer.api.OnActivityFailed;
-import com.solambda.swiffer.api.OnMarkerRecorded;
-import com.solambda.swiffer.api.OnRecordMarkerFailed;
-import com.solambda.swiffer.api.OnSignalReceived;
-import com.solambda.swiffer.api.OnTimerFired;
-import com.solambda.swiffer.api.OnWorkflowStarted;
+import com.solambda.swiffer.api.*;
 import com.solambda.swiffer.api.internal.VersionedName;
 import com.solambda.swiffer.api.internal.context.identifier.ActivityName;
 import com.solambda.swiffer.api.internal.context.identifier.MarkerName;
@@ -30,6 +25,7 @@ public class EventHandlerTypeFactoryTest {
 	private static final String MARKER1 = "marker1";
 
 	private static final VersionedName WORKFLOW_TYPE = new VersionedName("workflow1", "1");
+    private static final WorkflowName CHILD_WORKFLOW_NAME = new WorkflowName("child-wf", "1");
 
 	@ActivityType(name = "activity1", version = "1")
 	public static interface ActivityDef {
@@ -84,7 +80,38 @@ public class EventHandlerTypeFactoryTest {
         public void onRetryTimerFired(){
 
         }
+
+        @OnChildWorkflowCanceled(ChildWorkflow.class)
+        public void onChildWorkflowCanceled() {}
+
+        @OnChildWorkflowCompleted(ChildWorkflow.class)
+        public void onChildWorkflowCompleted() {}
+
+        @OnChildWorkflowFailed(ChildWorkflow.class)
+        public void onChildWorkflowFailed() {}
+
+        @OnChildWorkflowStarted(ChildWorkflow.class)
+        public void onChildWorkflowStarted() {}
+
+        @OnChildWorkflowTerminated(ChildWorkflow.class)
+        public void onChildWorkflowTerminated() {}
+
+        @OnChildWorkflowTimedOut(ChildWorkflow.class)
+        public void onChildWorkflowTimedOut() {}
+
+        @OnStartChildWorkflowFailed(ChildWorkflow.class)
+        public void onStartChildWorkflowFailed() {}
+
+        @OnWorkflowCancelRequested
+        public void onWorkflowCancelRequested() {}
 	}
+
+    @Retention(RetentionPolicy.RUNTIME)
+    @WorkflowType(name = "child-wf", version = "1")
+    public @interface ChildWorkflow {}
+
+    @ChildWorkflow
+    private static class ChildWorkflowTemplate {}
 
 	@Test
 	public void cannotDeclareMoreThan2HandlerAnnotation() throws Exception {
@@ -187,5 +214,85 @@ public class EventHandlerTypeFactoryTest {
         assertThatExceptionOfType(IllegalArgumentException.class)
                 .isThrownBy(() -> factory.create(method))
                 .withMessageContaining("This is reserved timer ID");
+    }
+
+    @Test
+    public void onChildWorkflowCanceled() throws Exception {
+        EventHandlerTypeFactory factory = createFactory();
+        Method method = Template1.class.getMethod("onChildWorkflowCanceled");
+
+        EventHandlerType type = factory.create(method);
+
+        assertThat(type).isEqualTo(new EventHandlerType(EventType.ChildWorkflowExecutionCanceled, CHILD_WORKFLOW_NAME));
+    }
+
+    @Test
+    public void onChildWorkflowCompleted() throws Exception  {
+        EventHandlerTypeFactory factory = createFactory();
+        Method method = Template1.class.getMethod("onChildWorkflowCompleted");
+
+        EventHandlerType type = factory.create(method);
+
+        assertThat(type).isEqualTo(new EventHandlerType(EventType.ChildWorkflowExecutionCompleted, CHILD_WORKFLOW_NAME));
+    }
+
+    @Test
+    public void onChildWorkflowFailed() throws Exception {
+        EventHandlerTypeFactory factory = createFactory();
+        Method method = Template1.class.getMethod("onChildWorkflowFailed");
+
+        EventHandlerType type = factory.create(method);
+
+        assertThat(type).isEqualTo(new EventHandlerType(EventType.ChildWorkflowExecutionFailed, CHILD_WORKFLOW_NAME));
+    }
+
+    @Test
+    public void onChildWorkflowStarted() throws Exception {
+        EventHandlerTypeFactory factory = createFactory();
+        Method method = Template1.class.getMethod("onChildWorkflowStarted");
+
+        EventHandlerType type = factory.create(method);
+
+        assertThat(type).isEqualTo(new EventHandlerType(EventType.ChildWorkflowExecutionStarted, CHILD_WORKFLOW_NAME));
+    }
+
+    @Test
+    public void onChildWorkflowTerminated() throws Exception {
+        EventHandlerTypeFactory factory = createFactory();
+        Method method = Template1.class.getMethod("onChildWorkflowTerminated");
+
+        EventHandlerType type = factory.create(method);
+
+        assertThat(type).isEqualTo(new EventHandlerType(EventType.ChildWorkflowExecutionTerminated, CHILD_WORKFLOW_NAME));
+    }
+
+    @Test
+    public void onChildWorkflowTimedOut() throws Exception {
+        EventHandlerTypeFactory factory = createFactory();
+        Method method = Template1.class.getMethod("onChildWorkflowTimedOut");
+
+        EventHandlerType type = factory.create(method);
+
+        assertThat(type).isEqualTo(new EventHandlerType(EventType.ChildWorkflowExecutionTimedOut, CHILD_WORKFLOW_NAME));
+    }
+
+    @Test
+    public void onStartChildWorkflowFailed() throws Exception {
+        EventHandlerTypeFactory factory = createFactory();
+        Method method = Template1.class.getMethod("onStartChildWorkflowFailed");
+
+        EventHandlerType type = factory.create(method);
+
+        assertThat(type).isEqualTo(new EventHandlerType(EventType.StartChildWorkflowExecutionFailed, CHILD_WORKFLOW_NAME));
+    }
+
+    @Test
+    public void onWorkflowCancelRequested() throws Exception{
+        EventHandlerTypeFactory factory = createFactory();
+        Method method = Template1.class.getMethod("onWorkflowCancelRequested");
+
+        EventHandlerType type = factory.create(method);
+
+        assertThat(type).isEqualTo(new EventHandlerType(EventType.WorkflowExecutionCancelRequested, new WorkflowName(WORKFLOW_TYPE)));
     }
 }

@@ -1,21 +1,7 @@
 package com.solambda.swiffer.api.internal.decisions;
 
-import static com.solambda.swiffer.api.internal.events.EventCategory.ACTIVITY;
-import static com.solambda.swiffer.api.internal.events.EventCategory.CANCEL_EXTERNAL_WORKFLOW;
-import static com.solambda.swiffer.api.internal.events.EventCategory.CHILD_WORKFLOW;
-import static com.solambda.swiffer.api.internal.events.EventCategory.DECISION;
-import static com.solambda.swiffer.api.internal.events.EventCategory.LAMBDA;
-import static com.solambda.swiffer.api.internal.events.EventCategory.MARKER;
-import static com.solambda.swiffer.api.internal.events.EventCategory.SIGNAL;
-import static com.solambda.swiffer.api.internal.events.EventCategory.SIGNAL_EXTERNAL_WORKFLOW;
-import static com.solambda.swiffer.api.internal.events.EventCategory.TIMER;
-import static com.solambda.swiffer.api.internal.events.EventCategory.WORKFLOW_EXECUTION;
-import static com.solambda.swiffer.api.internal.events.WorkflowEventState.ACTIVE;
-import static com.solambda.swiffer.api.internal.events.WorkflowEventState.CANCELED;
-import static com.solambda.swiffer.api.internal.events.WorkflowEventState.ERROR;
-import static com.solambda.swiffer.api.internal.events.WorkflowEventState.INITIAL;
-import static com.solambda.swiffer.api.internal.events.WorkflowEventState.SUCCESS;
-import static com.solambda.swiffer.api.internal.events.WorkflowEventState.TIMEOUT;
+import static com.solambda.swiffer.api.internal.events.EventCategory.*;
+import static com.solambda.swiffer.api.internal.events.WorkflowEventState.*;
 
 import java.time.Instant;
 
@@ -23,6 +9,7 @@ import com.amazonaws.services.simpleworkflow.model.ActivityTaskScheduledEventAtt
 import com.amazonaws.services.simpleworkflow.model.ActivityType;
 import com.amazonaws.services.simpleworkflow.model.EventType;
 import com.amazonaws.services.simpleworkflow.model.HistoryEvent;
+import com.amazonaws.services.simpleworkflow.model.WorkflowType;
 import com.solambda.swiffer.api.internal.VersionedName;
 import com.solambda.swiffer.api.internal.events.EventCategory;
 import com.solambda.swiffer.api.internal.events.WorkflowEventState;
@@ -1101,6 +1088,240 @@ public class WorkflowEvent implements Comparable<WorkflowEvent> {
 			return null;
 		default:
 			throw new IllegalArgumentException("Unknown EventType " + type());
+		}
+	}
+
+	public WorkflowType childWorkflowType() {
+		switch (type()) {
+			case ChildWorkflowExecutionCanceled:
+				return historyEvent().getChildWorkflowExecutionCanceledEventAttributes().getWorkflowType();
+			case ChildWorkflowExecutionCompleted:
+				return historyEvent().getChildWorkflowExecutionCompletedEventAttributes().getWorkflowType();
+			case ChildWorkflowExecutionFailed:
+				return historyEvent().getChildWorkflowExecutionFailedEventAttributes().getWorkflowType();
+			case ChildWorkflowExecutionStarted:
+				return historyEvent().getChildWorkflowExecutionStartedEventAttributes().getWorkflowType();
+			case ChildWorkflowExecutionTerminated:
+				return historyEvent().getChildWorkflowExecutionTerminatedEventAttributes().getWorkflowType();
+			case ChildWorkflowExecutionTimedOut:
+				return historyEvent().getChildWorkflowExecutionTimedOutEventAttributes().getWorkflowType();
+			case StartChildWorkflowExecutionInitiated:
+				return historyEvent().getStartChildWorkflowExecutionInitiatedEventAttributes().getWorkflowType();
+			case StartChildWorkflowExecutionFailed:
+				return historyEvent().getStartChildWorkflowExecutionFailedEventAttributes().getWorkflowType();
+			case ActivityTaskScheduled:
+			case CompleteWorkflowExecutionFailed:
+			case FailWorkflowExecutionFailed:
+			case CancelWorkflowExecutionFailed:
+			case ContinueAsNewWorkflowExecutionFailed:
+			case WorkflowExecutionCancelRequested:
+			case RequestCancelActivityTaskFailed:
+			case StartTimerFailed:
+			case ActivityTaskCancelRequested:
+			case ActivityTaskCanceled:
+			case ActivityTaskCompleted:
+			case ActivityTaskFailed:
+			case ActivityTaskStarted:
+			case ActivityTaskTimedOut:
+			case CancelTimerFailed:
+			case DecisionTaskCompleted:
+			case DecisionTaskScheduled:
+			case DecisionTaskStarted:
+			case DecisionTaskTimedOut:
+			case ExternalWorkflowExecutionCancelRequested:
+			case ExternalWorkflowExecutionSignaled:
+			case LambdaFunctionCompleted:
+			case LambdaFunctionFailed:
+			case LambdaFunctionScheduled:
+			case LambdaFunctionStarted:
+			case LambdaFunctionTimedOut:
+			case MarkerRecorded:
+			case RecordMarkerFailed:
+			case RequestCancelExternalWorkflowExecutionFailed:
+			case RequestCancelExternalWorkflowExecutionInitiated:
+			case ScheduleActivityTaskFailed:
+			case ScheduleLambdaFunctionFailed:
+			case SignalExternalWorkflowExecutionFailed:
+			case SignalExternalWorkflowExecutionInitiated:
+			case StartLambdaFunctionFailed:
+			case TimerCanceled:
+			case TimerFired:
+			case TimerStarted:
+			case WorkflowExecutionCanceled:
+			case WorkflowExecutionCompleted:
+			case WorkflowExecutionContinuedAsNew:
+			case WorkflowExecutionFailed:
+			case WorkflowExecutionSignaled:
+			case WorkflowExecutionStarted:
+			case WorkflowExecutionTerminated:
+			case WorkflowExecutionTimedOut:
+				return null;
+			default:
+				throw new IllegalArgumentException("Unknown EventType " + type());
+		}
+	}
+
+	public String childWorkflowId() {
+		switch (type()) {
+			case ChildWorkflowExecutionCanceled:
+				return historyEvent().getChildWorkflowExecutionCanceledEventAttributes().getWorkflowExecution().getWorkflowId();
+			case ChildWorkflowExecutionCompleted:
+				return historyEvent().getChildWorkflowExecutionCompletedEventAttributes().getWorkflowExecution().getWorkflowId();
+			case ChildWorkflowExecutionFailed:
+				return historyEvent().getChildWorkflowExecutionFailedEventAttributes().getWorkflowExecution().getWorkflowId();
+			case ChildWorkflowExecutionStarted:
+				return historyEvent().getChildWorkflowExecutionStartedEventAttributes().getWorkflowExecution().getWorkflowId();
+			case ChildWorkflowExecutionTerminated:
+				return historyEvent().getChildWorkflowExecutionTerminatedEventAttributes().getWorkflowExecution().getWorkflowId();
+			case ChildWorkflowExecutionTimedOut:
+				return historyEvent().getChildWorkflowExecutionTimedOutEventAttributes().getWorkflowExecution().getWorkflowId();
+			case StartChildWorkflowExecutionInitiated:
+				return historyEvent().getStartChildWorkflowExecutionInitiatedEventAttributes().getWorkflowId();
+			case StartChildWorkflowExecutionFailed:
+				return historyEvent().getStartChildWorkflowExecutionFailedEventAttributes().getWorkflowId();
+			case ActivityTaskScheduled:
+			case CompleteWorkflowExecutionFailed:
+			case FailWorkflowExecutionFailed:
+			case CancelWorkflowExecutionFailed:
+			case ContinueAsNewWorkflowExecutionFailed:
+			case WorkflowExecutionCancelRequested:
+			case RequestCancelActivityTaskFailed:
+			case StartTimerFailed:
+			case ActivityTaskCancelRequested:
+			case ActivityTaskCanceled:
+			case ActivityTaskCompleted:
+			case ActivityTaskFailed:
+			case ActivityTaskStarted:
+			case ActivityTaskTimedOut:
+			case CancelTimerFailed:
+			case DecisionTaskCompleted:
+			case DecisionTaskScheduled:
+			case DecisionTaskStarted:
+			case DecisionTaskTimedOut:
+			case ExternalWorkflowExecutionCancelRequested:
+			case ExternalWorkflowExecutionSignaled:
+			case LambdaFunctionCompleted:
+			case LambdaFunctionFailed:
+			case LambdaFunctionScheduled:
+			case LambdaFunctionStarted:
+			case LambdaFunctionTimedOut:
+			case MarkerRecorded:
+			case RecordMarkerFailed:
+			case RequestCancelExternalWorkflowExecutionFailed:
+			case RequestCancelExternalWorkflowExecutionInitiated:
+			case ScheduleActivityTaskFailed:
+			case ScheduleLambdaFunctionFailed:
+			case SignalExternalWorkflowExecutionFailed:
+			case SignalExternalWorkflowExecutionInitiated:
+			case StartLambdaFunctionFailed:
+			case TimerCanceled:
+			case TimerFired:
+			case TimerStarted:
+			case WorkflowExecutionCanceled:
+			case WorkflowExecutionCompleted:
+			case WorkflowExecutionContinuedAsNew:
+			case WorkflowExecutionFailed:
+			case WorkflowExecutionSignaled:
+			case WorkflowExecutionStarted:
+			case WorkflowExecutionTerminated:
+			case WorkflowExecutionTimedOut:
+				return null;
+			default:
+				throw new IllegalArgumentException("Unknown EventType " + type());
+		}
+	}
+
+	public String childWorkflowRunId() {
+		switch (type()) {
+			case ChildWorkflowExecutionCanceled:
+				return historyEvent().getChildWorkflowExecutionCanceledEventAttributes().getWorkflowExecution().getRunId();
+			case ChildWorkflowExecutionCompleted:
+				return historyEvent().getChildWorkflowExecutionCompletedEventAttributes().getWorkflowExecution().getRunId();
+			case ChildWorkflowExecutionFailed:
+				return historyEvent().getChildWorkflowExecutionFailedEventAttributes().getWorkflowExecution().getRunId();
+			case ChildWorkflowExecutionStarted:
+				return historyEvent().getChildWorkflowExecutionStartedEventAttributes().getWorkflowExecution().getRunId();
+			case ChildWorkflowExecutionTerminated:
+				return historyEvent().getChildWorkflowExecutionTerminatedEventAttributes().getWorkflowExecution().getRunId();
+			case ChildWorkflowExecutionTimedOut:
+				return historyEvent().getChildWorkflowExecutionTimedOutEventAttributes().getWorkflowExecution().getRunId();
+			case ActivityTaskScheduled:
+			case CompleteWorkflowExecutionFailed:
+			case FailWorkflowExecutionFailed:
+			case CancelWorkflowExecutionFailed:
+			case ContinueAsNewWorkflowExecutionFailed:
+			case WorkflowExecutionCancelRequested:
+			case RequestCancelActivityTaskFailed:
+			case StartTimerFailed:
+			case ActivityTaskCancelRequested:
+			case ActivityTaskCanceled:
+			case ActivityTaskCompleted:
+			case ActivityTaskFailed:
+			case ActivityTaskStarted:
+			case ActivityTaskTimedOut:
+			case CancelTimerFailed:
+			case DecisionTaskCompleted:
+			case DecisionTaskScheduled:
+			case DecisionTaskStarted:
+			case DecisionTaskTimedOut:
+			case ExternalWorkflowExecutionCancelRequested:
+			case ExternalWorkflowExecutionSignaled:
+			case LambdaFunctionCompleted:
+			case LambdaFunctionFailed:
+			case LambdaFunctionScheduled:
+			case LambdaFunctionStarted:
+			case LambdaFunctionTimedOut:
+			case MarkerRecorded:
+			case RecordMarkerFailed:
+			case RequestCancelExternalWorkflowExecutionFailed:
+			case RequestCancelExternalWorkflowExecutionInitiated:
+			case ScheduleActivityTaskFailed:
+			case ScheduleLambdaFunctionFailed:
+			case SignalExternalWorkflowExecutionFailed:
+			case SignalExternalWorkflowExecutionInitiated:
+			case StartChildWorkflowExecutionInitiated:
+			case StartChildWorkflowExecutionFailed:
+			case StartLambdaFunctionFailed:
+			case TimerCanceled:
+			case TimerFired:
+			case TimerStarted:
+			case WorkflowExecutionCanceled:
+			case WorkflowExecutionCompleted:
+			case WorkflowExecutionContinuedAsNew:
+			case WorkflowExecutionFailed:
+			case WorkflowExecutionSignaled:
+			case WorkflowExecutionStarted:
+			case WorkflowExecutionTerminated:
+			case WorkflowExecutionTimedOut:
+				return null;
+			default:
+				throw new IllegalArgumentException("Unknown EventType " + type());
+		}
+	}
+
+	public String getExternalWorkflowId() {
+		switch (type()) {
+			case ExternalWorkflowExecutionCancelRequested:
+				return historyEvent().getExternalWorkflowExecutionCancelRequestedEventAttributes().getWorkflowExecution().getWorkflowId();
+			case RequestCancelExternalWorkflowExecutionFailed:
+				return historyEvent().getRequestCancelExternalWorkflowExecutionFailedEventAttributes().getWorkflowId();
+			case RequestCancelExternalWorkflowExecutionInitiated:
+				return historyEvent().getRequestCancelExternalWorkflowExecutionInitiatedEventAttributes().getWorkflowId();
+			default:
+				return null;
+		}
+	}
+
+	public String getExternalWorkflowRunId() {
+		switch (type()) {
+			case ExternalWorkflowExecutionCancelRequested:
+				return historyEvent().getExternalWorkflowExecutionCancelRequestedEventAttributes().getWorkflowExecution().getRunId();
+			case RequestCancelExternalWorkflowExecutionFailed:
+				return historyEvent().getRequestCancelExternalWorkflowExecutionFailedEventAttributes().getRunId();
+			case RequestCancelExternalWorkflowExecutionInitiated:
+				return historyEvent().getRequestCancelExternalWorkflowExecutionInitiatedEventAttributes().getRunId();
+			default:
+				return null;
 		}
 	}
 

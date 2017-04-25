@@ -6,7 +6,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.time.Duration;
 import java.util.Optional;
 
 import org.junit.Test;
@@ -30,14 +29,6 @@ public class RetryHandlersTest {
     private final RetryHandlers retryHandlers = new RetryHandlers(retryPolicy);
     private final Decisions decideTo = mock(Decisions.class);
 
-    @Test
-    public void defaultRetryPolicy() throws Exception {
-        RetryPolicy defaultRetryPolicy = new ExponentialRetryPolicy(Duration.ofSeconds(5), Duration.ofHours(1));
-
-        RetryHandlers retryHandlers = new RetryHandlers(null);
-
-        assertThat(retryHandlers.getRetryPolicy()).isEqualTo(defaultRetryPolicy);
-    }
 
     @Test
     public void customRetryPolicy() throws Exception {

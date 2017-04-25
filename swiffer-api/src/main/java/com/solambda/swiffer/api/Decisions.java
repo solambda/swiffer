@@ -3,6 +3,7 @@ package com.solambda.swiffer.api;
 import java.time.Duration;
 
 import com.amazonaws.services.simpleworkflow.model.ActivityTaskScheduledEventAttributes;
+import com.solambda.swiffer.api.internal.context.ActivityTaskFailedContext;
 import com.solambda.swiffer.api.internal.decisions.DecisionTaskContext;
 import com.solambda.swiffer.api.retry.RetryPolicy;
 
@@ -154,6 +155,15 @@ public interface Decisions {
      */
     Decisions recordMarker(String markerName);
 
+	/**
+	 * Automatically retries failed activity specified by {@link ActivityTaskFailedContext} with default retry policy.
+	 *
+	 * @param scheduledEventId id of the ActivityTaskScheduled event that was recorded when activity task that failed was scheduled
+	 * @param context          the context of the failed activity task
+	 * @return this {@link Decisions} object
+	 */
+	Decisions retryActivity(Long scheduledEventId, ActivityTaskFailedContext context);
+
     /**
      * Automatically retries failed activity {@code activityType} with specified {@code retryPolicy}.
      *
@@ -184,4 +194,61 @@ public interface Decisions {
      * @return this {@link Decisions} object
      */
     Decisions scheduleActivityTask(ActivityTaskScheduledEventAttributes attributes);
+
+	/**
+	 * Adds a "Cancel Workflow Execution" decision.
+	 *
+	 * @param details details of the cancellation, optional
+	 * @return this {@link Decisions} object
+	 */
+	Decisions cancelWorkflow(String details);
+
+	/**
+	 * Adds a "Start Child Workflow Execution" decision.
+	 *
+	 * @param workflowType {@link WorkflowType} child workflow type, required
+	 * @param workflowId   child workflow ID, required
+	 * @return this {@link Decisions} object
+	 */
+	Decisions startChildWorkflow(Class<?> workflowType, String workflowId);
+
+	/**
+	 * Adds a "Start Child Workflow Execution" decision.
+	 *
+	 * @param workflowType {@link WorkflowType} child workflow type, required
+	 * @param workflowId   child workflow ID, required
+	 * @param input        the input for the workflow execution, optional
+	 * @return this {@link Decisions} object
+	 */
+	Decisions startChildWorkflow(Class<?> workflowType, String workflowId, Object input);
+
+	/**
+	 * Adds a "Start Child Workflow Execution" decision.
+	 *
+	 * @param workflowType {@link WorkflowType} child workflow type, required
+	 * @param workflowId   child workflow ID, required
+	 * @param input        the input for the workflow execution, optional
+	 * @param options      {@link WorkflowOptions} with additional parameters for child workflow execution, optional
+	 * @return this {@link Decisions} object
+	 */
+	Decisions startChildWorkflow(Class<?> workflowType, String workflowId, Object input, WorkflowOptions options);
+
+	/**
+	 * Adds a "Request Cancel External Workflow Execution" decision.
+	 *
+	 * @param workflowId ID of workflow to cancel, required
+	 * @param runId      run ID of workflow to cancel, required
+	 * @return this {@link Decisions} object
+	 */
+	Decisions requestCancelExternalWorkflow(String workflowId, String runId);
+
+	/**
+	 * Adds a "Request Cancel External Workflow Execution" decision.
+	 *
+	 * @param workflowId ID of workflow to cancel, required
+	 * @param runId      run ID of workflow to cancel, required
+	 * @param control    data attached to the event that can be used by the decider in subsequent workflow tasks, optional
+	 * @return this {@link Decisions} object
+	 */
+	Decisions requestCancelExternalWorkflow(String workflowId, String runId, Object control);
 }

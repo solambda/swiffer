@@ -4,11 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import java.lang.reflect.Method;
 import java.util.Optional;
@@ -28,6 +24,7 @@ import com.solambda.swiffer.api.Reason;
 import com.solambda.swiffer.api.duration.DefaultDurationTransformer;
 import com.solambda.swiffer.api.mapper.DataMapper;
 import com.solambda.swiffer.api.mapper.JacksonDataMapper;
+import com.solambda.swiffer.api.retry.NoRetryPolicy;
 
 public class EventHandlerArgumentsProviderFactoryTest {
 	private static final EventType ANY_TYPE = null;
@@ -39,11 +36,12 @@ public class EventHandlerArgumentsProviderFactoryTest {
 	private static final String DETAILS = "details";
     private static final String MARKER_DETAILS = "markerDetails";
 	private static final Long INITIAL_EVENT_ID = 5L;
+	private static final String CHILD_RUN_ID = "22OSeHwaQlI9DvOdRmlQpTZgtytsM7g73NUnoR5+aaSXc=";
 
 	private static final String MARKER_NAME = "marker";
     private static final String NO_DETAILS_MARKER_NAME = "markerNoDetails";
 
-	private final Decisions decisions = new DecisionsImpl(new JacksonDataMapper(), new DefaultDurationTransformer());
+	private final Decisions decisions = new DecisionsImpl(new JacksonDataMapper(), new DefaultDurationTransformer(), new NoRetryPolicy());
     private final DataMapper dataMapper = new JacksonDataMapper();
 
 	@ActivityType(name = "activity1", version = "1")
@@ -186,6 +184,15 @@ public class EventHandlerArgumentsProviderFactoryTest {
 		assertDefaultArgumentForEventType(softly, EventType.WorkflowExecutionStarted, INPUT);
 		assertDefaultArgumentForEventType(softly, EventType.WorkflowExecutionSignaled, INPUT);
 		assertDefaultArgumentForEventType(softly, EventType.TimerFired, CONTROL);
+
+		assertDefaultArgumentForEventType(softly, EventType.ChildWorkflowExecutionCanceled, DETAILS);
+		assertDefaultArgumentForEventType(softly, EventType.ChildWorkflowExecutionCompleted, OUTPUT);
+		assertDefaultArgumentForEventType(softly, EventType.ChildWorkflowExecutionFailed, REASON);
+		assertDefaultArgumentForEventType(softly, EventType.ChildWorkflowExecutionStarted, CHILD_RUN_ID);
+		assertDefaultArgumentForEventType(softly, EventType.ChildWorkflowExecutionTerminated, INITIAL_EVENT_ID);
+		assertDefaultArgumentForEventType(softly, EventType.ChildWorkflowExecutionTimedOut, INITIAL_EVENT_ID);
+		assertDefaultArgumentForEventType(softly, EventType.StartChildWorkflowExecutionFailed, CAUSE);
+		assertDefaultArgumentForEventType(softly, EventType.WorkflowExecutionCancelRequested, CAUSE);
 		softly.assertAll();
 	}
 
@@ -211,6 +218,7 @@ public class EventHandlerArgumentsProviderFactoryTest {
 		when(event.reason()).thenReturn(REASON);
 		when(event.details()).thenReturn(DETAILS);
 		when(event.initialEventId()).thenReturn(INITIAL_EVENT_ID);
+		when(event.childWorkflowRunId()).thenReturn(CHILD_RUN_ID);
 
         final EventContext context = mock(EventContext.class);
         when(context.event()).thenReturn(event);

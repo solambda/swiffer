@@ -1,13 +1,6 @@
 package com.solambda.swiffer.api.internal.decisions;
 
-import static com.solambda.swiffer.api.internal.decisions.ArgumentProviders.CONTROL_PROVIDER;
-import static com.solambda.swiffer.api.internal.decisions.ArgumentProviders.EVENT_CONTEXT_PROVIDER;
-import static com.solambda.swiffer.api.internal.decisions.ArgumentProviders.EVENT_PROVIDER;
-import static com.solambda.swiffer.api.internal.decisions.ArgumentProviders.INITIAL_EVENT_ID_PROVIDER;
-import static com.solambda.swiffer.api.internal.decisions.ArgumentProviders.INPUT_PROVIDER;
-import static com.solambda.swiffer.api.internal.decisions.ArgumentProviders.OUTPUT_PROVIDER;
-import static com.solambda.swiffer.api.internal.decisions.ArgumentProviders.REASON_PROVIDER;
-import static com.solambda.swiffer.api.internal.decisions.ArgumentProviders.WORKFLOW_HISTORY_PROVIDER;
+import static com.solambda.swiffer.api.internal.decisions.ArgumentProviders.*;
 
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
@@ -151,71 +144,78 @@ public class EventHandlerArgumentsProviderFactory {
 	}
 
 	private BiFunction<EventContext, Decisions, Object> getDefaultArgumentProvider(final EventType eventType,
-			final Class<?> argumentType) {
+																				   final Class<?> argumentType) {
 		// FIXME: check the compatibility of runtime value with the declared
 		// parameter type (@runtime and also @build time)
 		switch (eventType) {
-		case ActivityTaskCompleted:
-			return deserialize(OUTPUT_PROVIDER, argumentType);
-		case TimerFired:
-			return deserialize(CONTROL_PROVIDER, argumentType);
-		case WorkflowExecutionSignaled:
-		case WorkflowExecutionStarted:
-			return deserialize(INPUT_PROVIDER, argumentType);
-		case ActivityTaskTimedOut:
-		case ActivityTaskFailed:
-			return wrapInBiFunction(INITIAL_EVENT_ID_PROVIDER);
-
-		case TimerCanceled:
-		case ActivityTaskCancelRequested:
-		case ActivityTaskCanceled:
-		case ActivityTaskScheduled:
-		case ActivityTaskStarted:
-		case CancelTimerFailed:
-		case CancelWorkflowExecutionFailed:
-		case ChildWorkflowExecutionCanceled:
-		case ChildWorkflowExecutionCompleted:
-		case ChildWorkflowExecutionFailed:
-		case ChildWorkflowExecutionStarted:
-		case ChildWorkflowExecutionTerminated:
-		case ChildWorkflowExecutionTimedOut:
-		case CompleteWorkflowExecutionFailed:
-		case ContinueAsNewWorkflowExecutionFailed:
-		case DecisionTaskCompleted:
-		case DecisionTaskScheduled:
-		case DecisionTaskStarted:
-		case DecisionTaskTimedOut:
-		case ExternalWorkflowExecutionCancelRequested:
-		case ExternalWorkflowExecutionSignaled:
-		case FailWorkflowExecutionFailed:
-		case LambdaFunctionCompleted:
-		case LambdaFunctionFailed:
-		case LambdaFunctionScheduled:
-		case LambdaFunctionStarted:
-		case LambdaFunctionTimedOut:
-		case MarkerRecorded:
-		case RecordMarkerFailed:
-		case RequestCancelActivityTaskFailed:
-		case RequestCancelExternalWorkflowExecutionFailed:
-		case RequestCancelExternalWorkflowExecutionInitiated:
-		case ScheduleActivityTaskFailed:
-		case ScheduleLambdaFunctionFailed:
-		case SignalExternalWorkflowExecutionFailed:
-		case SignalExternalWorkflowExecutionInitiated:
-		case StartChildWorkflowExecutionFailed:
-		case StartChildWorkflowExecutionInitiated:
-		case StartLambdaFunctionFailed:
-		case StartTimerFailed:
-		case TimerStarted:
-		case WorkflowExecutionCancelRequested:
-		case WorkflowExecutionCanceled:
-		case WorkflowExecutionCompleted:
-		case WorkflowExecutionContinuedAsNew:
-		case WorkflowExecutionFailed:
-		case WorkflowExecutionTerminated:
-		case WorkflowExecutionTimedOut:
-		default:
-			throw new IllegalStateException("not yet implemented");
+			case ActivityTaskCompleted:
+				return deserialize(OUTPUT_PROVIDER, argumentType);
+			case TimerFired:
+				return deserialize(CONTROL_PROVIDER, argumentType);
+			case WorkflowExecutionSignaled:
+			case WorkflowExecutionStarted:
+				return deserialize(INPUT_PROVIDER, argumentType);
+			case ActivityTaskTimedOut:
+			case ActivityTaskFailed:
+				return wrapInBiFunction(INITIAL_EVENT_ID_PROVIDER);
+			case ChildWorkflowExecutionCanceled:
+				return wrapInBiFunction(DETAILS_PROVIDER);
+			case ChildWorkflowExecutionCompleted:
+				return deserialize(OUTPUT_PROVIDER, argumentType);
+			case ChildWorkflowExecutionFailed:
+				return wrapInBiFunction(REASON_PROVIDER);
+			case ChildWorkflowExecutionStarted:
+				return wrapInBiFunction(CHILD_RUN_ID_PROVIDER);
+			case ChildWorkflowExecutionTerminated:
+				return wrapInBiFunction(INITIAL_EVENT_ID_PROVIDER);
+			case ChildWorkflowExecutionTimedOut:
+				return wrapInBiFunction(INITIAL_EVENT_ID_PROVIDER);
+			case StartChildWorkflowExecutionFailed:
+				return wrapInBiFunction(CAUSE_PROVIDER);
+			case WorkflowExecutionCancelRequested:
+				return wrapInBiFunction(CAUSE_PROVIDER);
+			case TimerCanceled:
+			case ActivityTaskCancelRequested:
+			case ActivityTaskCanceled:
+			case ActivityTaskScheduled:
+			case ActivityTaskStarted:
+			case CancelTimerFailed:
+			case CancelWorkflowExecutionFailed:
+			case CompleteWorkflowExecutionFailed:
+			case ContinueAsNewWorkflowExecutionFailed:
+			case DecisionTaskCompleted:
+			case DecisionTaskScheduled:
+			case DecisionTaskStarted:
+			case DecisionTaskTimedOut:
+			case ExternalWorkflowExecutionCancelRequested:
+			case ExternalWorkflowExecutionSignaled:
+			case FailWorkflowExecutionFailed:
+			case LambdaFunctionCompleted:
+			case LambdaFunctionFailed:
+			case LambdaFunctionScheduled:
+			case LambdaFunctionStarted:
+			case LambdaFunctionTimedOut:
+			case MarkerRecorded:
+			case RecordMarkerFailed:
+			case RequestCancelActivityTaskFailed:
+			case RequestCancelExternalWorkflowExecutionFailed:
+			case RequestCancelExternalWorkflowExecutionInitiated:
+			case ScheduleActivityTaskFailed:
+			case ScheduleLambdaFunctionFailed:
+			case SignalExternalWorkflowExecutionFailed:
+			case SignalExternalWorkflowExecutionInitiated:
+			case StartChildWorkflowExecutionInitiated:
+			case StartLambdaFunctionFailed:
+			case StartTimerFailed:
+			case TimerStarted:
+			case WorkflowExecutionCanceled:
+			case WorkflowExecutionCompleted:
+			case WorkflowExecutionContinuedAsNew:
+			case WorkflowExecutionFailed:
+			case WorkflowExecutionTerminated:
+			case WorkflowExecutionTimedOut:
+			default:
+				throw new IllegalStateException("not yet implemented");
 		}
 	}
 
