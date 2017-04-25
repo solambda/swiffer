@@ -51,4 +51,11 @@ public interface DecisionTaskContext extends TaskContext {
      * @see #hasMarker(String) how to assess presence of the Marker withut details
      */
     <T> Optional<T> getMarkerDetails(String markerName, Class<T> type);
+
+	/**
+	 * Returns {@code true} if this workflow execution has received request to cancel.
+	 *
+	 * @return {@code true} if there is a {@code WorkflowExecutionCancelRequested} event
+	 */
+	boolean isCancelRequested();
 }

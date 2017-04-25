@@ -90,26 +90,27 @@ public class DecisionsImpl implements Decisions {
 	@Override
 	public Decisions retryActivity(Long scheduledEventId, ActivityTaskFailedContext context) {
 		String activityName = context.activityType().name();
-		return retryActivity(scheduledEventId, activityName, context, globalRetryPolicy);
+		return doRetryActivity(scheduledEventId, activityName, context, globalRetryPolicy);
 	}
 
-    @Override
+	@Override
+	public Decisions retryActivity(Long scheduledEventId, ActivityTaskFailedContext context, RetryPolicy retryPolicy) {
+		String activityName = context.activityType().name();
+		return doRetryActivity(scheduledEventId, activityName, context, retryPolicy);
+	}
+
+	@Override
     public Decisions retryActivity(Long scheduledEventId, Class<?> activityClass, DecisionTaskContext context, RetryPolicy retryPolicy) {
         String activityName = toActivityType(activityClass).getName();
-        return retryActivity(scheduledEventId, activityName, context, retryPolicy);
+        return doRetryActivity(scheduledEventId, activityName, context, retryPolicy);
     }
 
     @Override
     public Decisions retryActivity(Long scheduledEventId, String activityName, DecisionTaskContext context, RetryPolicy retryPolicy) {
-        String timerId = RetryControl.getTimerId(activityName);
-        RetryControl control = new RetryControl(scheduledEventId, activityName);
-        int retries = context.getMarkerDetails(control.getMarkerName(), Integer.class).orElse(0);
-
-        retryPolicy.durationToNextTry(++retries).ifPresent(duration -> startTimer(timerId, duration, control));
-        return this;
+		return doRetryActivity(scheduledEventId, activityName, context, retryPolicy);
     }
 
-    @Override
+	@Override
     public Decisions scheduleActivityTask(ActivityTaskScheduledEventAttributes source) {
         ScheduleActivityTaskDecisionAttributes attributes = new ScheduleActivityTaskDecisionAttributes()
                 .withActivityType(source.getActivityType())
@@ -306,5 +307,19 @@ public class DecisionsImpl implements Decisions {
 		}
 		Duration transformed = durationTransformer.transform(duration);
 		return Long.toString(transformed.getSeconds());
+	}
+
+	private Decisions doRetryActivity(Long scheduledEventId, String activityName, DecisionTaskContext context, RetryPolicy retryPolicy) {
+		if (context.isCancelRequested()) {
+			LOGGER.debug("Request to cancel workflow received: retry for Activity {} will not be scheduled.", activityName);
+			return this;
+		}
+
+		String timerId = RetryControl.getTimerId(activityName);
+		RetryControl control = new RetryControl(scheduledEventId, activityName);
+		int retries = context.getMarkerDetails(control.getMarkerName(), Integer.class).orElse(0);
+
+		retryPolicy.durationToNextTry(++retries).ifPresent(duration -> startTimer(timerId, duration, control));
+		return this;
 	}
 }

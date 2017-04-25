@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 
 import com.amazonaws.services.simpleworkflow.AmazonSimpleWorkflow;
 import com.amazonaws.services.simpleworkflow.model.DecisionTask;
+import com.amazonaws.services.simpleworkflow.model.EventType;
 import com.amazonaws.services.simpleworkflow.model.HistoryEvent;
 import com.amazonaws.services.simpleworkflow.model.WorkflowType;
 import com.google.common.collect.Lists;
@@ -82,6 +83,12 @@ public class DecisionTaskContextImpl implements DecisionTaskContext {
                            .filter(isMarkerRecordedEvent(markerName))
                            .findFirst()
                            .map(deserialize(type));
+	}
+
+	@Override
+	public boolean isCancelRequested() {
+		return decisionTask.getEvents().stream()
+						   .anyMatch(historyEvent -> historyEvent.getEventType().equals(EventType.WorkflowExecutionCancelRequested.name()));
 	}
 
 	@Override

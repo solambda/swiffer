@@ -66,9 +66,13 @@ public final class RetryHandlers {
         ActivityTaskScheduledEventAttributes activityAttributes = failedActivity.getActivityTaskScheduledEventAttributes();
 
         int retries = context.getMarkerDetails(control.getMarkerName(), Integer.class).orElse(0);
-        LOGGER.debug("Attempt to execute Activity after {} failed retries. Initial activity attributes: {}.", retries, activityAttributes);
-        decideTo.scheduleActivityTask(activityAttributes)
-                .recordMarker(control.getMarkerName(), ++retries);
+        if (context.isCancelRequested()) {
+            LOGGER.debug("Request to cancel workflow received: do not attempt to execute Activity {} after {} failed retries.", activityAttributes.getActivityType(), retries);
+        } else {
+            LOGGER.debug("Attempt to execute Activity after {} failed retries. Initial activity attributes: {}.", retries, activityAttributes);
+            decideTo.scheduleActivityTask(activityAttributes)
+                    .recordMarker(control.getMarkerName(), ++retries);
+        }
     }
 
     /**

@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 import java.util.Optional;
@@ -76,6 +77,29 @@ public class RetryHandlersTest {
 
         verify(decideTo).scheduleActivityTask(activityAttributes);
         verify(decideTo).recordMarker(markerName, 5);
+    }
+
+    @Test
+    public void onTimer_AfterCancelRequested() throws Exception {
+        String markerName = RetryControl.RETRY_MARKER + ACTIVITY_NAME;
+
+        ActivityTaskScheduledEventAttributes activityAttributes = mock(ActivityTaskScheduledEventAttributes.class);
+        WorkflowEvent event = mock(WorkflowEvent.class);
+        when(event.getActivityTaskScheduledEventAttributes()).thenReturn(activityAttributes);
+        WorkflowHistory history = mock(WorkflowHistory.class);
+        when(history.getEventById(SCHEDULED_EVENT_ID)).thenReturn(event);
+        DecisionTaskContext context = mock(DecisionTaskContext.class);
+        when(context.getMarkerDetails(markerName, Integer.class)).thenReturn(Optional.of(4));
+        when(context.history()).thenReturn(history);
+        when(context.isCancelRequested()).thenReturn(true);
+
+        RetryControl control = mock(RetryControl.class);
+        when(control.getScheduledEventId()).thenReturn(SCHEDULED_EVENT_ID);
+        when(control.getMarkerName()).thenReturn(markerName);
+
+        retryHandlers.onTimer(control, decideTo, context);
+
+        verifyZeroInteractions(decideTo);
     }
 
     private ActivityTaskFailedContext mockActivityTaskFailedContext(String activityName) {

@@ -164,6 +164,16 @@ public interface Decisions {
 	 */
 	Decisions retryActivity(Long scheduledEventId, ActivityTaskFailedContext context);
 
+	/**
+	 * Automatically retries failed activity from {@link ActivityTaskFailedContext} with specified {@code retryPolicy}.
+	 *
+	 * @param scheduledEventId id of the ActivityTaskScheduled event that was recorded when activity task that failed was scheduled
+	 * @param context          the {@link DecisionTaskContext}
+	 * @param retryPolicy      one of the {@link RetryPolicy} which should be used to retry the activity
+	 * @return this {@link Decisions} object
+	 */
+	Decisions retryActivity(Long scheduledEventId, ActivityTaskFailedContext context, RetryPolicy retryPolicy);
+
     /**
      * Automatically retries failed activity {@code activityType} with specified {@code retryPolicy}.
      *

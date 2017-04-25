@@ -31,6 +31,9 @@ import com.amazonaws.services.simpleworkflow.model.WorkflowExecutionCancelReques
 import com.solambda.swiffer.api.*;
 import com.solambda.swiffer.api.internal.decisions.DecisionTaskContext;
 
+/**
+ * Integration test for interactions between parent/child workflows.
+ */
 public class ParentWorkflowIT {
     private static final Logger LOGGER = LoggerFactory.getLogger(ParentWorkflowIT.class);
 

@@ -190,4 +190,9 @@ public class EventContextImpl implements
 	public String workflowId() {
 		return decisionContext.workflowId();
 	}
+
+	@Override
+	public boolean isCancelRequested() {
+		return decisionContext.isCancelRequested();
+	}
 }
