@@ -181,6 +181,24 @@ public class DecisionsImplTest {
         assertThat(retryTimerControl.getScheduledEventId()).isEqualTo(scheduledEventId);
     }
 
+    /**
+     * Test case:
+     * if request for cancel was received then activity should not be retried.
+     */
+    @Test
+    public void retryActivity_AfterCancel() {
+        Decisions spy = spy(decisions);
+        Long scheduledEventId = 777L;
+        DecisionTaskContext context = mock(DecisionTaskContext.class);
+        when(context.isCancelRequested()).thenReturn(true);
+        RetryPolicy retryPolicy = mock(RetryPolicy.class);
+
+        spy.retryActivity(scheduledEventId, CustomActivity.class, context, retryPolicy);
+
+        verify(spy, never()).startTimer(any(), any(), any());
+        verifyZeroInteractions(durationTransformer);
+    }
+
     @Test
     public void cancelWorkflow() throws Exception {
         String details = "Details";

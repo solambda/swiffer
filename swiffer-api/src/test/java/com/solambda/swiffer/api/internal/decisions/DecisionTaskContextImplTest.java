@@ -19,6 +19,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import com.amazonaws.services.simpleworkflow.AmazonSimpleWorkflow;
 import com.amazonaws.services.simpleworkflow.model.DecisionTask;
+import com.amazonaws.services.simpleworkflow.model.EventType;
 import com.amazonaws.services.simpleworkflow.model.HistoryEvent;
 import com.amazonaws.services.simpleworkflow.model.MarkerRecordedEventAttributes;
 import com.solambda.swiffer.api.mapper.DataMapper;
@@ -104,10 +105,36 @@ public class DecisionTaskContextImplTest {
         assertThat(result).isFalse();
     }
 
+    @Test
+    public void isCancelRequested() throws Exception {
+        HistoryEvent requestCancelEvent = mock(HistoryEvent.class);
+        when(requestCancelEvent.getEventType()).thenReturn(EventType.WorkflowExecutionCancelRequested.name());
+        List<HistoryEvent> events = mockHistoryEvents(requestCancelEvent);
+
+        when(decisionTask.getEvents()).thenReturn(events);
+
+        DecisionTaskContextImpl context = new DecisionTaskContextImpl(swf, domain, decisionTask, dataMapper);
+        boolean result = context.isCancelRequested();
+
+        assertThat(result).isTrue();
+    }
+
+    @Test
+    public void isCancelRequested_NotRequested() throws Exception {
+        List<HistoryEvent> events = mockHistoryEvents();
+        when(decisionTask.getEvents()).thenReturn(events);
+
+        DecisionTaskContextImpl context = new DecisionTaskContextImpl(swf, domain, decisionTask, dataMapper);
+        boolean result = context.isCancelRequested();
+
+        assertThat(result).isFalse();
+    }
+
     private List<HistoryEvent> mockHistoryEvents(HistoryEvent... concreteEvents) {
         Stream<HistoryEvent> randomHistoryEvents = new Random().longs(10).mapToObj(value -> {
             HistoryEvent historyEvent = mock(HistoryEvent.class);
             when(historyEvent.getEventId()).thenReturn(value);
+            when(historyEvent.getEventType()).thenReturn("");
             return historyEvent;
         });
         return Stream.concat(randomHistoryEvents, Stream.of(concreteEvents))
