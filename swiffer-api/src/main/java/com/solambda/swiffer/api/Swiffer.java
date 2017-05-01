@@ -219,7 +219,7 @@ public class Swiffer {
 	 *             if the workflow designated by this workflowId is not open
 	 */
 	public void sendSignalToWorkflow(final String workflowId, final String signalName) {
-
+		doSignal(workflowId, signalName, null);
 	}
 
 	/**

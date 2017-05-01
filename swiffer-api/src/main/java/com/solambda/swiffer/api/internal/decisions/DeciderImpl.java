@@ -3,6 +3,7 @@ package com.solambda.swiffer.api.internal.decisions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.amazonaws.services.simpleworkflow.model.AmazonSimpleWorkflowException;
 import com.amazonaws.services.simpleworkflow.model.UnknownResourceException;
 import com.solambda.swiffer.api.Decider;
 import com.solambda.swiffer.api.Decisions;
@@ -54,6 +55,15 @@ public class DeciderImpl extends AbstractTaskListService<DecisionTaskContext> im
 		} catch (UnknownResourceException ex) {
 			//TODO: add more sophisticated error handling?
 			LOGGER.error("Cannot make decisions based on the context  " + context, ex);
+		} catch (AmazonSimpleWorkflowException ex) {
+			switch (ex.getErrorType()) {
+				case Client:
+					LOGGER.error("SWF Client error for context " + context, ex);
+					break;
+				case Service:
+				case Unknown:
+					throw new IllegalStateException("Cannot make decisions based on the context  " + context, ex);
+			}
 		} catch (final Exception e) {
 			// how to recover from that ?
 			// use a marker for failure, and externally relaunch ?

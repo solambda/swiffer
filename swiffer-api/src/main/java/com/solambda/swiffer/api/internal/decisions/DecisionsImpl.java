@@ -2,6 +2,7 @@ package com.solambda.swiffer.api.internal.decisions;
 
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -24,8 +25,13 @@ import com.solambda.swiffer.api.retry.RetryPolicy;
 
 public class DecisionsImpl implements Decisions {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DecisionsImpl.class);
-
-	private List<Decision> decisions;
+	/**
+	 * List of decisions that should be the last decision in the list.
+	 */
+	private static final List<String> FINAL_DECISIONS = Arrays.asList(DecisionType.CancelWorkflowExecution.name(),
+																	  DecisionType.CompleteWorkflowExecution.name(),
+																	  DecisionType.FailWorkflowExecution.name());
+	private final List<Decision> decisions;
 	private final DataMapper dataMapper;
 	private final DurationTransformer durationTransformer;
 	private final RetryPolicy globalRetryPolicy;
@@ -45,15 +51,24 @@ public class DecisionsImpl implements Decisions {
 	}
 
 	/**
-	 * add a new decision to the list of deicisions for the given type, and
-	 * return the decision to allow configuring it
+	 * Adds a new decision to the list of decisions for the given type,
+	 * and returns the decision to allow configuring it.
+	 * <p>
+	 * If the decision list contains decision to close workflow (either complete, cancel or fail),
+	 * then new decision will not be added to the list and subsequently will not be sent to the server.
+	 * But the valid decision still be returned by this method.
+	 * </p>
 	 *
-	 * @param decisionType
-	 * @return
+	 * @param decisionType new decision type
+	 * @return new {@link Decision}
 	 */
 	private Decision newDecision(final DecisionType decisionType) {
 		final Decision decision = new Decision().withDecisionType(decisionType);
-		this.decisions.add(decision);
+		if (decisions.stream().anyMatch(d -> FINAL_DECISIONS.contains(d.getDecisionType()))) {
+			LOGGER.warn("Decision list already has decision to close workflow, which should be the last decision in the list. Skipping new decision {}", decision);
+		} else {
+			this.decisions.add(decision);
+		}
 		return decision;
 	}
 
@@ -90,23 +105,24 @@ public class DecisionsImpl implements Decisions {
 	@Override
 	public Decisions retryActivity(Long scheduledEventId, ActivityTaskFailedContext context) {
 		String activityName = context.activityType().name();
-		return retryActivity(scheduledEventId, activityName, context, globalRetryPolicy);
+		return doRetryActivity(scheduledEventId, activityName, context, globalRetryPolicy);
 	}
 
-    @Override
+	@Override
+	public Decisions retryActivity(Long scheduledEventId, ActivityTaskFailedContext context, RetryPolicy retryPolicy) {
+		String activityName = context.activityType().name();
+		return doRetryActivity(scheduledEventId, activityName, context, retryPolicy);
+	}
+
+	@Override
     public Decisions retryActivity(Long scheduledEventId, Class<?> activityClass, DecisionTaskContext context, RetryPolicy retryPolicy) {
         String activityName = toActivityType(activityClass).getName();
-        return retryActivity(scheduledEventId, activityName, context, retryPolicy);
+        return doRetryActivity(scheduledEventId, activityName, context, retryPolicy);
     }
 
     @Override
     public Decisions retryActivity(Long scheduledEventId, String activityName, DecisionTaskContext context, RetryPolicy retryPolicy) {
-        String timerId = RetryControl.getTimerId(activityName);
-        RetryControl control = new RetryControl(scheduledEventId, activityName);
-        int retries = context.getMarkerDetails(control.getMarkerName(), Integer.class).orElse(0);
-
-        retryPolicy.durationToNextTry(++retries).ifPresent(duration -> startTimer(timerId, duration, control));
-        return this;
+		return doRetryActivity(scheduledEventId, activityName, context, retryPolicy);
     }
 
     @Override
@@ -306,5 +322,14 @@ public class DecisionsImpl implements Decisions {
 		}
 		Duration transformed = durationTransformer.transform(duration);
 		return Long.toString(transformed.getSeconds());
+	}
+
+	private Decisions doRetryActivity(Long scheduledEventId, String activityName, DecisionTaskContext context, RetryPolicy retryPolicy) {
+		String timerId = RetryControl.getTimerId(activityName);
+		RetryControl control = new RetryControl(scheduledEventId, activityName);
+		int retries = context.getMarkerDetails(control.getMarkerName(), Integer.class).orElse(0);
+
+		retryPolicy.durationToNextTry(++retries).ifPresent(duration -> startTimer(timerId, duration, control));
+		return this;
 	}
 }
