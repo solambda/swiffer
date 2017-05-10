@@ -261,4 +261,9 @@ public interface Decisions {
 	 * @return this {@link Decisions} object
 	 */
 	Decisions requestCancelExternalWorkflow(String workflowId, String runId, Object control);
+
+	/**
+	 * @deprecated draft implementation
+	 */
+	Decisions continueAsNewWorkflow(String version);
 }

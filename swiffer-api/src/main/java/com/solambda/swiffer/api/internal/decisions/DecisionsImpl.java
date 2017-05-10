@@ -30,7 +30,8 @@ public class DecisionsImpl implements Decisions {
 	 */
 	private static final List<String> FINAL_DECISIONS = Arrays.asList(DecisionType.CancelWorkflowExecution.name(),
 																	  DecisionType.CompleteWorkflowExecution.name(),
-																	  DecisionType.FailWorkflowExecution.name());
+																	  DecisionType.FailWorkflowExecution.name(),
+																	  DecisionType.ContinueAsNewWorkflowExecution.name());
 	private final List<Decision> decisions;
 	private final DataMapper dataMapper;
 	private final DurationTransformer durationTransformer;
@@ -296,6 +297,12 @@ public class DecisionsImpl implements Decisions {
 	}
 
 	@Override
+	public Decisions continueAsNewWorkflow(String version) {
+		// TODO: complete implementation in Issue #11
+		return doContinueAsNewWorkflow(null, null, null, version);
+	}
+
+	@Override
 	public String toString() {
 		return "Decisions=" + this.decisions + "";
 	}
@@ -330,6 +337,28 @@ public class DecisionsImpl implements Decisions {
 		int retries = context.getMarkerDetails(control.getMarkerName(), Integer.class).orElse(0);
 
 		retryPolicy.durationToNextTry(++retries).ifPresent(duration -> startTimer(timerId, duration, control));
+		return this;
+	}
+
+	private Decisions doContinueAsNewWorkflow(Object input, WorkflowOptions options, Collection<String> tags, String version) {
+		// TODO: complete in Issue #11
+		WorkflowOptions params = SWFUtils.defaultIfNull(options, new WorkflowOptions());
+
+		ContinueAsNewWorkflowExecutionDecisionAttributes attributes = new ContinueAsNewWorkflowExecutionDecisionAttributes();
+		attributes.setInput(serialize(input));
+		attributes.setExecutionStartToCloseTimeout(params.getMaxExecutionDuration());
+		attributes.setTaskList(params.getTaskList());
+		attributes.setTaskPriority(params.getTaskPriority());
+		attributes.setTaskStartToCloseTimeout(params.getMaxDecisionTaskDuration());
+		attributes.setTagList(tags);
+		attributes.setWorkflowTypeVersion(version);
+//		attributes.setLambdaRole("");
+		if (params.getChildTerminationPolicy() != null) {
+			attributes.setChildPolicy(params.getChildTerminationPolicy());
+		}
+
+		newDecision(DecisionType.ContinueAsNewWorkflowExecution).withContinueAsNewWorkflowExecutionDecisionAttributes(attributes);
+
 		return this;
 	}
 }
