@@ -12,7 +12,7 @@
 	<logger name="com.solambda.swiffer" level="debug"/>
 	<logger name="com.solambda.swiffer.api.internal.activities" level="info"/>
 	<logger name="com.solambda.swiffer.api.internal.decisions" level="info"/>
-	<logger name="com.solambda.swiffer.api.internal.decisions" level="info"/>
+	<logger name="com.solambda.swiffer.api.internal.decisions" level="debug"/>
 
 	<root level="info">
 		<appender-ref ref="STDOUT" />

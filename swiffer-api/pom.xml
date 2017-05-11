@@ -9,6 +9,7 @@
 	<artifactId>swiffer-api</artifactId>
 	<properties>
 		<jackson.modules.version>2.6.1</jackson.modules.version>
+		<junitparams.version>0.9.0</junitparams.version>
 	</properties>
 	<dependencies>
 
@@ -69,6 +70,12 @@
 			<groupId>org.assertj</groupId>
 			<artifactId>assertj-guava</artifactId>
 			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>pl.pragmatists</groupId>
+			<artifactId>JUnitParams</artifactId>
+			<scope>test</scope>
+			<version>${junitparams.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>info.cukes</groupId>
