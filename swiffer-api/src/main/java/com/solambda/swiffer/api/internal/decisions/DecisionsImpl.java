@@ -2,7 +2,6 @@ package com.solambda.swiffer.api.internal.decisions;
 
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -25,14 +24,8 @@ import com.solambda.swiffer.api.retry.RetryPolicy;
 
 public class DecisionsImpl implements Decisions {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DecisionsImpl.class);
-	/**
-	 * List of decisions that should be the last decision in the list.
-	 */
-	private static final List<String> FINAL_DECISIONS = Arrays.asList(DecisionType.CancelWorkflowExecution.name(),
-																	  DecisionType.CompleteWorkflowExecution.name(),
-																	  DecisionType.FailWorkflowExecution.name(),
-																	  DecisionType.ContinueAsNewWorkflowExecution.name());
-	private final List<Decision> decisions;
+
+	private List<Decision> decisions;
 	private final DataMapper dataMapper;
 	private final DurationTransformer durationTransformer;
 	private final RetryPolicy globalRetryPolicy;
@@ -52,24 +45,15 @@ public class DecisionsImpl implements Decisions {
 	}
 
 	/**
-	 * Adds a new decision to the list of decisions for the given type,
-	 * and returns the decision to allow configuring it.
-	 * <p>
-	 * If the decision list contains decision to close workflow (either complete, cancel or fail),
-	 * then new decision will not be added to the list and subsequently will not be sent to the server.
-	 * But the valid decision still be returned by this method.
-	 * </p>
+	 * add a new decision to the list of deicisions for the given type, and
+	 * return the decision to allow configuring it
 	 *
-	 * @param decisionType new decision type
-	 * @return new {@link Decision}
+	 * @param decisionType
+	 * @return
 	 */
 	private Decision newDecision(final DecisionType decisionType) {
 		final Decision decision = new Decision().withDecisionType(decisionType);
-		if (decisions.stream().anyMatch(d -> FINAL_DECISIONS.contains(d.getDecisionType()))) {
-			LOGGER.warn("Decision list already has decision to close workflow, which should be the last decision in the list. Skipping new decision {}", decision);
-		} else {
-			this.decisions.add(decision);
-		}
+		this.decisions.add(decision);
 		return decision;
 	}
 

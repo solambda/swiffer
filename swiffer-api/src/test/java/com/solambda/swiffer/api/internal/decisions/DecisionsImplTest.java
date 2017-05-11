@@ -336,61 +336,6 @@ public class DecisionsImplTest {
         decisions.requestCancelExternalWorkflow("workflow", null);
     }
 
-    @Test
-    public void scheduleActivityTask_AfterCancel() throws Exception {
-        Duration duration = Duration.ofHours(8);
-        when(durationTransformer.transform(duration)).thenReturn(duration);
-
-        decisions.startTimer("Timer", duration)
-                 .cancelWorkflow("Cancel")
-                 .scheduleActivityTask(CustomActivity.class, "param");
-
-        assertThat(decisions.get()).hasSize(2);
-        assertThat(decisions.get()).extracting("decisionType").containsExactly(DecisionType.StartTimer.name(),
-                                                                               DecisionType.CancelWorkflowExecution.name());
-    }
-
-    @Test
-    public void startTimer_AfterComplete() throws Exception {
-        Duration duration = Duration.ofHours(8);
-        when(durationTransformer.transform(duration)).thenReturn(duration);
-
-        decisions.scheduleActivityTask(CustomActivity.class, "param")
-                 .completeWorkflow()
-                 .startTimer("Timer", duration);
-
-        assertThat(decisions.get()).hasSize(2);
-        assertThat(decisions.get()).extracting("decisionType").containsExactly(DecisionType.ScheduleActivityTask.name(),
-                                                                               DecisionType.CompleteWorkflowExecution.name());
-    }
-
-    @Test
-    public void recordMarker_AfterFail() throws Exception {
-        decisions.scheduleActivityTask(CustomActivity.class, "param")
-                 .failWorkflow("Timer", "Failure")
-                 .recordMarker("marker");
-
-        assertThat(decisions.get()).hasSize(2);
-        assertThat(decisions.get()).extracting("decisionType").containsExactly(DecisionType.ScheduleActivityTask.name(),
-                                                                               DecisionType.FailWorkflowExecution.name());
-
-    }
-
-    @Test
-    public void noFinalDecisions() throws Exception {
-        Duration duration = Duration.ofHours(8);
-        when(durationTransformer.transform(duration)).thenReturn(duration);
-
-        decisions.scheduleActivityTask(CustomActivity.class, "param")
-                 .recordMarker("marker")
-                 .startTimer("Timer", duration);
-
-        assertThat(decisions.get()).hasSize(3);
-        assertThat(decisions.get()).extracting("decisionType").containsExactly(DecisionType.ScheduleActivityTask.name(),
-                                                                               DecisionType.RecordMarker.name(),
-                                                                               DecisionType.StartTimer.name());
-    }
-
     @ActivityType(name = "activity", version="1")
     @interface CustomActivity{}
 
