@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,7 +50,7 @@ public class DecisionExecutorImpl implements DecisionExecutor {
 		LOGGER.debug("Receive {} decisions: {}", ((DecisionsImpl) decisions).get().size(), decisions);
 
 		final Collection<Decision> decisionList = normalize(((DecisionsImpl) decisions).get());
-		LOGGER.debug("Responding SWF with {} decisions: {}", decisionList.size(), decisions);
+		LOGGER.debug("Responding SWF with {} decisions: {}", decisionList.size(), decisionList);
 
 		this.swf.respondDecisionTaskCompleted(new RespondDecisionTaskCompletedRequest()
 													  .withDecisions(decisionList)
@@ -61,22 +60,41 @@ public class DecisionExecutorImpl implements DecisionExecutor {
 	}
 
 	/**
-	 * Filter list of received decisions leaving only ones that could be processed together.
+	 * Filter list of received decisions leaving only ones that could be processed without errors.
+	 * Decisions could be removed from the list only if one of the close decisions is present:
+	 * <ul>
+	 * <li>remove <b>all</b> decisions <b>after</b> first close decision,</li>
+	 * <li>remove decisions incompatible with close.</li>
+	 * </ul>
 	 *
 	 * @param decisions list of decisions received after task processing
-	 * @return list of decisions which could be executed together without errors
+	 * @return list of decisions that could be executed without validation errors
+	 * @see #CLOSE_DECISIONS
+	 * @see #COMPATIBLE_WITH_CLOSE
 	 */
-	private Collection<Decision> normalize(Collection<Decision> decisions) {
+	private List<Decision> normalize(List<Decision> decisions) {
 		if (decisions.stream().anyMatch(isCloseDecision)) {
-			return decisions.stream().filter(decision -> {
+			List<Decision> normalized = new ArrayList<>();
+			boolean alreadyClosed = false;
+			for (Decision decision : decisions) {
 				String decisionType = decision.getDecisionType();
-				if (COMPATIBLE_WITH_CLOSE.contains(decisionType) || CLOSE_DECISIONS.contains(decisionType)) {
-					return true;
+				if (alreadyClosed) {
+					LOGGER.warn("Close must be last decision in list, skip decision {}.", decision);
 				} else {
-					LOGGER.warn("Close decision is incompatible with this decision, skip decision {}.", decision);
-					return false;
+					if (CLOSE_DECISIONS.contains(decisionType)) {
+						normalized.add(decision);
+						alreadyClosed = true;
+					} else {
+						if (COMPATIBLE_WITH_CLOSE.contains(decisionType)) {
+							normalized.add(decision);
+						} else {
+							LOGGER.warn("Close decision is incompatible with this decision, skip decision {}.", decision);
+						}
+					}
 				}
-			}).collect(Collectors.toList());
+			}
+
+			return normalized;
 		}
 
 		return new ArrayList<>(decisions);

@@ -11,6 +11,8 @@ import com.solambda.swiffer.api.internal.MethodInvoker;
 import com.solambda.swiffer.api.internal.VersionedName;
 import com.solambda.swiffer.api.internal.context.ActivityTaskFailedContext;
 import com.solambda.swiffer.api.internal.context.ActivityTaskTimedOutContext;
+import com.solambda.swiffer.api.internal.handler.CloseWorkflowControl;
+import com.solambda.swiffer.api.internal.handler.CloseWorkflowFailedHandlers;
 import com.solambda.swiffer.api.mapper.DataMapper;
 import com.solambda.swiffer.api.retry.RetryControl;
 import com.solambda.swiffer.api.retry.RetryHandlers;
@@ -24,15 +26,22 @@ public class EventHandlerFactory {
 	static final EventHandlerType TIMED_OUT_ACTIVITY = new EventHandlerType(EventType.ActivityTaskTimedOut, null);
 	static final EventHandlerType RETRY_TIMER_FIRED = new EventHandlerType(EventType.TimerFired, null);
 
+	static final EventHandlerType COMPLETE_WORKFLOW_EXECUTION_FAILED = new EventHandlerType(EventType.CompleteWorkflowExecutionFailed, null);
+	static final EventHandlerType CANCEL_WORKFLOW_EXECUTION_FAILED = new EventHandlerType(EventType.CancelWorkflowExecutionFailed, null);
+	static final EventHandlerType FAIL_WORKFLOW_EXECUTION_FAILED = new EventHandlerType(EventType.FailWorkflowExecutionFailed, null);
+	static final EventHandlerType CONTINUE_AS_NEW_WORKFLOW_EXECUTION_FAILED = new EventHandlerType(EventType.ContinueAsNewWorkflowExecutionFailed, null);
+
 	private EventHandlerTypeFactory eventHandlerTypeFactory;
 	private EventHandlerArgumentsProviderFactory eventHandlerArgumentsProviderFactory;
 	private final RetryHandlers retryHandlers;
+	private final CloseWorkflowFailedHandlers closeWorkflowFailedHandlers;
 
 	public EventHandlerFactory(final VersionedName workflowType, DataMapper dataMapper, RetryPolicy globalRetryPolicy) {
 		super();
 		this.eventHandlerTypeFactory = new EventHandlerTypeFactory(workflowType);
 		this.eventHandlerArgumentsProviderFactory = new EventHandlerArgumentsProviderFactory(dataMapper);
 		retryHandlers = new RetryHandlers(globalRetryPolicy);
+		closeWorkflowFailedHandlers = new CloseWorkflowFailedHandlers();
 	}
 
 	public EventHandler createEventHandler(final Object template, final Method method) {
@@ -82,6 +91,42 @@ public class EventHandlerFactory {
 			return createEventHandler(retryHandlers, RETRY_TIMER_FIRED, method);
 		} catch (NoSuchMethodException ex) {
 			throw new RuntimeException("Unable to create default retry timer handler", ex);
+		}
+	}
+
+	EventHandler createCompleteWorkflowExecutionFailedHandler() {
+		try {
+			Method method = closeWorkflowFailedHandlers.getClass().getMethod("onCompleteWorkflowExecutionFailed", CloseWorkflowControl.class, Decisions.class);
+			return createEventHandler(closeWorkflowFailedHandlers, COMPLETE_WORKFLOW_EXECUTION_FAILED, method);
+		} catch (NoSuchMethodException ex) {
+			throw new RuntimeException("Unable to create default CompleteWorkflowExecutionFailed handler", ex);
+		}
+	}
+
+	EventHandler createCancelWorkflowExecutionFailedHandler() {
+		try {
+			Method method = closeWorkflowFailedHandlers.getClass().getMethod("onCancelWorkflowExecutionFailed", CloseWorkflowControl.class, Decisions.class);
+			return createEventHandler(closeWorkflowFailedHandlers, CANCEL_WORKFLOW_EXECUTION_FAILED, method);
+		} catch (NoSuchMethodException ex) {
+			throw new RuntimeException("Unable to create default CancelWorkflowExecutionFailed handler", ex);
+		}
+	}
+
+	EventHandler createFailWorkflowExecutionFailedHandler() {
+		try {
+			Method method = closeWorkflowFailedHandlers.getClass().getMethod("onFailWorkflowExecutionFailed", CloseWorkflowControl.class, Decisions.class);
+			return createEventHandler(closeWorkflowFailedHandlers, FAIL_WORKFLOW_EXECUTION_FAILED, method);
+		} catch (NoSuchMethodException ex) {
+			throw new RuntimeException("Unable to create default FailWorkflowExecutionFailed handler", ex);
+		}
+	}
+
+	EventHandler createContinueAsNewWorkflowExecutionFailedHandler() {
+		try {
+			Method method = closeWorkflowFailedHandlers.getClass().getMethod("onContinueAsNewWorkflowExecutionFailed", Decisions.class, DecisionTaskContext.class);
+			return createEventHandler(closeWorkflowFailedHandlers, CONTINUE_AS_NEW_WORKFLOW_EXECUTION_FAILED, method);
+		} catch (NoSuchMethodException ex) {
+			throw new RuntimeException("Unable to create default ContinueAsNewWorkflowExecutionFailed handler", ex);
 		}
 	}
 

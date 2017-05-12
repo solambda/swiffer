@@ -1,6 +1,7 @@
 package com.solambda.swiffer.api.internal.decisions;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
@@ -10,6 +11,7 @@ import java.time.Duration;
 import java.util.Optional;
 
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 
 import com.amazonaws.services.simpleworkflow.model.ChildPolicy;
@@ -26,20 +28,28 @@ import com.solambda.swiffer.api.WorkflowOptions;
 import com.solambda.swiffer.api.duration.DurationTransformer;
 import com.solambda.swiffer.api.internal.VersionedName;
 import com.solambda.swiffer.api.internal.context.ActivityTaskFailedContext;
+import com.solambda.swiffer.api.internal.handler.CloseWorkflowControl;
+import com.solambda.swiffer.api.mapper.ComplexJavaObject;
 import com.solambda.swiffer.api.mapper.DataMapper;
+import com.solambda.swiffer.api.mapper.JacksonDataMapper;
 import com.solambda.swiffer.api.retry.RetryControl;
 import com.solambda.swiffer.api.retry.RetryPolicy;
+
+import junitparams.JUnitParamsRunner;
+import junitparams.Parameters;
 
 /**
  * Test for {@link DecisionsImpl}.
  */
+@RunWith(JUnitParamsRunner.class)
 public class DecisionsImplTest {
-    private final DataMapper dataMapper = mock(DataMapper.class);
+    private final DataMapper dataMapper = spy(JacksonDataMapper.class);
     private final DurationTransformer durationTransformer = mock(DurationTransformer.class);
     private final RetryPolicy globalRetryPolicy = mock(RetryPolicy.class);
     private final DecisionsImpl decisions = new DecisionsImpl(dataMapper, durationTransformer, globalRetryPolicy);
 
     private static final WorkflowType CHILD_WORKFLOW_TYPE = new WorkflowType().withName("child").withVersion("1");
+
     /**
      * Verify that marker details are serialized.
      */
@@ -182,18 +192,6 @@ public class DecisionsImplTest {
     }
 
     @Test
-    public void cancelWorkflow() throws Exception {
-        String details = "Details";
-
-        decisions.cancelWorkflow(details);
-
-        assertThat(decisions.get()).hasSize(1);
-        Optional<Decision> decision = decisions.get().stream().filter(d -> d.getDecisionType().equals(DecisionType.CancelWorkflowExecution.name())).findAny();
-        assertThat(decision).isPresent();
-        assertThat(decision.get().getCancelWorkflowExecutionDecisionAttributes().getDetails()).isEqualTo(details);
-    }
-
-    @Test
     public void startChildWorkflow() throws Exception {
         String workflowId = "workflowId";
 
@@ -324,6 +322,100 @@ public class DecisionsImplTest {
         assertThat(attributes.getWorkflowId()).isEqualTo(workflowId);
         assertThat(attributes.getControl()).isEqualTo("888");
         assertThat(attributes.getRunId()).isEqualTo(runId);
+    }
+
+    private Object[] markerNames() {
+        return new Object[]{
+                CloseWorkflowControl.CANCEL_MARKER,
+                CloseWorkflowControl.COMPLETE_MARKER,
+                CloseWorkflowControl.FAIL_MARKER
+        };
+    }
+
+    /**
+     * Verify that it is impossible for user to record marker with reserved name.
+     */
+    @Test
+    @Parameters(method = "markerNames")
+    public void recordMarker_ValidName(String markerName) {
+        Object markerDetails = new Object();
+        try {
+            decisions.recordMarker(markerName, markerDetails);
+            fail("Expected exception is not thrown");
+        } catch (IllegalArgumentException ex) {
+            assertThat(decisions.get()).isEmpty();
+        }
+    }
+
+    @Test
+    public void cancelWorkflow_HasMarker() throws Exception {
+        String details = "Details";
+        String expectedControl = dataMapper.serialize(CloseWorkflowControl.cancelWorkflowControl(details));
+
+        decisions.cancelWorkflow(details);
+
+        assertThat(decisions.get()).hasSize(2);
+
+        Optional<Decision> decision = decisions.get().stream().filter(d -> d.getDecisionType().equals(DecisionType.CancelWorkflowExecution.name())).findAny();
+        assertThat(decision).isPresent();
+        assertThat(decision.get().getCancelWorkflowExecutionDecisionAttributes().getDetails()).isEqualTo(details);
+
+        Optional<Decision> marker = decisions.get().stream().filter(d -> d.getDecisionType().equals(DecisionType.RecordMarker.name())).findAny();
+        assertThat(marker).isPresent();
+        assertThat(marker.get().getRecordMarkerDecisionAttributes())
+                .hasFieldOrPropertyWithValue("markerName", CloseWorkflowControl.CANCEL_MARKER)
+                .hasFieldOrPropertyWithValue("details", expectedControl);
+    }
+
+    /**
+     * Verify marker with workflow result is recorded.
+     */
+    @Test
+    public void completeWorkflow_HasMarker() throws Exception {
+        ComplexJavaObject result = new ComplexJavaObject("test", 34);
+        String serializedResult = dataMapper.serialize(result);
+        String expectedControl = dataMapper.serialize(CloseWorkflowControl.completeWorkflowControl(result));
+
+        decisions.completeWorkflow(result);
+
+        assertThat(decisions.get()).hasSize(2);
+
+        Optional<Decision> decision = decisions.get().stream().filter(d -> d.getDecisionType().equals(DecisionType.CompleteWorkflowExecution.name())).findAny();
+        assertThat(decision).isPresent();
+        assertThat(decision.get().getCompleteWorkflowExecutionDecisionAttributes())
+                .hasFieldOrPropertyWithValue("result", serializedResult);
+
+        Optional<Decision> marker = decisions.get().stream().filter(d -> d.getDecisionType().equals(DecisionType.RecordMarker.name())).findAny();
+        assertThat(marker).isPresent();
+        assertThat(marker.get().getRecordMarkerDecisionAttributes())
+                .hasFieldOrPropertyWithValue("markerName", CloseWorkflowControl.COMPLETE_MARKER)
+                .hasFieldOrPropertyWithValue("details", expectedControl);
+    }
+
+    /**
+     * Verify marker with fail workflow details is recoded.
+     */
+    @Test
+    public void failWorkflow_HasMarker() throws Exception {
+        String details = "Details";
+        String reason = "reason";
+        String expectedControl = dataMapper.serialize(CloseWorkflowControl.failWorkflowControl(reason, details));
+
+        decisions.failWorkflow(reason, details);
+
+        assertThat(decisions.get()).hasSize(2);
+
+        Optional<Decision> decision = decisions.get().stream().filter(d -> d.getDecisionType().equals(DecisionType.FailWorkflowExecution.name())).findAny();
+        assertThat(decision).isPresent();
+        assertThat(decision.get().getFailWorkflowExecutionDecisionAttributes())
+                .hasFieldOrPropertyWithValue("details", details)
+                .hasFieldOrPropertyWithValue("reason", reason);
+
+        Optional<Decision> marker = decisions.get().stream().filter(d -> d.getDecisionType().equals(DecisionType.RecordMarker.name())).findAny();
+        assertThat(marker).isPresent();
+        assertThat(marker.get().getRecordMarkerDecisionAttributes())
+                .hasFieldOrPropertyWithValue("markerName", CloseWorkflowControl.FAIL_MARKER)
+                .hasFieldOrPropertyWithValue("details", expectedControl);
     }
 
     @Test(expected = IllegalArgumentException.class)

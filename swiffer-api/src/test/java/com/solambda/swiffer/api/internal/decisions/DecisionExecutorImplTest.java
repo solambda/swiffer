@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -34,7 +35,7 @@ public class DecisionExecutorImplTest {
     private final DecisionsImpl decisions = mock(DecisionsImpl.class);
 
     @Captor
-    private ArgumentCaptor<RespondDecisionTaskCompletedRequest> requestCaptor = ArgumentCaptor.forClass(RespondDecisionTaskCompletedRequest.class);
+    private final ArgumentCaptor<RespondDecisionTaskCompletedRequest> requestCaptor = ArgumentCaptor.forClass(RespondDecisionTaskCompletedRequest.class);
 
     private final List<String> compatibleWithClose = Arrays.asList(DecisionType.CancelTimer.name(),
                                                                    DecisionType.RecordMarker.name(),
@@ -47,38 +48,14 @@ public class DecisionExecutorImplTest {
      */
     @Test
     public void apply() throws Exception {
-        Collection<Decision> decisionList = mockAllNotCloseDecisions();
+        List<Decision> decisionList = mockAllNotCloseDecisions();
         when(decisions.get()).thenReturn(decisionList);
 
         decisionExecutor.apply(context, decisions);
 
         verify(swf).respondDecisionTaskCompleted(requestCaptor.capture());
         RespondDecisionTaskCompletedRequest actualRequest = requestCaptor.getValue();
-        assertThat(actualRequest.getDecisions()).containsOnlyElementsOf(decisionList);
-    }
-
-    /**
-     * Test case: close decisions are compatible with one another and shouldn't be filtered out.
-     */
-    @Test
-    public void apply_HasSeveralCloseDecision() throws Exception {
-        Collection<Decision> closeDecisions = mockAllCloseDecisions();
-        Collection<Decision> decisionList = new ArrayList<>(mockAllNotCloseDecisions());
-        decisionList.addAll(closeDecisions);
-
-        when(decisions.get()).thenReturn(decisionList);
-
-        decisionExecutor.apply(context, decisions);
-
-        verify(swf).respondDecisionTaskCompleted(requestCaptor.capture());
-        RespondDecisionTaskCompletedRequest actualRequest = requestCaptor.getValue();
-        Collection<String> expectedDecisions = new ArrayList<>(compatibleWithClose);
-        expectedDecisions.add(DecisionType.CancelWorkflowExecution.name());
-        expectedDecisions.add(DecisionType.CompleteWorkflowExecution.name());
-        expectedDecisions.add(DecisionType.FailWorkflowExecution.name());
-        expectedDecisions.add(DecisionType.ContinueAsNewWorkflowExecution.name());
-
-        assertThat(actualRequest.getDecisions()).extracting("decisionType").containsOnlyElementsOf(expectedDecisions);
+        assertThat(actualRequest.getDecisions()).containsExactlyElementsOf(decisionList);
     }
 
     private Object[] closeDecisions() {
@@ -90,10 +67,42 @@ public class DecisionExecutorImplTest {
         };
     }
 
+    /**
+     * Test case: only one close decision should be present.
+     * All decisions which comes after the first one are filtered out.
+     * All decisions which are incompatible with close and comes before are also removed.
+     */
+    @Test
+    @Parameters(method = "closeDecisions")
+    public void apply_DecisionsBeforeAndAfterClose(Decision closeDecision) throws Exception {
+        Collection<Decision> closeDecisions = mockAllCloseDecisions();
+        List<Decision> allNotClose = mockAllNotCloseDecisions();
+        List<Decision> decisionList = new ArrayList<>(allNotClose);
+        decisionList.add(closeDecision); // this is the close decision that should remain
+        decisionList.addAll(closeDecisions);
+        decisionList.addAll(mockAllNotCloseDecisions());  // another non-close decisions after close, they also should be removed
+
+        when(decisions.get()).thenReturn(decisionList);
+
+        decisionExecutor.apply(context, decisions);
+
+        verify(swf).respondDecisionTaskCompleted(requestCaptor.capture());
+
+        List<Decision> expected = allNotClose.stream().filter(d -> compatibleWithClose.contains(d.getDecisionType())).collect(Collectors.toList());
+        expected.add(closeDecision);
+
+        RespondDecisionTaskCompletedRequest actualRequest = requestCaptor.getValue();
+        assertThat(actualRequest.getDecisions()).containsExactlyElementsOf(expected);
+    }
+
+    /**
+     * Test case: decisions that are not compatible with close are removed.
+     * All decision scheduled before close and which are compatible are present.
+     */
     @Test
     @Parameters(method = "closeDecisions")
     public void apply_HasCloseDecision(Decision closeDecision) throws Exception {
-        Collection<Decision> decisionList = new ArrayList<>(mockAllNotCloseDecisions());
+        List<Decision> decisionList = new ArrayList<>(mockAllNotCloseDecisions());
         decisionList.add(closeDecision);
 
         when(decisions.get()).thenReturn(decisionList);
@@ -115,7 +124,7 @@ public class DecisionExecutorImplTest {
         return decision;
     }
 
-    private Collection<Decision> mockAllNotCloseDecisions() {
+    private List<Decision> mockAllNotCloseDecisions() {
         return Arrays.asList(mockDecision(DecisionType.ScheduleActivityTask),
                              mockDecision(DecisionType.RequestCancelActivityTask),
                              mockDecision(DecisionType.RecordMarker),
@@ -131,59 +140,4 @@ public class DecisionExecutorImplTest {
                              mockDecision(DecisionType.ContinueAsNewWorkflowExecution),
                              mockDecision(DecisionType.FailWorkflowExecution));
     }
-
-//    @Test
-//    public void scheduleActivityTask_AfterCancel() throws Exception {
-//        Duration duration = Duration.ofHours(8);
-//        when(durationTransformer.transform(duration)).thenReturn(duration);
-//
-//        decisions.startTimer("Timer", duration)
-//                 .cancelWorkflow("Cancel")
-//                 .scheduleActivityTask(DecisionsImplTest.CustomActivity.class, "param");
-//
-//        assertThat(decisions.get()).hasSize(2);
-//        assertThat(decisions.get()).extracting("decisionType").containsExactly(DecisionType.StartTimer.name(),
-//                                                                               DecisionType.CancelWorkflowExecution.name());
-//    }
-//
-//    @Test
-//    public void startTimer_AfterComplete() throws Exception {
-//        Duration duration = Duration.ofHours(8);
-//        when(durationTransformer.transform(duration)).thenReturn(duration);
-//
-//        decisions.scheduleActivityTask(DecisionsImplTest.CustomActivity.class, "param")
-//                 .completeWorkflow()
-//                 .startTimer("Timer", duration);
-//
-//        assertThat(decisions.get()).hasSize(2);
-//        assertThat(decisions.get()).extracting("decisionType").containsExactly(DecisionType.ScheduleActivityTask.name(),
-//                                                                               DecisionType.CompleteWorkflowExecution.name());
-//    }
-//
-//    @Test
-//    public void recordMarker_AfterFail() throws Exception {
-//        decisions.scheduleActivityTask(DecisionsImplTest.CustomActivity.class, "param")
-//                 .failWorkflow("Timer", "Failure")
-//                 .recordMarker("marker");
-//
-//        assertThat(decisions.get()).hasSize(2);
-//        assertThat(decisions.get()).extracting("decisionType").containsExactly(DecisionType.ScheduleActivityTask.name(),
-//                                                                               DecisionType.FailWorkflowExecution.name());
-//
-//    }
-//
-//    @Test
-//    public void noFinalDecisions() throws Exception {
-//        Duration duration = Duration.ofHours(8);
-//        when(durationTransformer.transform(duration)).thenReturn(duration);
-//
-//        decisions.scheduleActivityTask(DecisionsImplTest.CustomActivity.class, "param")
-//                 .recordMarker("marker")
-//                 .startTimer("Timer", duration);
-//
-//        assertThat(decisions.get()).hasSize(3);
-//        assertThat(decisions.get()).extracting("decisionType").containsExactly(DecisionType.ScheduleActivityTask.name(),
-//                                                                               DecisionType.RecordMarker.name(),
-//                                                                               DecisionType.StartTimer.name());
-//    }
 }

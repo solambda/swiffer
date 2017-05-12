@@ -26,6 +26,11 @@ public class EventHandlerRegistryFactory {
         eventHandlerRegistry.setDefaultTimedOutActivityHandler(factory.createTimedOutActivityHandler());
         eventHandlerRegistry.setDefaultRetryTimerFiredHandler(factory.createRetryTimerFiredHandler());
 
+		eventHandlerRegistry.setDefaultCancelWorkflowExecutionFailedHandler(factory.createCancelWorkflowExecutionFailedHandler());
+		eventHandlerRegistry.setDefaultCompleteWorkflowExecutionFailedHandler(factory.createCompleteWorkflowExecutionFailedHandler());
+		eventHandlerRegistry.setDefaultContinueAsNewWorkflowExecutionFailedHandler(factory.createContinueAsNewWorkflowExecutionFailedHandler());
+		eventHandlerRegistry.setDefaultFailWorkflowExecutionFailedHandler(factory.createFailWorkflowExecutionFailedHandler());
+
         return eventHandlerRegistry;
 	}
 

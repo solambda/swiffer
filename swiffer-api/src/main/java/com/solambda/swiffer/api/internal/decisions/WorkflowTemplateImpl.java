@@ -9,6 +9,7 @@ import com.amazonaws.services.simpleworkflow.model.EventType;
 import com.solambda.swiffer.api.Decisions;
 import com.solambda.swiffer.api.duration.DurationTransformer;
 import com.solambda.swiffer.api.internal.VersionedName;
+import com.solambda.swiffer.api.internal.events.HasCause;
 import com.solambda.swiffer.api.internal.events.HasTimerId;
 import com.solambda.swiffer.api.mapper.DataMapper;
 import com.solambda.swiffer.api.retry.RetryPolicy;
@@ -91,6 +92,18 @@ public class WorkflowTemplateImpl implements WorkflowTemplate {
                 String timerId = ((HasTimerId) eventContext).timerId();
                 eventHandler = eventHandlerRegistry.getDefaultRetryTimerFiredHandler(timerId);
                 break;
+			case CompleteWorkflowExecutionFailed:
+				eventHandler = eventHandlerRegistry.getDefaultCompleteWorkflowExecutionFailedHandler(((HasCause)eventContext).cause());
+				break;
+			case CancelWorkflowExecutionFailed:
+				eventHandler = eventHandlerRegistry.getDefaultCancelWorkflowExecutionFailedHandler(((HasCause)eventContext).cause());
+				break;
+			case FailWorkflowExecutionFailed:
+				eventHandler = eventHandlerRegistry.getDefaultFailWorkflowExecutionFailedHandler(((HasCause)eventContext).cause());
+				break;
+			case ContinueAsNewWorkflowExecutionFailed:
+				eventHandler = eventHandlerRegistry.getDefaultContinueAsNewWorkflowExecutionFailedHandler(((HasCause)eventContext).cause());
+				break;
         }
         if (eventHandler != null) {
             eventHandler.handleEvent(eventContext, decisions);

@@ -17,6 +17,7 @@ import java.util.function.UnaryOperator;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -28,6 +29,7 @@ import com.amazonaws.regions.Regions;
 import com.amazonaws.services.simpleworkflow.AmazonSimpleWorkflow;
 import com.amazonaws.services.simpleworkflow.AmazonSimpleWorkflowClient;
 import com.amazonaws.services.simpleworkflow.model.AmazonSimpleWorkflowException;
+import com.amazonaws.services.simpleworkflow.model.DecisionType;
 import com.amazonaws.services.simpleworkflow.model.EventType;
 import com.solambda.swiffer.api.*;
 
@@ -88,7 +90,7 @@ public class MakeDecisionAfterCloseIT {
     private static final Logger LOGGER = LoggerFactory.getLogger(MakeDecisionAfterCloseIT.class);
 
     private static final String TASK_LIST = "MakeDecisionAfterCloseIT-task-list";
-    private static final String COMPLETE_WF_SIGNAL = "MakeDecisionAfterCloseIT-complete-wf-signal";
+    private static final String CLOSE_WF_SIGNAL = "MakeDecisionAfterCloseIT-close-wf-signal";
     private static final String CASE1_WF_SIGNAL = "MakeDecisionAfterCloseIT-case1-wf-signal";
     private static final String CANCEL_TIMER = "CANCEL_TIMER_MakeDecisionAfterCloseIT";
 
@@ -126,12 +128,27 @@ public class MakeDecisionAfterCloseIT {
             LOGGER.info("Cancel workflow decision send.");
         }
 
-        @OnSignalReceived(COMPLETE_WF_SIGNAL)
-        public void onCompleteWFSignalReceived(Decisions decideTo) throws InterruptedException {
+        @OnSignalReceived(CLOSE_WF_SIGNAL)
+        public void onCloseWFSignalReceived(@Input DecisionType decisionType, Decisions decideTo) throws InterruptedException {
             LOGGER.info("Signal received.");
-            decideTo.completeWorkflow();
+            switch (decisionType) {
+                case CompleteWorkflowExecution:
+                    decideTo.completeWorkflow();
+                    break;
+                case FailWorkflowExecution:
+                    decideTo.failWorkflow("Fail on signal", "Deliberate failure");
+                    break;
+                case CancelWorkflowExecution:
+                    decideTo.cancelWorkflow("Cancel on signal");
+                    break;
+                case ContinueAsNewWorkflowExecution:
+                    // TODO: revisit in Issue #11
+                    decideTo.continueAsNewWorkflow("1");
+                    break;
+            }
+
             Thread.sleep(8 * 1000);
-            LOGGER.info("Complete workflow decision send.");
+            LOGGER.info("{} decision send.", decisionType);
         }
 
         @OnSignalReceived(CASE1_WF_SIGNAL)
@@ -182,13 +199,24 @@ public class MakeDecisionAfterCloseIT {
         waitForWorkflowToClose(5); // case #2
     }
 
+    private Object[] closeDecisions() {
+        return new Object[]{
+                new Object[]{"FailWorkflowExecution", DecisionType.FailWorkflowExecution},
+                new Object[]{"CancelWorkflowExecution", DecisionType.CancelWorkflowExecution},
+                new Object[]{"CompleteWorkflowExecution", DecisionType.CompleteWorkflowExecution}
+                // TODO: revisit in Issue #11
+//                new Object[]{"ContinueAsNewWorkflowExecution", DecisionType.ContinueAsNewWorkflowExecution}
+        };
+    }
+
     @Test
-    public void retryScheduledAfterComplete() throws Exception {
-        workflowId = "retryScheduledAfterComplete";
+    @Parameters(method = "closeDecisions")
+    public void retryScheduledAfterClose(String name, DecisionType closeDecision) throws Exception {
+        workflowId = "retryScheduledAfter-" + name;
         runId = swiffer.startWorkflow(RetryWorkflow.class, workflowId, null);
         sleep(Duration.ofSeconds(3));
 
-        swiffer.sendSignalToWorkflow(workflowId, COMPLETE_WF_SIGNAL);
+        swiffer.sendSignalToWorkflow(workflowId, CLOSE_WF_SIGNAL, closeDecision);
 
         sleep(Duration.ofSeconds(10));
         assertThat(decider.isStarted()).isTrue(); // case #1
@@ -198,7 +226,7 @@ public class MakeDecisionAfterCloseIT {
     /**
      * In this test the activity is scheduled after cancel. This is the definite way that leads to the case 1.
      * <p>
-     * The tests {@link #retryScheduledAfterComplete} and {@link #retryScheduledAfterCancel()}
+     * The tests {@link #retryScheduledAfterClose} and {@link #retryScheduledAfterCancel()}
      * emulate real-life situations and don't guarantee outcome (could be case 1 or case 2).
      */
     @Test
@@ -227,7 +255,7 @@ public class MakeDecisionAfterCloseIT {
         doNothing().when(template).onStart(any());
         doAnswer(invocation -> {
             Decisions decideTo = (Decisions) invocation.getArguments()[0];
-            decideTo.failWorkflow("Fail", "Deliberatly")
+            decideTo.failWorkflow("Fail", "Deliberately")
                     .scheduleActivityTask(DefaultActivity.class, "");
             return null;
         }).when(template).onCase1SignalReceived(any());
@@ -261,6 +289,10 @@ public class MakeDecisionAfterCloseIT {
         assertThat(decider.isStarted()).isTrue(); // case #1
     }
 
+    /**
+     * TODO: enable when issue #11 is fixed, now there is no way to terminate new WF
+     */
+    @Ignore
     @Test
     public void scheduledActivityAfterContinueAsNew() throws Exception {
         workflowId = "case1_ContinueAsNew";
@@ -332,6 +364,32 @@ public class MakeDecisionAfterCloseIT {
 
     @Test
     @Parameters(method = "decisions")
+    public void scheduleDecisionAfterCancel(String name, UnaryOperator<Decisions> decision, Consumer<Decisions> onStart) throws Exception {
+        workflowId = "case1-" + name + "-after-cancel";
+        doAnswer(invocation -> {
+            Decisions decideTo = (Decisions) invocation.getArguments()[0];
+            onStart.accept(decideTo);
+            return null;
+        }).when(template).onStart(any());
+
+        doAnswer(invocation -> {
+            Decisions decideTo = (Decisions) invocation.getArguments()[0];
+            decideTo.cancelWorkflow("cancel");
+            decision.apply(decideTo);
+            return null;
+        }).when(template).onCase1SignalReceived(any());
+
+        runId = swiffer.startWorkflow(RetryWorkflow.class, workflowId, null);
+        sleep(Duration.ofSeconds(3));
+
+        swiffer.sendSignalToWorkflow(workflowId, CASE1_WF_SIGNAL);
+
+        waitForWorkflowToClose(10); // case #2
+        assertThat(decider.isStarted()).isTrue(); // case #1
+    }
+
+    @Test
+    @Parameters(method = "decisions")
     public void scheduleDecisionBeforeComplete(String name, UnaryOperator<Decisions> decision, Consumer<Decisions> onStart) throws Exception {
         workflowId = "case1-" + name + "-before-complete";
         doAnswer(invocation -> {
@@ -343,6 +401,32 @@ public class MakeDecisionAfterCloseIT {
         doAnswer(invocation -> {
             Decisions decideTo = (Decisions) invocation.getArguments()[0];
             decision.apply(decideTo).completeWorkflow();
+            return null;
+        }).when(template).onCase1SignalReceived(any());
+
+        runId = swiffer.startWorkflow(RetryWorkflow.class, workflowId, null);
+        sleep(Duration.ofSeconds(3));
+
+        swiffer.sendSignalToWorkflow(workflowId, CASE1_WF_SIGNAL);
+
+        waitForWorkflowToClose(10); // case #2
+        assertThat(decider.isStarted()).isTrue(); // case #1
+    }
+
+    @Test
+    @Parameters(method = "decisions")
+    public void scheduleDecisionAfterComplete(String name, UnaryOperator<Decisions> decision, Consumer<Decisions> onStart) throws Exception {
+        workflowId = "case1-" + name + "-after-complete";
+        doAnswer(invocation -> {
+            Decisions decideTo = (Decisions) invocation.getArguments()[0];
+            onStart.accept(decideTo);
+            return null;
+        }).when(template).onStart(any());
+
+        doAnswer(invocation -> {
+            Decisions decideTo = (Decisions) invocation.getArguments()[0];
+            decideTo.completeWorkflow();
+            decision.apply(decideTo);
             return null;
         }).when(template).onCase1SignalReceived(any());
 
@@ -383,6 +467,37 @@ public class MakeDecisionAfterCloseIT {
 
     @Test
     @Parameters(method = "decisions")
+    public void scheduleDecisionAfterFail(String name, UnaryOperator<Decisions> decision, Consumer<Decisions> onStart) throws Exception {
+        workflowId = "case1-" + name + "-after-fail";
+
+        doAnswer(invocation -> {
+            Decisions decideTo = (Decisions) invocation.getArguments()[0];
+            onStart.accept(decideTo);
+            return null;
+        }).when(template).onStart(any());
+
+        doAnswer(invocation -> {
+            Decisions decideTo = (Decisions) invocation.getArguments()[0];
+            decideTo.failWorkflow("deliberate failure", "deliberate failure");
+            decision.apply(decideTo);
+            return null;
+        }).when(template).onCase1SignalReceived(any());
+
+        runId = swiffer.startWorkflow(RetryWorkflow.class, workflowId, null);
+        sleep(Duration.ofSeconds(3));
+
+        swiffer.sendSignalToWorkflow(workflowId, CASE1_WF_SIGNAL);
+
+        waitForWorkflowToClose(10); // case #2
+        assertThat(decider.isStarted()).isTrue(); // case #1
+    }
+
+    /**
+     * TODO: enable when issue #11 is fixed, now there is no way to terminate new WF
+     */
+    @Ignore
+    @Test
+    @Parameters(method = "decisions")
     public void scheduleDecisionBeforeContinueAsNew(String name, UnaryOperator<Decisions> decision, Consumer<Decisions> onStart) throws Exception {
         workflowId = "case1-" + name + "-before-continue-as-new";
 
@@ -407,9 +522,40 @@ public class MakeDecisionAfterCloseIT {
         assertThat(decider.isStarted()).isTrue(); // case #1
     }
 
+    /**
+     * TODO: enable when issue #11 is fixed, now there is no way to terminate new WF
+     */
+    @Ignore
+    @Test
+    @Parameters(method = "decisions")
+    public void scheduleDecisionAfterContinueAsNew(String name, UnaryOperator<Decisions> decision, Consumer<Decisions> onStart) throws Exception {
+        workflowId = "case1-" + name + "-after-continue-as-new";
+
+        doAnswer(invocation -> {
+            Decisions decideTo = (Decisions) invocation.getArguments()[0];
+            onStart.accept(decideTo);
+            return null;
+        }).when(template).onStart(any());
+
+        doAnswer(invocation -> {
+            Decisions decideTo = (Decisions) invocation.getArguments()[0];
+            decideTo.continueAsNewWorkflow("1");
+            decision.apply(decideTo);
+            return null;
+        }).when(template).onCase1SignalReceived(any());
+
+        runId = swiffer.startWorkflow(RetryWorkflow.class, workflowId, null);
+        sleep(Duration.ofSeconds(3));
+
+        swiffer.sendSignalToWorkflow(workflowId, CASE1_WF_SIGNAL);
+
+        waitForWorkflowToClose(10); // case #2
+        assertThat(decider.isStarted()).isTrue(); // case #1
+    }
+
     @Test
     public void severalCloseDecisions() throws Exception {
-        workflowId = "case1_two-close-decisions77";
+        workflowId = "case1_several-close-decisions";
 
         doNothing().when(template).onStart(any());
         doAnswer(invocation -> {
