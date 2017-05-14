@@ -11,12 +11,15 @@ import static org.mockito.Mockito.verify;
 
 import java.lang.reflect.Method;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.solambda.swiffer.api.Decisions;
 import com.solambda.swiffer.api.internal.VersionedName;
 import com.solambda.swiffer.api.internal.context.ActivityTaskFailedContext;
 import com.solambda.swiffer.api.internal.context.ActivityTaskTimedOutContext;
+import com.solambda.swiffer.api.internal.handler.CloseWorkflowControl;
+import com.solambda.swiffer.api.internal.handler.CloseWorkflowFailedHandlers;
 import com.solambda.swiffer.api.mapper.DataMapper;
 import com.solambda.swiffer.api.retry.NoRetryPolicy;
 import com.solambda.swiffer.api.retry.RetryControl;
@@ -88,6 +91,51 @@ public class EventHandlerFactoryTest {
         assertThat(handler).isNotNull();
     }
 
+    @Test
+    public void createCompleteWorkflowExecutionFailedHandler() throws Exception {
+        EventHandlerFactory eventHandlerFactory = spy(new EventHandlerFactory(workflowType, dataMapper, noRetryPolicy));
+        EventHandler handler = eventHandlerFactory.createCompleteWorkflowExecutionFailedHandler();
+
+        Method expectedMethod = getCloseWorkflowHandler("onCompleteWorkflowExecutionFailed");
+        verify(eventHandlerFactory).createEventHandler(any(CloseWorkflowFailedHandlers.class),
+                                                       eq(EventHandlerFactory.COMPLETE_WORKFLOW_EXECUTION_FAILED),
+                                                       eq(expectedMethod));
+        assertThat(handler).isNotNull();
+    }
+
+    @Test
+    public void createCancelWorkflowExecutionFailedHandler() throws Exception {
+        EventHandlerFactory eventHandlerFactory = spy(new EventHandlerFactory(workflowType, dataMapper, noRetryPolicy));
+        EventHandler handler = eventHandlerFactory.createCancelWorkflowExecutionFailedHandler();
+
+        Method expectedMethod = getCloseWorkflowHandler("onCancelWorkflowExecutionFailed");
+        verify(eventHandlerFactory).createEventHandler(any(CloseWorkflowFailedHandlers.class),
+                                                       eq(EventHandlerFactory.CANCEL_WORKFLOW_EXECUTION_FAILED),
+                                                       eq(expectedMethod));
+        assertThat(handler).isNotNull();
+    }
+
+    @Test
+    public void createFailWorkflowExecutionFailedHandler() throws Exception {
+        EventHandlerFactory eventHandlerFactory = spy(new EventHandlerFactory(workflowType, dataMapper, noRetryPolicy));
+        EventHandler handler = eventHandlerFactory.createFailWorkflowExecutionFailedHandler();
+
+        Method expectedMethod = getCloseWorkflowHandler("onFailWorkflowExecutionFailed");
+        verify(eventHandlerFactory).createEventHandler(any(CloseWorkflowFailedHandlers.class),
+                                                       eq(EventHandlerFactory.FAIL_WORKFLOW_EXECUTION_FAILED),
+                                                       eq(expectedMethod));
+        assertThat(handler).isNotNull();
+    }
+
+    @Test
+    @Ignore
+    public void createContinueAsNewWorkflowExecutionFailedHandler() throws Exception {
+        EventHandlerFactory eventHandlerFactory = spy(new EventHandlerFactory(workflowType, dataMapper, noRetryPolicy));
+        EventHandler handler = eventHandlerFactory.createContinueAsNewWorkflowExecutionFailedHandler();
+        //TODO: add after issue #11 is fixed
+        fail("");
+    }
+
     private static Method getOnFailureMethod() {
         try {
             return RetryHandlers.class.getMethod("onFailure", Long.class, Decisions.class, ActivityTaskFailedContext.class);
@@ -111,6 +159,15 @@ public class EventHandlerFactoryTest {
             return RetryHandlers.class.getMethod("onTimer", RetryControl.class, Decisions.class, DecisionTaskContext.class);
         } catch (NoSuchMethodException e) {
             fail("Can't create onTimer Method", e);
+            return null;
+        }
+    }
+
+    private Method getCloseWorkflowHandler(String methodName) {
+        try {
+            return CloseWorkflowFailedHandlers.class.getMethod(methodName, CloseWorkflowControl.class, Decisions.class);
+        } catch (NoSuchMethodException e) {
+            fail("Can't get method", e);
             return null;
         }
     }

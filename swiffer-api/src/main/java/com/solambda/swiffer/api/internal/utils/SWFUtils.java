@@ -1,5 +1,7 @@
 package com.solambda.swiffer.api.internal.utils;
 
+import java.util.Arrays;
+
 import com.amazonaws.services.simpleworkflow.model.WorkflowType;
 import com.google.common.base.Preconditions;
 
@@ -79,5 +81,20 @@ public class SWFUtils {
 	 */
 	public static <T> T defaultIfNull(T object, T defaultValue) {
 		return object != null ? object : defaultValue;
+	}
+
+	/**
+	 * Check if a given {@code string} starts with any of an array of specified {@code searchStrings}.
+	 *
+	 * @param string        the String to check, may be null
+	 * @param searchStrings the Strings to find, may be null or empty
+	 * @return {@code true} if the {@code string} starts with any of the the prefixes
+	 */
+	public static boolean startsWithAny(String string, String... searchStrings) {
+		if (string == null || searchStrings == null) {
+			return false;
+		}
+
+		return Arrays.stream(searchStrings).anyMatch(string::startsWith);
 	}
 }

@@ -3,11 +3,7 @@ package com.solambda.swiffer.api.internal.decisions;
 import static com.solambda.swiffer.test.Tests.sleep;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -20,7 +16,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
+import com.amazonaws.AmazonServiceException.ErrorType;
 import com.amazonaws.services.simpleworkflow.AmazonSimpleWorkflow;
+import com.amazonaws.services.simpleworkflow.model.AmazonSimpleWorkflowException;
 import com.amazonaws.services.simpleworkflow.model.DecisionTask;
 import com.amazonaws.services.simpleworkflow.model.EventType;
 import com.amazonaws.services.simpleworkflow.model.HistoryEvent;
@@ -30,6 +28,7 @@ import com.solambda.swiffer.api.Decider;
 import com.solambda.swiffer.api.OnWorkflowStarted;
 import com.solambda.swiffer.api.Swiffer;
 import com.solambda.swiffer.api.WorkflowType;
+import com.solambda.swiffer.api.internal.VersionedName;
 import com.solambda.swiffer.test.Tests;
 
 public class DeciderImplTest {
@@ -153,5 +152,38 @@ public class DeciderImplTest {
 		verify(this.workflowTemplate1).started(captor.capture());
 		final String request = captor.getValue();
 		assertThat(request).isEqualTo("workflowInput");
+	}
+
+	/**
+	 * Do not throw exception if it is a SWF client exception.
+	 */
+	@Test
+	public void executeTaskImmediately_ClientException() throws Exception {
+		AmazonSimpleWorkflowException ex = new AmazonSimpleWorkflowException("A message");
+		ex.setErrorType(ErrorType.Client);
+		ex.setErrorCode("ValidationException");
+		doThrow(ex).when(swf).respondDecisionTaskCompleted(any());
+
+		DecisionTaskContext task = mock(DecisionTaskContext.class);
+		when(task.workflowType()).thenReturn(new VersionedName("workflowType1", "1"));
+
+		DeciderImpl decider = (DeciderImpl) createDecider();
+		decider.executeTaskImmediately(task);
+	}
+
+	/**
+	 * Throw exception if there is a SWF not client exception.
+	 */
+	@Test(expected = IllegalStateException.class)
+	public void executeTaskImmediately_OtherException() throws Exception {
+		AmazonSimpleWorkflowException ex = new AmazonSimpleWorkflowException("A message");
+		ex.setErrorType(ErrorType.Service);
+		doThrow(ex).when(swf).respondDecisionTaskCompleted(any());
+
+		DecisionTaskContext task = mock(DecisionTaskContext.class);
+		when(task.workflowType()).thenReturn(new VersionedName("workflowType1", "1"));
+
+		DeciderImpl decider = (DeciderImpl) createDecider();
+		decider.executeTaskImmediately(task);
 	}
 }

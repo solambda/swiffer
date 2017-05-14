@@ -10,6 +10,10 @@ import java.lang.annotation.RetentionPolicy;
 
 import org.junit.Test;
 
+import com.amazonaws.services.simpleworkflow.model.CancelWorkflowExecutionFailedCause;
+import com.amazonaws.services.simpleworkflow.model.CompleteWorkflowExecutionFailedCause;
+import com.amazonaws.services.simpleworkflow.model.ContinueAsNewWorkflowExecutionFailedCause;
+import com.amazonaws.services.simpleworkflow.model.FailWorkflowExecutionFailedCause;
 import com.solambda.swiffer.api.*;
 import com.solambda.swiffer.api.exceptions.WorkflowTemplateException;
 import com.solambda.swiffer.api.internal.VersionedName;
@@ -20,6 +24,7 @@ import com.solambda.swiffer.api.internal.context.identifier.TimerName;
 import com.solambda.swiffer.api.internal.context.identifier.WorkflowName;
 import com.solambda.swiffer.api.mapper.DataMapper;
 import com.solambda.swiffer.api.mapper.JacksonDataMapper;
+import com.solambda.swiffer.api.retry.RetryControl;
 import com.solambda.swiffer.api.retry.RetryPolicy;
 
 public class EventHandlerRegistryFactoryTest {
@@ -151,5 +156,31 @@ public class EventHandlerRegistryFactoryTest {
 		assertThatExceptionOfType(WorkflowTemplateException.class)
 				.isThrownBy(() -> factory.build(new TemplateWithTwoHandlersOfTheSameType()))
 				.withMessageContaining("more than one handler of");
+	}
+
+	@Test
+	public void build_RegistryHasDefaultHandlers() throws Exception {
+		EventHandlerRegistryFactory factory = new EventHandlerRegistryFactory(WORKFLOW, dataMapper, retryPolicy);
+
+		EventHandlerRegistry registry = factory.build(new Template1());
+
+		assertThat(registry.getDefaultCancelWorkflowExecutionFailedHandler(null)).isNull();
+		assertThat(registry.getDefaultCancelWorkflowExecutionFailedHandler("any")).isNull();
+		assertThat(registry.getDefaultCompleteWorkflowExecutionFailedHandler(null)).isNull();
+		assertThat(registry.getDefaultCompleteWorkflowExecutionFailedHandler("any")).isNull();
+		assertThat(registry.getDefaultContinueAsNewWorkflowExecutionFailedHandler(null)).isNull();
+		assertThat(registry.getDefaultContinueAsNewWorkflowExecutionFailedHandler("any")).isNull();
+		assertThat(registry.getDefaultFailWorkflowExecutionFailedHandler(null)).isNull();
+		assertThat(registry.getDefaultFailWorkflowExecutionFailedHandler("any")).isNull();
+		assertThat(registry.getDefaultRetryTimerFiredHandler("any")).isNull();
+
+		assertThat(registry.getDefaultRetryTimerFiredHandler(RetryControl.RETRY_TIMER + "someActivity")).isNotNull();
+		assertThat(registry.getDefaultFailedActivityHandler()).isNotNull();
+		assertThat(registry.getDefaultTimedOutActivityHandler()).isNotNull();
+
+		assertThat(registry.getDefaultCancelWorkflowExecutionFailedHandler(CancelWorkflowExecutionFailedCause.UNHANDLED_DECISION.name())).isNotNull();
+		assertThat(registry.getDefaultCompleteWorkflowExecutionFailedHandler(CompleteWorkflowExecutionFailedCause.UNHANDLED_DECISION.name())).isNotNull();
+		assertThat(registry.getDefaultContinueAsNewWorkflowExecutionFailedHandler(ContinueAsNewWorkflowExecutionFailedCause.UNHANDLED_DECISION.name())).isNotNull();
+		assertThat(registry.getDefaultFailWorkflowExecutionFailedHandler(FailWorkflowExecutionFailedCause.UNHANDLED_DECISION.name())).isNotNull();
 	}
 }

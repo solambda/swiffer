@@ -17,6 +17,7 @@ import com.solambda.swiffer.api.Decisions;
 import com.solambda.swiffer.api.WorkflowOptions;
 import com.solambda.swiffer.api.duration.DurationTransformer;
 import com.solambda.swiffer.api.internal.context.ActivityTaskFailedContext;
+import com.solambda.swiffer.api.internal.handler.CloseWorkflowControl;
 import com.solambda.swiffer.api.internal.utils.SWFUtils;
 import com.solambda.swiffer.api.mapper.DataMapper;
 import com.solambda.swiffer.api.retry.RetryControl;
@@ -40,7 +41,7 @@ public class DecisionsImpl implements Decisions {
 	/**
 	 * @return the list of decisions
 	 */
-	public Collection<Decision> get() {
+	public List<Decision> get() {
 		return Collections.unmodifiableList(this.decisions);
 	}
 
@@ -90,23 +91,24 @@ public class DecisionsImpl implements Decisions {
 	@Override
 	public Decisions retryActivity(Long scheduledEventId, ActivityTaskFailedContext context) {
 		String activityName = context.activityType().name();
-		return retryActivity(scheduledEventId, activityName, context, globalRetryPolicy);
+		return doRetryActivity(scheduledEventId, activityName, context, globalRetryPolicy);
 	}
 
-    @Override
+	@Override
+	public Decisions retryActivity(Long scheduledEventId, ActivityTaskFailedContext context, RetryPolicy retryPolicy) {
+		String activityName = context.activityType().name();
+		return doRetryActivity(scheduledEventId, activityName, context, retryPolicy);
+	}
+
+	@Override
     public Decisions retryActivity(Long scheduledEventId, Class<?> activityClass, DecisionTaskContext context, RetryPolicy retryPolicy) {
         String activityName = toActivityType(activityClass).getName();
-        return retryActivity(scheduledEventId, activityName, context, retryPolicy);
+        return doRetryActivity(scheduledEventId, activityName, context, retryPolicy);
     }
 
     @Override
     public Decisions retryActivity(Long scheduledEventId, String activityName, DecisionTaskContext context, RetryPolicy retryPolicy) {
-        String timerId = RetryControl.getTimerId(activityName);
-        RetryControl control = new RetryControl(scheduledEventId, activityName);
-        int retries = context.getMarkerDetails(control.getMarkerName(), Integer.class).orElse(0);
-
-        retryPolicy.durationToNextTry(++retries).ifPresent(duration -> startTimer(timerId, duration, control));
-        return this;
+		return doRetryActivity(scheduledEventId, activityName, context, retryPolicy);
     }
 
     @Override
@@ -160,33 +162,22 @@ public class DecisionsImpl implements Decisions {
 
 	@Override
 	public Decisions completeWorkflow() {
-		return completeWorkflow(null);
+		return doCompleteWorkflow(null);
 	}
 
 	@Override
 	public Decisions completeWorkflow(final Object result) {
-		newDecision(DecisionType.CompleteWorkflowExecution)
-				.withCompleteWorkflowExecutionDecisionAttributes(
-						new CompleteWorkflowExecutionDecisionAttributes()
-								.withResult(serialize(result)));
-		return this;
+		return doCompleteWorkflow(result);
 	}
 
 	@Override
 	public Decisions cancelWorkflow(final String details) {
-		newDecision(DecisionType.CancelWorkflowExecution)
-				.withCancelWorkflowExecutionDecisionAttributes(new CancelWorkflowExecutionDecisionAttributes()
-																	   .withDetails(details));
-		return this;
+		return doCancelWorkflow(details);
 	}
 
 	@Override
 	public Decisions failWorkflow(final String reason, final String details) {
-		newDecision(DecisionType.FailWorkflowExecution)
-				.withFailWorkflowExecutionDecisionAttributes(new FailWorkflowExecutionDecisionAttributes()
-						.withReason(reason)
-						.withDetails(details));
-		return this;
+		return doFailWorkflow(reason, details);
 	}
 
 	@Override
@@ -215,16 +206,14 @@ public class DecisionsImpl implements Decisions {
 
 	@Override
     public Decisions recordMarker(String markerName, Object details) {
-        newDecision(DecisionType.RecordMarker)
-                .withRecordMarkerDecisionAttributes(new RecordMarkerDecisionAttributes()
-                                                            .withMarkerName(markerName)
-                                                            .withDetails(serialize(details)));
-        return this;
+		checkMarkerName(markerName);
+		return doRecordMarker(markerName, details);
     }
 
-    @Override
+	@Override
     public Decisions recordMarker(String markerName) {
-        return recordMarker(markerName, null);
+		checkMarkerName(markerName);
+        return doRecordMarker(markerName, null);
     }
 
 	@Override
@@ -280,6 +269,12 @@ public class DecisionsImpl implements Decisions {
 	}
 
 	@Override
+	public Decisions continueAsNewWorkflow(String version) {
+		// TODO: complete implementation in Issue #11
+		return doContinueAsNewWorkflow(null, null, null, version);
+	}
+
+	@Override
 	public String toString() {
 		return "Decisions=" + this.decisions + "";
 	}
@@ -306,5 +301,86 @@ public class DecisionsImpl implements Decisions {
 		}
 		Duration transformed = durationTransformer.transform(duration);
 		return Long.toString(transformed.getSeconds());
+	}
+
+	private Decisions doRetryActivity(Long scheduledEventId, String activityName, DecisionTaskContext context, RetryPolicy retryPolicy) {
+		String timerId = RetryControl.getTimerId(activityName);
+		RetryControl control = new RetryControl(scheduledEventId, activityName);
+		int retries = context.getMarkerDetails(control.getMarkerName(), Integer.class).orElse(0);
+
+		retryPolicy.durationToNextTry(++retries).ifPresent(duration -> startTimer(timerId, duration, control));
+		return this;
+	}
+
+	private Decisions doRecordMarker(String markerName, Object details) {
+		newDecision(DecisionType.RecordMarker)
+				.withRecordMarkerDecisionAttributes(new RecordMarkerDecisionAttributes()
+															.withMarkerName(markerName)
+															.withDetails(serialize(details)));
+		return this;
+	}
+
+	private Decisions doCompleteWorkflow(Object result) {
+		doRecordMarker(CloseWorkflowControl.COMPLETE_MARKER, CloseWorkflowControl.completeWorkflowControl(result));
+		newDecision(DecisionType.CompleteWorkflowExecution)
+				.withCompleteWorkflowExecutionDecisionAttributes(
+						new CompleteWorkflowExecutionDecisionAttributes()
+								.withResult(serialize(result)));
+		return this;
+	}
+
+	private Decisions doCancelWorkflow(String details) {
+		doRecordMarker(CloseWorkflowControl.CANCEL_MARKER, CloseWorkflowControl.cancelWorkflowControl(details));
+		newDecision(DecisionType.CancelWorkflowExecution)
+				.withCancelWorkflowExecutionDecisionAttributes(new CancelWorkflowExecutionDecisionAttributes()
+																	   .withDetails(details));
+		return this;
+	}
+
+	private Decisions doFailWorkflow(String reason, String details) {
+		doRecordMarker(CloseWorkflowControl.FAIL_MARKER, CloseWorkflowControl.failWorkflowControl(reason, details));
+		newDecision(DecisionType.FailWorkflowExecution)
+				.withFailWorkflowExecutionDecisionAttributes(new FailWorkflowExecutionDecisionAttributes()
+																	 .withReason(reason)
+																	 .withDetails(details));
+		return this;
+	}
+
+	private Decisions doContinueAsNewWorkflow(Object input, WorkflowOptions options, Collection<String> tags, String version) {
+		// TODO: complete in Issue #11
+		WorkflowOptions params = SWFUtils.defaultIfNull(options, new WorkflowOptions());
+
+		ContinueAsNewWorkflowExecutionDecisionAttributes attributes = new ContinueAsNewWorkflowExecutionDecisionAttributes();
+		attributes.setInput(serialize(input));
+		attributes.setExecutionStartToCloseTimeout(params.getMaxExecutionDuration());
+		attributes.setTaskList(params.getTaskList());
+		attributes.setTaskPriority(params.getTaskPriority());
+		attributes.setTaskStartToCloseTimeout(params.getMaxDecisionTaskDuration());
+		attributes.setTagList(tags);
+		attributes.setWorkflowTypeVersion(version);
+//		attributes.setLambdaRole("");
+		if (params.getChildTerminationPolicy() != null) {
+			attributes.setChildPolicy(params.getChildTerminationPolicy());
+		}
+
+		newDecision(DecisionType.ContinueAsNewWorkflowExecution).withContinueAsNewWorkflowExecutionDecisionAttributes(attributes);
+
+		return this;
+	}
+
+	/**
+	 * Ensure custom handler can not be specified for internal timer.
+	 *
+	 * @param markerName timer ID
+	 * @return timer ID if acceptable
+	 * @throws IllegalArgumentException if selected timer name is reserved for internal use
+	 */
+	private static String checkMarkerName(String markerName) {
+		Preconditions.checkNotNull(markerName);
+		Preconditions.checkArgument(!SWFUtils.startsWithAny(markerName, CloseWorkflowControl.CANCEL_MARKER,
+															CloseWorkflowControl.COMPLETE_MARKER,
+															CloseWorkflowControl.FAIL_MARKER), "This is reserved marker name");
+
+		return markerName;
 	}
 }
