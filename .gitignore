@@ -19,3 +19,6 @@
 hs_err_pid*
 /.README.md.html
 /.settings/
+
+/.idea
+**/*.iml
