@@ -1,5 +1,7 @@
 package com.solambda.swiffer.api;
 
+import java.time.Instant;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Date;
@@ -334,6 +336,17 @@ public class Swiffer {
 		Preconditions.checkNotNull(runId, "Workflow run ID must be specified.");
 
 		doCancel(workflowId, runId);
+	}
+
+	/**
+	 * Returns a list of open workflow executions from the beginning of the epoch.
+	 *
+	 * @param maxNumberOfExecutions the maximum number of executions that will be returned, greater than 0
+	 * @return list of open {@link WorkflowExecution}s or empty list if there is none
+	 */
+	public List<WorkflowExecution> findAllOpenExecutions(int maxNumberOfExecutions) {
+		ZonedDateTime oldest = Instant.EPOCH.atZone(ZoneOffset.UTC);
+		return findAllOpenExecutions(oldest, maxNumberOfExecutions);
 	}
 
 	/**

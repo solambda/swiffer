@@ -141,20 +141,19 @@ public class SwifferTest {
 	}
 
 	@Test
-	public void findAllOpenExecutions() throws Exception {
+	public void findAllOpenExecutions_NoOldest() throws Exception {
 		Random random = new Random();
 		Swiffer swiffer = new Swiffer(Tests.swf(), Tests.DOMAIN);
 
 		List<Tuple> expected = new ArrayList<>();
 		for (int i = 0; i < 2; i++) {
 			String workflowId = "OpenExecutionsTest-" + random.nextInt();
-			String runId = swiffer.startWorkflow(TestWorkflow.class, workflowId, "some input", new WorkflowOptions().maxWorkflowDuration(Duration.ofMinutes(1)), null);
+			String runId = swiffer.startWorkflow(TestWorkflow.class, workflowId, "some input", new WorkflowOptions().maxWorkflowDuration(Duration.ofSeconds(10)), null);
 
 			expected.add(tuple(workflowId, runId));
 		}
-		ZonedDateTime oldest = ZonedDateTime.now().minusMinutes(10);
 
-		List<WorkflowExecution> actual = swiffer.findAllOpenExecutions(oldest, 10);
+		List<WorkflowExecution> actual = swiffer.findAllOpenExecutions(10);
 
 		assertThat(actual).extracting("workflowId", "runId").containsOnlyElementsOf(expected);
 	}
