@@ -1,6 +1,7 @@
 package com.solambda.swiffer.api;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -9,10 +10,13 @@ import static org.mockito.Mockito.when;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.time.Duration;
+import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
+import org.assertj.core.groups.Tuple;
 import org.junit.After;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -25,6 +29,7 @@ import com.amazonaws.services.simpleworkflow.model.ChildPolicy;
 import com.amazonaws.services.simpleworkflow.model.HistoryEvent;
 import com.amazonaws.services.simpleworkflow.model.Run;
 import com.amazonaws.services.simpleworkflow.model.StartWorkflowExecutionRequest;
+import com.amazonaws.services.simpleworkflow.model.WorkflowExecution;
 import com.solambda.swiffer.test.Tests;
 
 public class SwifferTest {
@@ -133,6 +138,34 @@ public class SwifferTest {
 
 		assertThat(workflowExecutionHistory).hasSize(5);
 		assertThat(workflowExecutionHistory.get(4)).extracting("eventType").contains("WorkflowExecutionStarted");
+	}
+
+	@Test
+	public void findAllOpenExecutions_NoOldest() throws Exception {
+		Random random = new Random();
+		Swiffer swiffer = new Swiffer(Tests.swf(), Tests.DOMAIN);
+
+		List<Tuple> expected = new ArrayList<>();
+		for (int i = 0; i < 2; i++) {
+			String workflowId = "OpenExecutionsTest-" + random.nextInt();
+			String runId = swiffer.startWorkflow(TestWorkflow.class, workflowId, "some input", new WorkflowOptions().maxWorkflowDuration(Duration.ofSeconds(10)), null);
+
+			expected.add(tuple(workflowId, runId));
+		}
+
+		List<WorkflowExecution> actual = swiffer.findAllOpenExecutions(10);
+
+		assertThat(actual).extracting("workflowId", "runId").containsOnlyElementsOf(expected);
+	}
+
+	@Test
+	public void findAllOpenExecutions_NoExecutions() throws Exception {
+		Swiffer swiffer = new Swiffer(Tests.swf(), Tests.DOMAIN);
+		ZonedDateTime oldest = ZonedDateTime.now().plusHours(10);
+
+		List<WorkflowExecution> actual = swiffer.findAllOpenExecutions(oldest, 10);
+
+		assertThat(actual).isEmpty();
 	}
 
 	@After

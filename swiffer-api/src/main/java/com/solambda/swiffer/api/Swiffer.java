@@ -1,9 +1,13 @@
 package com.solambda.swiffer.api;
 
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import org.joda.time.LocalDate;
 import org.slf4j.Logger;
@@ -332,6 +336,38 @@ public class Swiffer {
 		Preconditions.checkNotNull(runId, "Workflow run ID must be specified.");
 
 		doCancel(workflowId, runId);
+	}
+
+	/**
+	 * Returns a list of open workflow executions from the beginning of the epoch.
+	 *
+	 * @param maxNumberOfExecutions the maximum number of executions that will be returned, greater than 0
+	 * @return list of open {@link WorkflowExecution}s or empty list if there is none
+	 */
+	public List<WorkflowExecution> findAllOpenExecutions(int maxNumberOfExecutions) {
+		ZonedDateTime oldest = Instant.EPOCH.atZone(ZoneOffset.UTC);
+		return findAllOpenExecutions(oldest, maxNumberOfExecutions);
+	}
+
+	/**
+	 * Returns a list of open workflow executions.
+	 *
+	 * @param oldest                the oldest start or close date of workflow, required
+	 * @param maxNumberOfExecutions the maximum number of executions that will be returned, greater than 0
+	 * @return list of open {@link WorkflowExecution}s or empty list if there is none
+	 */
+	public List<WorkflowExecution> findAllOpenExecutions(ZonedDateTime oldest, int maxNumberOfExecutions) {
+		Preconditions.checkNotNull(oldest, "Oldest start or close date of workflow is required");
+		Preconditions.checkArgument(maxNumberOfExecutions > 0, "Maximum number of executions should greater than 0");
+
+		ExecutionTimeFilter startTimeFilter = new ExecutionTimeFilter().withOldestDate(Date.from(oldest.toInstant()));
+
+		WorkflowExecutionInfos workflowExecutionInfos = swf.listOpenWorkflowExecutions(new ListOpenWorkflowExecutionsRequest()
+																							   .withDomain(domain)
+																							   .withMaximumPageSize(maxNumberOfExecutions)
+																							   .withStartTimeFilter(startTimeFilter));
+
+		return workflowExecutionInfos.getExecutionInfos().stream().map(WorkflowExecutionInfo::getExecution).collect(Collectors.toList());
 	}
 
 	private WorkflowExecutionInfo getWorkflowExecution(final String workflowId, final String runId) {
